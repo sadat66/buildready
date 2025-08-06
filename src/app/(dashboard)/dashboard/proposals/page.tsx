@@ -23,7 +23,7 @@ import {
 import Link from 'next/link'
 
 export default function ProposalsPage() {
-  const { profile } = useAuth()
+  const { profile, loading: authLoading } = useAuth()
   const [proposals, setProposals] = useState<Proposal[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
@@ -64,11 +64,20 @@ export default function ProposalsPage() {
     } finally {
       setLoading(false)
     }
-  }, [profile?.id, isHomeowner, supabase])
+  }, [profile?.id, isHomeowner])
 
   useEffect(() => {
+    console.log('ProposalsPage useEffect triggered:', { authLoading, profileId: profile?.id })
+    
+    // Don't proceed if auth is still loading
+    if (authLoading) {
+      console.log('Auth still loading, skipping fetch')
+      return
+    }
+    
+    console.log('Fetching proposals')
     fetchProposals()
-  }, [fetchProposals])
+  }, [fetchProposals, authLoading])
 
   const handleProposalAction = async (proposalId: string, action: 'accept' | 'reject') => {
     try {
@@ -117,12 +126,16 @@ export default function ProposalsPage() {
     }
   }
 
-  if (loading) {
+  // Show loading if auth is still loading or if we're loading proposals data
+  if (authLoading || loading) {
+    console.log('Rendering loading state for proposals:', { authLoading, loading })
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading proposals...</p>
+          <p className="mt-4 text-gray-600">
+            {authLoading ? 'Loading user profile...' : 'Loading proposals...'}
+          </p>
         </div>
       </div>
     )

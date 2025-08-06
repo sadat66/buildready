@@ -22,7 +22,7 @@ import {
 import Link from 'next/link'
 
 export default function ProjectsPage() {
-  const { profile } = useAuth()
+  const { profile, loading: authLoading } = useAuth()
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
@@ -62,11 +62,20 @@ export default function ProjectsPage() {
     } finally {
       setLoading(false)
     }
-  }, [profile?.id, isHomeowner, supabase])
+  }, [profile?.id, isHomeowner])
 
   useEffect(() => {
+    console.log('ProjectsPage useEffect triggered:', { authLoading, profileId: profile?.id })
+    
+    // Don't proceed if auth is still loading
+    if (authLoading) {
+      console.log('Auth still loading, skipping fetch')
+      return
+    }
+    
+    console.log('Fetching projects')
     fetchProjects()
-  }, [fetchProjects])
+  }, [fetchProjects, authLoading])
 
   const filteredProjects = projects.filter(project => {
     const matchesSearch = project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -89,12 +98,16 @@ export default function ProjectsPage() {
     }
   }
 
-  if (loading) {
+  // Show loading if auth is still loading or if we're loading projects data
+  if (authLoading || loading) {
+    console.log('Rendering loading state for projects:', { authLoading, loading })
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading projects...</p>
+          <p className="mt-4 text-gray-600">
+            {authLoading ? 'Loading user profile...' : 'Loading projects...'}
+          </p>
         </div>
       </div>
     )

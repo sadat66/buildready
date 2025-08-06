@@ -90,7 +90,7 @@ export default function DashboardLayout({
         </div>
       </nav>
 
-      <div className="flex">
+      <div className="flex max-w-7xl mx-auto">
         {/* Sidebar */}
         <div className="w-64 bg-white shadow-sm min-h-screen">
           <div className="p-4">
