@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState, useCallback } from 'rea
 import { User } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase'
 import { User as AppUser } from '@/types/database'
+import { clearSupabaseStorage, isRefreshTokenError } from '@/lib/auth-utils'
 
 interface AuthContextType {
   user: User | null
@@ -60,24 +61,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Set mounted immediately to show content
     setMounted(true)
     
+    // Add a timeout to prevent infinite loading
+    const timeoutId = setTimeout(() => {
+      if (loading) {
+        console.log('Auth loading timeout, setting loading to false')
+        setLoading(false)
+      }
+    }, 5000) // 5 second timeout
+
     return () => {
-      console.log('AuthContext component unmounting, resetting states')
-      setLoading(false)
-      setUser(null)
-      setProfile(null)
+      clearTimeout(timeoutId)
     }
   }, [])
 
   useEffect(() => {
     if (!mounted) return
-
-    console.log('AuthContext useEffect triggered, mounted:', mounted)
-
-    // Add a timeout to prevent infinite loading
-    const timeoutId = setTimeout(() => {
-      console.log('Auth loading timeout reached, setting loading to false')
-      setLoading(false)
-    }, 10000) // 10 second timeout
 
     // Get initial session
     const getSession = async () => {
@@ -87,6 +85,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         if (error) {
           console.error('Error getting session:', error)
+          // If it's a refresh token error, clear the session and storage
+          if (isRefreshTokenError(error)) {
+            console.log('Refresh token error detected, clearing session and storage')
+            clearSupabaseStorage()
+            await supabase.auth.signOut()
+          }
           setLoading(false)
           return
         }
@@ -112,6 +116,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       async (event, session) => {
         try {
           console.log('Auth state changed:', event, session ? 'User present' : 'No user')
+          
+          // Handle token refresh errors
+          if (event === 'TOKEN_REFRESHED' && !session) {
+            console.log('Token refresh failed, signing out')
+            await supabase.auth.signOut()
+            setUser(null)
+            setProfile(null)
+            setLoading(false)
+            return
+          }
+          
           setUser(session?.user ?? null)
           if (session?.user) {
             await fetchProfile(session.user.id)
@@ -121,6 +136,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setLoading(false)
         } catch (error) {
           console.error('Error handling auth state change:', error)
+          // If there's an error with token refresh, clear the session and storage
+          if (isRefreshTokenError(error)) {
+            console.log('Refresh token error in auth state change, clearing session and storage')
+            clearSupabaseStorage()
+            await supabase.auth.signOut()
+            setUser(null)
+            setProfile(null)
+          }
           setLoading(false)
         }
       }
@@ -128,13 +151,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return () => {
       console.log('AuthContext useEffect cleanup')
-      clearTimeout(timeoutId)
       subscription.unsubscribe()
     }
   }, [mounted, fetchProfile])
 
   const signOut = async () => {
-    await supabase.auth.signOut()
+    try {
+      console.log('Signing out user')
+      const { error } = await supabase.auth.signOut()
+      if (error) {
+        console.error('Error signing out:', error)
+      }
+      // Clear local state regardless of API response
+      setUser(null)
+      setProfile(null)
+      setLoading(false)
+    } catch (error) {
+      console.error('Unexpected error during sign out:', error)
+      // Clear local state even if sign out fails
+      setUser(null)
+      setProfile(null)
+      setLoading(false)
+    }
   }
 
   const refreshProfile = async () => {
