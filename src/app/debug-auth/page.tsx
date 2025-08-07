@@ -2,9 +2,10 @@
 
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase'
-import { clearSupabaseStorage } from '@/lib/auth-utils'
+
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import SessionPersistenceTest from '@/components/SessionPersistenceTest'
 
 export default function DebugAuthPage() {
   const [status, setStatus] = useState('')
@@ -14,8 +15,15 @@ export default function DebugAuthPage() {
     try {
       setStatus('Clearing authentication state...')
       
-      // Clear Supabase storage
-      clearSupabaseStorage()
+      // Clear localStorage items related to Supabase
+      const keysToRemove = []
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i)
+        if (key && key.startsWith('sb-')) {
+          keysToRemove.push(key)
+        }
+      }
+      keysToRemove.forEach(key => localStorage.removeItem(key))
       
       // Sign out from Supabase
       await supabase.auth.signOut()
@@ -47,46 +55,56 @@ export default function DebugAuthPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Authentication Debug</CardTitle>
-          <CardDescription>
-            Use this page to debug and fix authentication issues
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Button 
-            onClick={handleCheckSession}
-            variant="outline"
-            className="w-full"
-          >
-            Check Current Session
-          </Button>
-          
-          <Button 
-            onClick={handleClearAuth}
-            variant="destructive"
-            className="w-full"
-          >
-            Clear Authentication State
-          </Button>
-          
-          {status && (
-            <div className="p-3 bg-gray-100 rounded-md text-sm">
-              {status}
-            </div>
-          )}
-          
-          <div className="text-xs text-gray-500 space-y-2">
-            <p><strong>When to use &quot;Clear Authentication State&quot;:</strong></p>
-            <ul className="list-disc list-inside space-y-1">
-              <li>Getting &quot;Invalid Refresh Token&quot; errors</li>
-              <li>Stuck in authentication loops</li>
-              <li>Unable to sign in after previous errors</li>
-            </ul>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="w-full max-w-4xl space-y-6">
+        {/* Session Persistence Test */}
+        <div className="flex justify-center">
+          <SessionPersistenceTest />
+        </div>
+        
+        {/* Original Debug Tools */}
+        <div className="flex justify-center">
+          <Card className="w-full max-w-md">
+            <CardHeader>
+              <CardTitle>Authentication Debug</CardTitle>
+              <CardDescription>
+                Use this page to debug and fix authentication issues
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Button 
+                onClick={handleCheckSession}
+                variant="outline"
+                className="w-full"
+              >
+                Check Current Session
+              </Button>
+              
+              <Button 
+                onClick={handleClearAuth}
+                variant="destructive"
+                className="w-full"
+              >
+                Clear Authentication State
+              </Button>
+              
+              {status && (
+                <div className="p-3 bg-gray-100 rounded-md text-sm">
+                  {status}
+                </div>
+              )}
+              
+              <div className="text-xs text-gray-500 space-y-2">
+                <p><strong>When to use &quot;Clear Authentication State&quot;:</strong></p>
+                <ul className="list-disc list-inside space-y-1">
+                  <li>Getting &quot;Invalid Refresh Token&quot; errors</li>
+                  <li>Stuck in authentication loops</li>
+                  <li>Unable to sign in after previous errors</li>
+                </ul>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   )
 }

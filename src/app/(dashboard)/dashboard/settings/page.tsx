@@ -1,264 +1,200 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { 
-  Bell,
-  Shield,
-  User,
-  Mail,
-  Save
-} from 'lucide-react'
+import { Switch } from '@/components/ui/switch'
+import { ArrowLeft, Settings, Bell, Shield, Palette, Globe } from 'lucide-react'
+import Link from 'next/link'
 
 export default function SettingsPage() {
-  const [mounted, setMounted] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [message, setMessage] = useState('')
+  const [notifications, setNotifications] = useState({
+    email: true,
+    push: false,
+    sms: false
+  })
+  
+  const [preferences, setPreferences] = useState({
+    darkMode: false,
+    language: 'English',
+    timezone: 'UTC'
+  })
 
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  // Don't render anything until mounted to prevent hydration issues
-  if (!mounted || typeof window === 'undefined') {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
-        </div>
-      </div>
-    )
+  const handleNotificationChange = (type: keyof typeof notifications) => {
+    setNotifications(prev => ({
+      ...prev,
+      [type]: !prev[type]
+    }))
   }
 
-  const handleSaveSettings = async () => {
-    setLoading(true)
-    setMessage('Settings saved successfully!')
-    
-    // Simulate API call
-    setTimeout(() => {
-      setLoading(false)
-      setTimeout(() => setMessage(''), 3000)
-    }, 1000)
+  const handlePreferenceChange = (type: keyof typeof preferences) => {
+    if (type === 'darkMode') {
+      setPreferences(prev => ({
+        ...prev,
+        [type]: !prev[type]
+      }))
+    }
   }
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
-        <p className="text-gray-600 mt-2">
-          Manage your account preferences and settings
-        </p>
+      <div className="flex items-center space-x-4">
+        <Link href="/dashboard">
+          <Button variant="outline" size="sm">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Dashboard
+          </Button>
+        </Link>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Account Settings */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <User className="w-5 h-5 mr-2" />
-              Account Settings
-            </CardTitle>
-            <CardDescription>
-              Manage your account information and preferences
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Email Notifications
-              </label>
-              <div className="space-y-2">
-                <label className="flex items-center">
-                  <input type="checkbox" defaultChecked className="mr-2" />
-                  <span className="text-sm">New project notifications</span>
-                </label>
-                <label className="flex items-center">
-                  <input type="checkbox" defaultChecked className="mr-2" />
-                  <span className="text-sm">Proposal updates</span>
-                </label>
-                <label className="flex items-center">
-                  <input type="checkbox" defaultChecked className="mr-2" />
-                  <span className="text-sm">Message notifications</span>
-                </label>
-                <label className="flex items-center">
-                  <input type="checkbox" className="mr-2" />
-                  <span className="text-sm">Marketing emails</span>
-                </label>
-              </div>
-            </div>
+      {/* Page Title */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-2xl flex items-center space-x-3">
+            <Settings className="h-6 w-6" />
+            <span>Settings</span>
+          </CardTitle>
+          <CardDescription>
+            Manage your account preferences and settings
+          </CardDescription>
+        </CardHeader>
+      </Card>
 
+      {/* Notification Settings */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Bell className="h-5 w-5" />
+            <span>Notifications</span>
+          </CardTitle>
+          <CardDescription>
+            Choose how you want to be notified
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Profile Visibility
-              </label>
-              <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="public">Public - Anyone can see my profile</option>
-                <option value="registered">Registered users only</option>
-                <option value="private">Private - Only project participants</option>
-              </select>
+              <p className="font-medium">Email Notifications</p>
+              <p className="text-sm text-gray-600">Receive notifications via email</p>
             </div>
-          </CardContent>
-        </Card>
+            <Switch 
+              checked={notifications.email}
+              onCheckedChange={() => handleNotificationChange('email')}
+            />
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium">Push Notifications</p>
+              <p className="text-sm text-gray-600">Receive push notifications in browser</p>
+            </div>
+            <Switch 
+              checked={notifications.push}
+              onCheckedChange={() => handleNotificationChange('push')}
+            />
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium">SMS Notifications</p>
+              <p className="text-sm text-gray-600">Receive notifications via SMS</p>
+            </div>
+            <Switch 
+              checked={notifications.sms}
+              onCheckedChange={() => handleNotificationChange('sms')}
+            />
+          </div>
+        </CardContent>
+      </Card>
 
-        {/* Security Settings */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Shield className="w-5 h-5 mr-2" />
-              Security Settings
-            </CardTitle>
-            <CardDescription>
-              Manage your account security and privacy
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
+      {/* Appearance Settings */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Palette className="h-5 w-5" />
+            <span>Appearance</span>
+          </CardTitle>
+          <CardDescription>
+            Customize the look and feel
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Two-Factor Authentication
-              </label>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Add an extra layer of security</span>
-                <Button variant="outline" size="sm">
-                  Enable
-                </Button>
-              </div>
+              <p className="font-medium">Dark Mode</p>
+              <p className="text-sm text-gray-600">Switch to dark theme</p>
             </div>
+            <Switch 
+              checked={preferences.darkMode}
+              onCheckedChange={() => handlePreferenceChange('darkMode')}
+            />
+          </div>
+        </CardContent>
+      </Card>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Session Management
-              </label>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Current session</span>
-                  <span className="text-xs text-green-600">Active</span>
-                </div>
-                <Button variant="outline" size="sm" className="w-full">
-                  Sign out from all devices
-                </Button>
-              </div>
-            </div>
+      {/* Language & Region */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Globe className="h-5 w-5" />
+            <span>Language & Region</span>
+          </CardTitle>
+          <CardDescription>
+            Set your language and regional preferences
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <p className="font-medium">Language</p>
+            <p className="text-sm text-gray-600">Current: {preferences.language}</p>
+            <Button variant="outline" size="sm" disabled>
+              Change Language (Coming Soon)
+            </Button>
+          </div>
+          
+          <div className="space-y-2">
+            <p className="font-medium">Timezone</p>
+            <p className="text-sm text-gray-600">Current: {preferences.timezone}</p>
+            <Button variant="outline" size="sm" disabled>
+              Change Timezone (Coming Soon)
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Password
-              </label>
-              <Button variant="outline" size="sm" className="w-full">
-                Change Password
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Notification Settings */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Bell className="w-5 h-5 mr-2" />
-              Notification Preferences
-            </CardTitle>
-            <CardDescription>
-              Customize how you receive notifications
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Push Notifications
-              </label>
-              <div className="space-y-2">
-                <label className="flex items-center">
-                  <input type="checkbox" defaultChecked className="mr-2" />
-                  <span className="text-sm">New messages</span>
-                </label>
-                <label className="flex items-center">
-                  <input type="checkbox" defaultChecked className="mr-2" />
-                  <span className="text-sm">Project updates</span>
-                </label>
-                <label className="flex items-center">
-                  <input type="checkbox" className="mr-2" />
-                  <span className="text-sm">System announcements</span>
-                </label>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Notification Frequency
-              </label>
-              <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="immediate">Immediate</option>
-                <option value="hourly">Hourly digest</option>
-                <option value="daily">Daily digest</option>
-                <option value="weekly">Weekly digest</option>
-              </select>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Communication Settings */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Mail className="w-5 h-5 mr-2" />
-              Communication Settings
-            </CardTitle>
-            <CardDescription>
-              Manage how others can contact you
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Contact Preferences
-              </label>
-              <div className="space-y-2">
-                <label className="flex items-center">
-                  <input type="checkbox" defaultChecked className="mr-2" />
-                  <span className="text-sm">Allow direct messages</span>
-                </label>
-                <label className="flex items-center">
-                  <input type="checkbox" defaultChecked className="mr-2" />
-                  <span className="text-sm">Show contact information</span>
-                </label>
-                <label className="flex items-center">
-                  <input type="checkbox" className="mr-2" />
-                  <span className="text-sm">Auto-reply when busy</span>
-                </label>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Auto-Reply Message
-              </label>
-              <textarea
-                rows={3}
-                placeholder="Set a custom auto-reply message..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Security Settings */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Shield className="h-5 w-5" />
+            <span>Security</span>
+          </CardTitle>
+          <CardDescription>
+            Manage your account security
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <Button variant="outline" className="w-full" disabled>
+            Change Password (Coming Soon)
+          </Button>
+          <Button variant="outline" className="w-full" disabled>
+            Two-Factor Authentication (Coming Soon)
+          </Button>
+          <Button variant="outline" className="w-full" disabled>
+            Download Account Data (Coming Soon)
+          </Button>
+        </CardContent>
+      </Card>
 
       {/* Save Button */}
-      <div className="flex justify-end">
-        <Button onClick={handleSaveSettings} disabled={loading}>
-          <Save className="w-4 h-4 mr-2" />
-          {loading ? 'Saving...' : 'Save Settings'}
-        </Button>
-      </div>
-
-      {/* Success Message */}
-      {message && (
-        <div className="fixed bottom-4 right-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
-          {message}
-        </div>
-      )}
+      <Card>
+        <CardContent className="p-6">
+          <Button className="w-full">
+            Save Settings
+          </Button>
+        </CardContent>
+      </Card>
     </div>
   )
 }

@@ -3,6 +3,7 @@
 
 -- Enable necessary extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- Users table (extends Supabase auth.users)
 CREATE TABLE IF NOT EXISTS public.users (
@@ -226,6 +227,15 @@ CREATE TRIGGER update_project_status_trigger
     FOR EACH ROW EXECUTE FUNCTION update_project_status();
 
 -- Insert some sample data for testing
+-- First insert into auth.users (this would normally be handled by Supabase Auth)
+INSERT INTO auth.users (id, email, encrypted_password, email_confirmed_at, created_at, updated_at) VALUES
+    ('550e8400-e29b-41d4-a716-446655440001', 'john@example.com', crypt('password123', gen_salt('bf')), NOW(), NOW(), NOW()),
+    ('550e8400-e29b-41d4-a716-446655440002', 'sarah@example.com', crypt('password123', gen_salt('bf')), NOW(), NOW(), NOW()),
+    ('550e8400-e29b-41d4-a716-446655440003', 'mike@example.com', crypt('password123', gen_salt('bf')), NOW(), NOW(), NOW()),
+    ('550e8400-e29b-41d4-a716-446655440004', 'lisa@example.com', crypt('password123', gen_salt('bf')), NOW(), NOW(), NOW())
+ON CONFLICT (id) DO NOTHING;
+
+-- Then insert into public.users
 INSERT INTO public.users (id, email, role, full_name, location, bio, rating, review_count) VALUES
     ('550e8400-e29b-41d4-a716-446655440001', 'john@example.com', 'homeowner', 'John Smith', 'Seattle, WA', 'Looking for quality contractors for home improvement projects.', 0.00, 0),
     ('550e8400-e29b-41d4-a716-446655440002', 'sarah@example.com', 'homeowner', 'Sarah Johnson', 'Portland, OR', 'Homeowner seeking reliable contractors.', 0.00, 0),
@@ -233,19 +243,21 @@ INSERT INTO public.users (id, email, role, full_name, location, bio, rating, rev
     ('550e8400-e29b-41d4-a716-446655440004', 'lisa@example.com', 'contractor', 'Lisa Brown', 'Portland, OR', 'Professional contractor with 10+ years of experience in residential construction.', 4.9, 8);
 
 -- Insert sample projects
-INSERT INTO public.projects (homeowner_id, title, description, budget_min, budget_max, location, category, status) VALUES
-    ('550e8400-e29b-41d4-a716-446655440001', 'Kitchen Renovation', 'Complete kitchen remodel including new cabinets, countertops, and appliances. Looking for experienced contractor.', 15000.00, 25000.00, 'Seattle, WA', 'kitchen', 'open'),
-    ('550e8400-e29b-41d4-a716-446655440002', 'Bathroom Remodel', 'Master bathroom renovation with new tile, fixtures, and plumbing. Need professional contractor.', 8000.00, 15000.00, 'Portland, OR', 'bathroom', 'open'),
-    ('550e8400-e29b-41d4-a716-446655440001', 'Deck Construction', 'Build a new wooden deck in the backyard. Approximately 200 sq ft.', 5000.00, 8000.00, 'Seattle, WA', 'deck', 'open');
+INSERT INTO public.projects (id, homeowner_id, title, description, budget_min, budget_max, location, category, status) VALUES
+    ('550e8400-e29b-41d4-a716-446655440005', '550e8400-e29b-41d4-a716-446655440001', 'Kitchen Renovation', 'Complete kitchen remodel including new cabinets, countertops, and appliances. Looking for experienced contractor.', 15000.00, 25000.00, 'Seattle, WA', 'kitchen', 'open'),
+    ('550e8400-e29b-41d4-a716-446655440006', '550e8400-e29b-41d4-a716-446655440002', 'Bathroom Remodel', 'Master bathroom renovation with new tile, fixtures, and plumbing. Need professional contractor.', 8000.00, 15000.00, 'Portland, OR', 'bathroom', 'open'),
+    ('550e8400-e29b-41d4-a716-446655440007', '550e8400-e29b-41d4-a716-446655440001', 'Deck Construction', 'Build a new wooden deck in the backyard. Approximately 200 sq ft.', 5000.00, 8000.00, 'Seattle, WA', 'deck', 'open');
 
 -- Insert sample proposals
 INSERT INTO public.proposals (project_id, contractor_id, bid_amount, description, timeline, status) VALUES
     ('550e8400-e29b-41d4-a716-446655440005', '550e8400-e29b-41d4-a716-446655440003', 22000.00, 'I can complete this kitchen renovation in 4-6 weeks. Includes all materials and labor.', '4-6 weeks', 'pending'),
     ('550e8400-e29b-41d4-a716-446655440005', '550e8400-e29b-41d4-a716-446655440004', 24000.00, 'Professional kitchen renovation with premium materials. 5-7 week timeline.', '5-7 weeks', 'pending'),
-    ('550e8400-e29b-41d4-a716-446655440006', '550e8400-e29b-41d4-a716-446655440003', 12000.00, 'Complete bathroom remodel with modern fixtures and tile work.', '3-4 weeks', 'pending');
+    ('550e8400-e29b-41d4-a716-446655440006', '550e8400-e29b-41d4-a716-446655440003', 12000.00, 'Complete bathroom remodel with modern fixtures and tile work.', '3-4 weeks', 'pending'),
+    ('550e8400-e29b-41d4-a716-446655440007', '550e8400-e29b-41d4-a716-446655440003', 6500.00, 'Quality deck construction with premium materials and professional installation.', '2-3 weeks', 'pending');
 
 -- Insert sample messages
 INSERT INTO public.messages (sender_id, receiver_id, project_id, content) VALUES
     ('550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655440003', '550e8400-e29b-41d4-a716-446655440005', 'Hi Mike, I saw your proposal for the kitchen renovation. Can we discuss the timeline?'),
     ('550e8400-e29b-41d4-a716-446655440003', '550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655440005', 'Absolutely! I can start next week and complete the project within 6 weeks.'),
-    ('550e8400-e29b-41d4-a716-446655440002', '550e8400-e29b-41d4-a716-446655440004', '550e8400-e29b-41d4-a716-446655440006', 'Hi Lisa, I\'m interested in your bathroom remodel proposal. Do you have any references?'); 
+    ('550e8400-e29b-41d4-a716-446655440002', '550e8400-e29b-41d4-a716-446655440004', '550e8400-e29b-41d4-a716-446655440006', 'Hi Lisa, I''m interested in your bathroom remodel proposal. Do you have any references?'),
+    ('550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655440003', '550e8400-e29b-41d4-a716-446655440007', 'Hi Mike, I saw your proposal for the deck construction. When could you start?');
