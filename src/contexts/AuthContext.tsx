@@ -44,6 +44,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           details: error.details,
           hint: error.hint
         })
+        setProfile(null)
         return
       }
 
@@ -51,16 +52,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setProfile(data)
     } catch (error) {
       console.error('Unexpected error fetching profile:', error)
+      setProfile(null)
     }
-  }, [supabase])
+  }, [])
 
   useEffect(() => {
     // Set mounted immediately to show content
     setMounted(true)
+    
+    return () => {
+      console.log('AuthContext component unmounting, resetting states')
+      setLoading(false)
+      setUser(null)
+      setProfile(null)
+    }
   }, [])
 
   useEffect(() => {
     if (!mounted) return
+
+    console.log('AuthContext useEffect triggered, mounted:', mounted)
+
+    // Add a timeout to prevent infinite loading
+    const timeoutId = setTimeout(() => {
+      console.log('Auth loading timeout reached, setting loading to false')
+      setLoading(false)
+    }, 10000) // 10 second timeout
 
     // Get initial session
     const getSession = async () => {
@@ -78,6 +95,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(session?.user ?? null)
         if (session?.user) {
           await fetchProfile(session.user.id)
+        } else {
+          setProfile(null)
         }
         setLoading(false)
       } catch (error) {
@@ -107,8 +126,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     )
 
-    return () => subscription.unsubscribe()
-  }, [mounted, fetchProfile, supabase.auth])
+    return () => {
+      console.log('AuthContext useEffect cleanup')
+      clearTimeout(timeoutId)
+      subscription.unsubscribe()
+    }
+  }, [mounted, fetchProfile])
 
   const signOut = async () => {
     await supabase.auth.signOut()
@@ -121,6 +144,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   // Always provide the context, even when not mounted
+  console.log('AuthContext render:', { user: !!user, profile: !!profile, loading, mounted })
+  
+  // Ensure loading is false if we have a user but no profile after a reasonable time
+  useEffect(() => {
+    if (user && !profile && !loading) {
+      console.log('User exists but no profile, attempting to fetch profile')
+      fetchProfile(user.id)
+    }
+  }, [user, profile, loading, fetchProfile])
+  
   return (
     <AuthContext.Provider value={{
       user,

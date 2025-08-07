@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useAuth } from '@/contexts/AuthContext'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { 
@@ -14,7 +13,6 @@ import {
 
 export default function SettingsPage() {
   const [mounted, setMounted] = useState(false)
-  const auth = useAuth()
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
 
