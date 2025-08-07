@@ -128,9 +128,9 @@ export default function TermsPage() {
               <p className="text-gray-600 leading-relaxed">
                 If you have any questions about these Terms and Conditions, please contact us at:
                 <br />
-                Email: support@buildconnect.com
+                Email: {process.env.NEXT_PUBLIC_SUPPORT_EMAIL}
                 <br />
-                Phone: (555) 123-4567
+                Phone: {process.env.NEXT_PUBLIC_SUPPORT_PHONE}
               </p>
             </section>
           </CardContent>

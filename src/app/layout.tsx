@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "BuildConnect - Contractor & Homeowner Platform",
-  description: "Connect with trusted contractors and homeowners for your construction projects",
+  title: process.env.NEXT_PUBLIC_APP_TITLE || "BuildConnect - Contractor & Homeowner Platform",
+  description: process.env.NEXT_PUBLIC_APP_DESCRIPTION || "Connect with trusted contractors and homeowners for your construction projects",
 };
 
 export default function RootLayout({
