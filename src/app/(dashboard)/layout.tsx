@@ -27,13 +27,30 @@ export default function DashboardLayout({
   const { user, profile, loading, signOut } = useAuth()
   const router = useRouter()
 
+  console.log('DashboardLayout render:', { user: !!user, profile: !!profile, loading })
+
   useEffect(() => {
+    console.log('DashboardLayout useEffect:', { user: !!user, loading })
     if (!loading && !user) {
+      console.log('Redirecting to signin - no user and not loading')
       router.push('/signin')
     }
   }, [user, loading, router])
 
+  // Add a timeout to prevent infinite loading in layout
+  useEffect(() => {
+    if (loading) {
+      const timeoutId = setTimeout(() => {
+        console.log('DashboardLayout loading timeout - forcing redirect to signin')
+        router.push('/signin')
+      }, 15000) // 15 second timeout
+
+      return () => clearTimeout(timeoutId)
+    }
+  }, [loading, router])
+
   if (loading) {
+    console.log('DashboardLayout showing loading state')
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
