@@ -1,4 +1,4 @@
--- BuildConnect Database Schema
+-- BuildReady Database Schema
 -- This file contains all the necessary tables and relationships for the platform
 
 -- Enable necessary extensions

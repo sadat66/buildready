@@ -72,11 +72,11 @@ export default function SignInPage() {
       <div className="max-w-md w-full space-y-8">
         {/* Header */}
         <div className="text-center">
-          <div className="mx-auto h-16 w-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg">
+          <div className="mx-auto h-16 w-16 bg-gradient-to-r from-orange-600 to-orange-700 rounded-2xl flex items-center justify-center mb-6 shadow-lg">
             <Building2 className="h-8 w-8 text-white" />
           </div>
-          <h2 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            {isSignUp ? 'Join BuildConnect' : 'Welcome Back'}
+          <h2 className="text-4xl font-bold bg-gradient-to-r from-orange-600 to-orange-700 bg-clip-text text-transparent">
+            {isSignUp ? 'Join BuildReady' : 'Welcome Back'}
           </h2>
           <p className="mt-3 text-gray-600 text-lg">
             {isSignUp ? 'Connect with trusted professionals and grow your business' : 'Sign in to continue to your dashboard'}
@@ -111,7 +111,7 @@ export default function SignInPage() {
                         value={fullName}
                         onChange={(e) => setFullName(e.target.value)}
                         placeholder="Enter your full name"
-                        className="pl-10 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500 rounded-lg"
+                        className="pl-10 h-12 border-gray-200 focus:border-orange-500 focus:ring-orange-500 rounded-lg"
                       />
                     </div>
                   </div>
@@ -165,7 +165,7 @@ export default function SignInPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="Enter your email address"
-                    className="pl-10 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500 rounded-lg"
+                    className="pl-10 h-12 border-gray-200 focus:border-orange-500 focus:ring-orange-500 rounded-lg"
                   />
                 </div>
               </div>
@@ -179,7 +179,7 @@ export default function SignInPage() {
                    {!isSignUp && (
                      <Link
                        href="/reset-password"
-                       className="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors duration-200"
+                       className="text-sm text-orange-600 hover:text-orange-700 font-medium transition-colors duration-200"
                      >
                        Forgot password?
                      </Link>
@@ -194,7 +194,7 @@ export default function SignInPage() {
                      value={password}
                      onChange={(e) => setPassword(e.target.value)}
                      placeholder="Enter your password"
-                     className="pl-10 pr-10 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500 rounded-lg"
+                     className="pl-10 pr-10 h-12 border-gray-200 focus:border-orange-500 focus:ring-orange-500 rounded-lg"
                    />
                    <button
                      type="button"
@@ -216,7 +216,7 @@ export default function SignInPage() {
               {/* Submit Button */}
               <Button
                 type="submit"
-                className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
+                className="w-full h-12 bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
                 disabled={loading}
               >
                 {loading ? (
@@ -247,7 +247,7 @@ export default function SignInPage() {
                   setIsSignUp(!isSignUp)
                   setError('')
                 }}
-                className="text-blue-600 hover:text-blue-700 font-medium transition-colors duration-200"
+                className="text-orange-600 hover:text-orange-700 font-medium transition-colors duration-200"
               >
                 {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Create one"}
               </button>
