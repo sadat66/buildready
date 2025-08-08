@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Card,  CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Hammer, Home, Users, Star, Shield, MessageSquare } from 'lucide-react'
@@ -7,11 +8,18 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Navigation */}
-      <nav className="bg-white shadow-sm border-b">
+      <nav className="bg-white/90 backdrop-blur-sm shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-blue-600">BuildConnect</h1>
+              <Link href="/" className="flex items-center">
+                <Image
+                  src="/assets/logo.svg"
+                  alt="BuildReady Logo"
+                  width={120}
+                  height={120}
+                />
+              </Link>
             </div>
             <div className="flex items-center space-x-4">
               <Link href="/signin">
@@ -25,15 +33,32 @@ export default function HomePage() {
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section className="bg-gradient-to-br from-blue-50 to-indigo-100 py-20">
+      {/* Spacer */}
+      <div className="h-20"></div>
+      
+      {/* Top Image Section */}
+      <section className="w-full">
+        <div className="w-full h-[500px]">
+          <Image
+            src="/assets/background1.png"
+            alt="Hero Image"
+            width={1920}
+            height={500}
+            className="w-full h-full object-cover"
+            priority
+          />
+        </div>
+      </section>
+
+      {/* Hero Content Section */}
+      <section className="bg-gradient-to-br from-orange-50 to-orange-100 py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
             Connect with Trusted
-            <span className="text-blue-600"> Contractors</span>
+            <span className="text-orange-600"> Contractors</span>
           </h1>
           <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-            BuildConnect brings homeowners and contractors together. Create projects, 
+            BuildReady brings homeowners and contractors together. Create projects, 
             get proposals, and build with confidence.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -56,7 +81,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Why Choose BuildConnect?
+              Why Choose BuildReady?
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
               Our platform makes it easy to find the right contractor for your project
@@ -159,7 +184,7 @@ export default function HomePage() {
 
           <div className="grid md:grid-cols-3 gap-8">
             <div className="text-center">
-              <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-orange-600 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-white text-xl font-bold">1</span>
               </div>
               <h3 className="text-xl font-semibold mb-2">Create Project</h3>
@@ -169,7 +194,7 @@ export default function HomePage() {
             </div>
 
             <div className="text-center">
-              <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-orange-600 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-white text-xl font-bold">2</span>
               </div>
               <h3 className="text-xl font-semibold mb-2">Get Proposals</h3>
@@ -179,7 +204,7 @@ export default function HomePage() {
             </div>
 
             <div className="text-center">
-              <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-orange-600 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-white text-xl font-bold">3</span>
               </div>
               <h3 className="text-xl font-semibold mb-2">Choose & Build</h3>
@@ -192,13 +217,13 @@ export default function HomePage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-blue-600">
+      <section className="py-20 bg-orange-600">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
             Ready to Get Started?
           </h2>
-          <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-            Join thousands of homeowners and contractors who trust BuildConnect 
+          <p className="text-xl text-orange-100 mb-8 max-w-2xl mx-auto">
+            Join thousands of homeowners and contractors who trust BuildReady 
             for their construction projects.
           </p>
           <Link href="/signin">
@@ -213,7 +238,7 @@ export default function HomePage() {
       <footer className="bg-gray-900 text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h3 className="text-2xl font-bold mb-4">BuildConnect</h3>
+            <h3 className="text-2xl font-bold mb-4">BuildReady</h3>
             <p className="text-gray-400 mb-4">
               Connecting homeowners with trusted contractors
             </p>

@@ -1,4 +1,4 @@
-# BuildConnect - Contractor & Homeowner Platform
+# BuildReady - Contractor & Homeowner Platform
 
 A modern web platform that connects homeowners with trusted contractors for construction projects. Built with Next.js 14, TypeScript, Tailwind CSS, and Supabase.
 

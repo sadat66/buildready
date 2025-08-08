@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: process.env.NEXT_PUBLIC_APP_TITLE || "BuildConnect - Contractor & Homeowner Platform",
+  title: process.env.NEXT_PUBLIC_APP_TITLE || "BuildReady - Contractor & Homeowner Platform",
   description: process.env.NEXT_PUBLIC_APP_DESCRIPTION || "Connect with trusted contractors and homeowners for your construction projects",
 };
 

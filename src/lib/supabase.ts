@@ -16,7 +16,7 @@ export function createClient() {
       },
       global: {
         headers: {
-          'X-Client-Info': 'buildconnect-web'
+          'X-Client-Info': 'buildready-web'
         }
       }
     }

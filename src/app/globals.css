@@ -5,6 +5,15 @@
   --font-family-mono: var(--font-geist-mono);
   
   /* Base colors */
+  --color-orange-50: #fff7ed;
+  --color-orange-100: #ffedd5;
+  --color-orange-300: #fdba74;
+  --color-orange-500: #f97316;
+  --color-orange-600: #ea580c;
+  --color-orange-700: #c2410c;
+  --color-orange-800: #9a3412;
+  
+  /* Keep blue as secondary */
   --color-blue-50: #eff6ff;
   --color-blue-100: #dbeafe;
   --color-blue-600: #2563eb;

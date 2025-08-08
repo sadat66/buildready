@@ -11,14 +11,14 @@ export default function TermsPage() {
       <div className="max-w-4xl mx-auto space-y-8">
         {/* Header */}
         <div className="text-center">
-          <div className="mx-auto h-16 w-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg">
+          <div className="mx-auto h-16 w-16 bg-gradient-to-r from-orange-600 to-orange-700 rounded-2xl flex items-center justify-center mb-6 shadow-lg">
             <Building2 className="h-8 w-8 text-white" />
           </div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-orange-600 to-orange-700 bg-clip-text text-transparent">
             Terms and Conditions
           </h1>
           <p className="mt-3 text-gray-600 text-lg">
-            Please read these terms carefully before using BuildConnect
+            Please read these terms carefully before using BuildReady
           </p>
         </div>
 
@@ -47,7 +47,7 @@ export default function TermsPage() {
             <section>
               <h3 className="text-xl font-semibold text-gray-800 mb-3">1. Acceptance of Terms</h3>
               <p className="text-gray-600 leading-relaxed">
-                By accessing and using BuildConnect, you accept and agree to be bound by the terms and provision of this agreement. 
+                By accessing and using BuildReady, you accept and agree to be bound by the terms and provision of this agreement. 
                 If you do not agree to abide by the above, please do not use this service.
               </p>
             </section>
@@ -55,7 +55,7 @@ export default function TermsPage() {
             <section>
               <h3 className="text-xl font-semibold text-gray-800 mb-3">2. Description of Service</h3>
               <p className="text-gray-600 leading-relaxed">
-                BuildConnect is a platform that connects homeowners with contractors for construction and renovation projects. 
+                BuildReady is a platform that connects homeowners with contractors for construction and renovation projects. 
                 We provide tools for project management, communication, and payment processing.
               </p>
             </section>
@@ -72,7 +72,7 @@ export default function TermsPage() {
             <section>
               <h3 className="text-xl font-semibold text-gray-800 mb-3">4. User Responsibilities</h3>
               <div className="text-gray-600 leading-relaxed">
-                <p className="mb-2">As a user of BuildConnect, you agree to:</p>
+                <p className="mb-2">As a user of BuildReady, you agree to:</p>
                 <ul className="list-disc list-inside space-y-1 ml-4">
                   <li>Provide accurate and truthful information</li>
                   <li>Maintain the confidentiality of your account</li>
@@ -86,7 +86,7 @@ export default function TermsPage() {
             <section>
               <h3 className="text-xl font-semibold text-gray-800 mb-3">5. Payment Terms</h3>
               <p className="text-gray-600 leading-relaxed">
-                Payment processing is handled through secure third-party providers. BuildConnect may charge service fees 
+                Payment processing is handled through secure third-party providers. BuildReady may charge service fees 
                 for certain transactions. All fees will be clearly disclosed before any transaction is completed.
               </p>
             </section>
@@ -102,7 +102,7 @@ export default function TermsPage() {
             <section>
               <h3 className="text-xl font-semibold text-gray-800 mb-3">7. Limitation of Liability</h3>
               <p className="text-gray-600 leading-relaxed">
-                BuildConnect shall not be liable for any indirect, incidental, special, consequential, or punitive damages, 
+                BuildReady shall not be liable for any indirect, incidental, special, consequential, or punitive damages, 
                 including without limitation, loss of profits, data, use, goodwill, or other intangible losses.
               </p>
             </section>
