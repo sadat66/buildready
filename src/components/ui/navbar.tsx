@@ -1,33 +1,43 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Bell, Search, User, Settings, LogOut, Menu } from 'lucide-react'
-import { Button } from './button'
-import { useAuth } from '@/contexts/AuthContext'
-import Link from 'next/link'
-import Image from 'next/image'
+import { useState } from "react";
+import { Bell, Search, User, Settings, LogOut, Menu } from "lucide-react";
+import { Button } from "./button";
+import { useAuth } from "@/contexts/AuthContext";
+import Link from "next/link";
+import Image from "next/image";
 
 interface NavbarProps {
-  onMenuToggle: () => void
-  sidebarCollapsed: boolean
+  onMenuToggle: () => void;
+  sidebarCollapsed: boolean;
 }
 
 export function Navbar({ onMenuToggle, sidebarCollapsed }: NavbarProps) {
-  const { user, signOut } = useAuth()
-  const [showUserMenu, setShowUserMenu] = useState(false)
+  const { user, signOut } = useAuth();
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const [notifications] = useState([
-    { id: 1, message: 'New proposal received', time: '2 min ago', unread: true },
-    { id: 2, message: 'Project update available', time: '1 hour ago', unread: true },
-    { id: 3, message: 'Payment processed', time: '3 hours ago', unread: false }
-  ])
+    {
+      id: 1,
+      message: "New proposal received",
+      time: "2 min ago",
+      unread: true,
+    },
+    {
+      id: 2,
+      message: "Project update available",
+      time: "1 hour ago",
+      unread: true,
+    },
+    { id: 3, message: "Payment processed", time: "3 hours ago", unread: false },
+  ]);
 
   const handleSignOut = async () => {
-    await signOut()
-    setShowUserMenu(false)
-  }
+    await signOut();
+    setShowUserMenu(false);
+  };
 
   return (
-    <nav className="bg-white border-b border-gray-200 px-4 py-3">
+    <nav className="bg-white border-b border-gray-200 pl-6 py-3">
       <div className="flex items-center justify-between">
         {/* Left side - Menu toggle and branding */}
         <div className="flex items-center space-x-4">
@@ -39,17 +49,20 @@ export function Navbar({ onMenuToggle, sidebarCollapsed }: NavbarProps) {
           >
             <Menu className="h-5 w-5" />
           </Button>
-          
+
           {/* Show logo in navbar only when sidebar is collapsed on desktop */}
           {sidebarCollapsed && (
             <div className="flex items-center lg:block">
-              <Link href={`/${user?.role}/dashboard`} className="cursor-pointer">
+              <Link
+                href={`/${user?.role}/dashboard`}
+                className="cursor-pointer"
+              >
                 <Image
                   src="/images/brand/png.png"
                   alt="Logo"
                   width={120}
                   height={120}
-                  
+                  className="w-[120px] h-[40px]"
                 />
               </Link>
             </div>
@@ -74,9 +87,9 @@ export function Navbar({ onMenuToggle, sidebarCollapsed }: NavbarProps) {
           <div className="relative">
             <Button variant="ghost" size="sm" className="relative">
               <Bell className="h-5 w-5" />
-              {notifications.filter(n => n.unread).length > 0 && (
+              {notifications.filter((n) => n.unread).length > 0 && (
                 <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                  {notifications.filter(n => n.unread).length}
+                  {notifications.filter((n) => n.unread).length}
                 </span>
               )}
             </Button>
@@ -94,19 +107,21 @@ export function Navbar({ onMenuToggle, sidebarCollapsed }: NavbarProps) {
                 <User className="h-4 w-4 text-gray-600" />
               </div>
               <span className="hidden sm:block text-sm font-medium text-gray-700">
-                {user?.email?.split('@')[0] || 'User'}
+                {user?.email?.split("@")[0] || "User"}
               </span>
             </Button>
 
             {showUserMenu && (
               <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
                 <div className="px-4 py-2 border-b border-gray-100">
-                  <p className="text-sm font-medium text-gray-900 truncate">{user?.email}</p>
+                  <p className="text-sm font-medium text-gray-900 truncate">
+                    {user?.email}
+                  </p>
                   <p className="text-xs text-gray-500 capitalize">
-                    {user?.role || 'User'}
+                    {user?.role || "User"}
                   </p>
                 </div>
-                
+
                 <Link href="/dashboard/profile">
                   <Button
                     variant="ghost"
@@ -118,7 +133,7 @@ export function Navbar({ onMenuToggle, sidebarCollapsed }: NavbarProps) {
                     Profile
                   </Button>
                 </Link>
-                
+
                 <Link href="/dashboard/settings">
                   <Button
                     variant="ghost"
@@ -130,7 +145,7 @@ export function Navbar({ onMenuToggle, sidebarCollapsed }: NavbarProps) {
                     Settings
                   </Button>
                 </Link>
-                
+
                 <div className="border-t border-gray-100">
                   <Button
                     variant="ghost"
@@ -148,5 +163,5 @@ export function Navbar({ onMenuToggle, sidebarCollapsed }: NavbarProps) {
         </div>
       </div>
     </nav>
-  )
+  );
 }

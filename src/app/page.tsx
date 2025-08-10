@@ -22,10 +22,10 @@ export default function HomePage() {
               </Link>
             </div>
             <div className="flex items-center space-x-4">
-              <Link href="/signin">
+              <Link href="/login">
                 <Button variant="outline">Sign In</Button>
               </Link>
-              <Link href="/signin">
+              <Link href="/register">
                 <Button>Get Started</Button>
               </Link>
             </div>
@@ -62,12 +62,12 @@ export default function HomePage() {
             get proposals, and build with confidence.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/signin">
+            <Link href="/login">
               <Button size="lg" className="text-lg px-8 py-3">
                 Start Your Project
               </Button>
             </Link>
-            <Link href="/signin">
+            <Link href="/register">
               <Button variant="outline" size="lg" className="text-lg px-8 py-3">
                 Join as Contractor
               </Button>
@@ -226,7 +226,7 @@ export default function HomePage() {
             Join thousands of homeowners and contractors who trust BuildReady 
             for their construction projects.
           </p>
-          <Link href="/signin">
+          <Link href="/register">
             <Button size="lg" variant="secondary" className="text-lg px-8 py-3">
               Start Your Journey Today
             </Button>
@@ -243,10 +243,10 @@ export default function HomePage() {
               Connecting homeowners with trusted contractors
             </p>
             <div className="flex justify-center space-x-6">
-              <Link href="/signin" className="text-gray-400 hover:text-white">
+              <Link href="/login" className="text-gray-400 hover:text-white">
                 Sign In
               </Link>
-              <Link href="/signin" className="text-gray-400 hover:text-white">
+              <Link href="/register" className="text-gray-400 hover:text-white">
                 Sign Up
               </Link>
             </div>
