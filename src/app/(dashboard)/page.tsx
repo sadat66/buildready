@@ -3,7 +3,7 @@
 import { useAuth } from '@/contexts/AuthContext'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { User, Settings, FileText, MessageSquare, ArrowRight } from 'lucide-react'
+import { User, Settings, MessageSquare, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 
 export default function DashboardPage() {

@@ -1,6 +1,5 @@
 'use client'
 
-import { useAuth } from '@/contexts/AuthContext'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -9,7 +8,6 @@ import { Switch } from '@/components/ui/switch'
 import { Bell, Shield, Globe, Save } from 'lucide-react'
 
 export default function SettingsPage() {
-  const { user } = useAuth()
 
   const notificationSettings = [
     {

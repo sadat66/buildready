@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
-import { ArrowLeft, Upload, MapPin, Calendar, DollarSign, FileText, Camera, Paperclip } from 'lucide-react'
+import { ArrowLeft, MapPin, Calendar, DollarSign, FileText, Camera, Paperclip } from 'lucide-react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 
@@ -111,7 +111,7 @@ export default function CreateProjectPage() {
       const sitePhotoUrls = formData.site_photos.map(file => file.name)
       const projectFileUrls = formData.project_files.map(file => file.name)
       
-      const { data, error: insertError } = await supabase
+      const { error: insertError } = await supabase
         .from('projects')
         .insert({
           homeowner_id: user.id,
@@ -138,7 +138,7 @@ export default function CreateProjectPage() {
         throw insertError
       }
       
-      router.push('/dashboard/projects')
+      router.push('/homeowner/projects')
     } catch (error) {
       console.error('Error creating project:', error)
       setError('Failed to create project. Please try again.')
@@ -151,10 +151,10 @@ export default function CreateProjectPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center space-x-4">
-        <Link href="/dashboard/projects">
+        <Link href="/homeowner/dashboard">
           <Button variant="outline" size="sm">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Projects
+            Back to Dashboard
           </Button>
         </Link>
       </div>
@@ -404,7 +404,7 @@ export default function CreateProjectPage() {
             
             {/* Submit Button */}
             <div className="flex justify-end space-x-4 pt-6">
-              <Link href="/dashboard/projects">
+              <Link href="/homeowner/dashboard">
                 <Button type="button" variant="outline">
                   Cancel
                 </Button>

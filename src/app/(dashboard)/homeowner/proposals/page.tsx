@@ -1,12 +1,10 @@
 'use client'
 
-import { useAuth } from '@/contexts/AuthContext'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { FileText, Clock, DollarSign, User, CheckCircle, XCircle } from 'lucide-react'
 
 export default function HomeownerProposalsPage() {
-  const { user } = useAuth()
 
   const proposals = [
     {

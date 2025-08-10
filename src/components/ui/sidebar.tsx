@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
+import Image from 'next/image'
 import { 
   Home, 
   FileText, 
@@ -33,9 +34,9 @@ export function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse }: Side
 
   const getMenuItems = () => {
     const baseItems = [
-      { name: 'Dashboard', href: '/dashboard', icon: Home },
-      { name: 'Profile', href: '/dashboard/profile', icon: User },
-      { name: 'Settings', href: '/dashboard/settings', icon: Settings },
+      { name: 'Dashboard', href: `/${userRole}/dashboard`, icon: Home },
+      { name: 'Profile', href: `/${userRole}/profile`, icon: User },
+      { name: 'Settings', href: `/${userRole}/settings`, icon: Settings },
     ]
 
     switch (userRole) {
@@ -101,16 +102,17 @@ export function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse }: Side
         lg:translate-x-0 lg:static lg:z-auto lg:h-screen lg:min-h-screen
       `}>
         <div className="flex flex-col h-full min-h-screen">
-          {/* Header - Only show minimal logo when collapsed */}
+          {/* Header - Show logo based on collapsed state */}
           <div className="flex items-center justify-between p-4 border-b border-gray-200 flex-shrink-0">
-            {!isCollapsed && (
-              <div className="flex items-center space-x-2">
-                <div className="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">CX</span>
-                </div>
-                <span className="text-lg font-semibold text-gray-900">CoreXLab</span>
-              </div>
-            )}
+            <div className="flex items-center justify-center w-full">
+              <Image
+                 src="/images/brand/png.png"
+                 alt="Logo"
+                 width={92}
+                 height={92}
+                 
+               />
+            </div>
             
             {/* Collapse toggle button - only show on desktop */}
             <Button
