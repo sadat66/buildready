@@ -64,7 +64,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       console.log('Initial session check:', session ? 'User found' : 'No user')
       if (session?.user) {
-        setUser(session.user as ExtendedUser)
+        // Set initial user without extended properties
+        const initialUser: ExtendedUser = { ...session.user, role: undefined, full_name: undefined }
+        setUser(initialUser)
         console.log('Fetching user profile for:', session.user.id)
         // Fetch user profile data including role
         const { data, error } = await supabase
@@ -89,31 +91,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return () => clearTimeout(timeout)
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (session?.user) {
-          setUser(session.user as ExtendedUser)
-          // Fetch user profile data including role
-          const { data, error } = await supabase
-            .from('users')
-            .select('role, full_name')
-            .eq('id', session.user.id)
-            .single()
+         // Listen for auth changes
+     const { data: { subscription } } = supabase.auth.onAuthStateChange(
+       async (event, session) => {
+         if (session?.user) {
+           // Set initial user without extended properties
+           const initialUser: ExtendedUser = { ...session.user, role: undefined, full_name: undefined }
+           setUser(initialUser)
+           // Fetch user profile data including role
+           const { data, error } = await supabase
+             .from('users')
+             .select('role, full_name')
+             .eq('id', session.user.id)
+             .single()
 
-          if (!error && data) {
-            setUserRole(data.role)
-            setUser(prev => prev ? { ...prev, role: data.role, full_name: data.full_name } : null)
-          }
-        } else {
-          setUser(null)
-          setUserRole(null)
-        }
-        setLoading(false)
-      }
-    )
+           if (!error && data) {
+             setUserRole(data.role)
+             setUser(prev => prev ? { ...prev, role: data.role, full_name: data.full_name } : null)
+           }
+         } else {
+           setUser(null)
+           setUserRole(null)
+         }
+         setLoading(false)
+       }
+     )
 
-    return () => subscription.unsubscribe()
+     return () => {
+       subscription.unsubscribe()
+     }
   }, [])
 
   const signOut = async () => {
@@ -134,7 +140,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (data.user) {
-        setUser(data.user as ExtendedUser)
+        // Set initial user without extended properties
+        const initialUser: ExtendedUser = { ...data.user, role: undefined, full_name: undefined }
+        setUser(initialUser)
         
         // Fetch user profile data including role
         const { data: profileData, error: profileError } = await supabase
@@ -143,14 +151,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           .eq('id', data.user.id)
           .single()
 
-        if (!profileError && profileData) {
+        if (profileError) {
+          console.error('Error fetching user profile during sign-in:', profileError)
+        } else if (profileData) {
           setUserRole(profileData.role)
           const extendedUser = { ...data.user, role: profileData.role, full_name: profileData.full_name }
           setUser(extendedUser)
           return { user: extendedUser, userRole: profileData.role, error: null }
         }
 
-        return { user: data.user as ExtendedUser, userRole: null, error: null }
+        return { user: initialUser, userRole: null, error: null }
       }
 
       return { user: null, userRole: null, error: 'Sign-in failed' }
