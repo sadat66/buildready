@@ -52,10 +52,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   useEffect(() => {
+    // Add a timeout to prevent infinite loading
+    const timeout = setTimeout(() => {
+      if (loading) {
+        console.log('Auth timeout reached, forcing loading to false')
+        setLoading(false)
+      }
+    }, 10000) // 10 second timeout
+
     // Get initial session
     supabase.auth.getSession().then(async ({ data: { session } }) => {
+      console.log('Initial session check:', session ? 'User found' : 'No user')
       if (session?.user) {
         setUser(session.user)
+        console.log('Fetching user profile for:', session.user.id)
         // Fetch user profile data including role
         const { data, error } = await supabase
           .from('users')
@@ -63,13 +73,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           .eq('id', session.user.id)
           .single()
 
-        if (!error && data) {
+        if (error) {
+          console.error('Error fetching user profile:', error)
+        } else if (data) {
+          console.log('User profile loaded:', data)
           setUserRole(data.role)
           setUser(prev => prev ? { ...prev, role: data.role, full_name: data.full_name } : null)
+        } else {
+          console.log('No user profile data found')
         }
       }
+      console.log('Setting loading to false')
       setLoading(false)
     })
+
+    return () => clearTimeout(timeout)
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
