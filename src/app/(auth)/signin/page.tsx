@@ -1,8 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -10,6 +9,10 @@ import { UserRole } from '@/types/database'
 import { Mail, Lock, User, Eye, EyeOff, Building2, Home } from 'lucide-react'
 import Link from 'next/link'
 import { api } from '~/components/providers/TRPCProvider'
+import { useAuth } from '@/contexts/AuthContext'
+
+// Type for sign-up form (excluding admin role)
+type SignUpRole = 'homeowner' | 'contractor'
 
 export default function SignInPage() {
   const [email, setEmail] = useState('')
@@ -17,55 +20,116 @@ export default function SignInPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [isSignUp, setIsSignUp] = useState(false)
-  const [role, setRole] = useState<UserRole>('homeowner')
+  const [role, setRole] = useState<SignUpRole>('homeowner')
   const [fullName, setFullName] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   
   const router = useRouter()
-  const supabase = createClient()
-  const signUpMutation = api.auth.signUp.useMutation()
+  const { user, signIn } = useAuth()
+  
+  // Redirect if user is already signed in
+  useEffect(() => {
+    if (user) {
+      router.push('/dashboard')
+    }
+  }, [user, router])
+  
+  const signUpMutation = api.auth.signUp.useMutation({
+    onError: (error) => {
+      // Handle sign-up errors gracefully
+      if (error.message.includes('User already registered')) {
+        setError('An account with this email already exists. Please sign in instead.')
+      } else if (error.message.includes('Password should be at least')) {
+        setError('Password must be at least 6 characters long.')
+      } else {
+        setError(error.message)
+      }
+      setLoading(false)
+    },
+    onSuccess: (result) => {
+      if (result.user) {
+        alert('Check your email for the confirmation link! After confirming, you can sign in.')
+      }
+      setLoading(false)
+    }
+  })
+  
+  const handleSignIn = async (email: string, password: string) => {
+    setLoading(true)
+    setError('')
+    
+    try {
+      console.log('Attempting sign-in with:', email)
+      const { user: signedInUser, error } = await signIn(email, password)
+      
+      console.log('Sign-in result:', { signedInUser, error })
+      
+      if (error) {
+        // Handle specific error messages
+        if (error.includes('Invalid login credentials')) {
+          setError('Invalid email or password. Please check your credentials and try again.')
+        } else if (error.includes('Email not confirmed')) {
+          setError('Please check your email and confirm your account before signing in.')
+        } else if (error.includes('Too many requests')) {
+          setError('Too many failed attempts. Please wait a moment before trying again.')
+        } else {
+          setError(error)
+        }
+      } else if (signedInUser) {
+        // Successfully signed in, redirect to dashboard
+        console.log('Sign-in successful, redirecting to dashboard')
+        
+        // Try router.push first, with fallback to window.location
+        try {
+          router.push('/dashboard')
+          
+          // Fallback: if router doesn't work within 1 second, use window.location
+          setTimeout(() => {
+            if (window.location.pathname !== '/dashboard') {
+              console.log('Router failed, using window.location fallback')
+              window.location.href = '/dashboard'
+            }
+          }, 1000)
+        } catch (error) {
+          console.error('Router error, using window.location fallback:', error)
+          window.location.href = '/dashboard'
+        }
+      }
+    } catch (error) {
+      console.error('Sign-in error:', error)
+      setError('An unexpected error occurred. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault()
-    setLoading(true)
-    setError('')
-
+    
     try {
       if (isSignUp) {
         // Validate required fields
         if (!email || !password || !fullName || !role) {
           setError('Please fill in all required fields')
+          setLoading(false)
           return
         }
 
-
-
         // Use tRPC mutation instead of direct Supabase client
-        const result = await signUpMutation.mutateAsync({
+        signUpMutation.mutate({
           email,
           password,
           fullName,
           role,
         })
-
-        if (result.user) {
-          alert('Check your email for the confirmation link! After confirming, you can sign in.')
-        }
       } else {
-        // Sign in
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        })
-
-        if (error) throw error
-
-        router.push('/dashboard')
+        // Sign in using AuthContext
+        await handleSignIn(email, password)
       }
-    } catch (error: unknown) {
-      console.error('Sign up error:', error)
-      setError(error instanceof Error ? error.message : 'An error occurred')
-    } finally {
+    } catch (error) {
+      // Catch any unexpected errors to prevent Next.js error overlays
+      console.error('Unexpected error in handleAuth:', error)
+      setError('An unexpected error occurred. Please try again.')
       setLoading(false)
     }
   }

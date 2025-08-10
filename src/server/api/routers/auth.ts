@@ -33,9 +33,22 @@ export const authRouter = createTRPCRouter({
       })
 
       if (error) {
+        // Provide more specific error messages for common sign-up failures
+        let errorMessage = error.message
+        
+        if (error.message === 'User already registered') {
+          errorMessage = 'An account with this email already exists. Please sign in instead.'
+        } else if (error.message.includes('Password should be at least')) {
+          errorMessage = 'Password must be at least 6 characters long.'
+        } else if (error.message.includes('Invalid email')) {
+          errorMessage = 'Please enter a valid email address.'
+        } else if (error.message.includes('Unable to validate email address')) {
+          errorMessage = 'Unable to validate email address. Please check your email and try again.'
+        }
+
         throw new TRPCError({
           code: 'BAD_REQUEST',
-          message: error.message,
+          message: errorMessage,
         })
       }
 
@@ -66,9 +79,22 @@ export const authRouter = createTRPCRouter({
       })
 
       if (error) {
+        // Provide more specific error messages for common auth failures
+        let errorMessage = error.message
+        
+        if (error.message === 'Invalid login credentials') {
+          errorMessage = 'Invalid email or password. Please check your credentials and try again.'
+        } else if (error.message === 'Email not confirmed') {
+          errorMessage = 'Your account is not yet confirmed. Please check your email and click the confirmation link before signing in.'
+        } else if (error.message.includes('Too many requests')) {
+          errorMessage = 'Too many failed attempts. Please wait a moment before trying again.'
+        } else if (error.message.includes('User not found')) {
+          errorMessage = 'No account found with this email address. Please check your email or create a new account.'
+        }
+
         throw new TRPCError({
           code: 'UNAUTHORIZED',
-          message: error.message,
+          message: errorMessage,
         })
       }
 
