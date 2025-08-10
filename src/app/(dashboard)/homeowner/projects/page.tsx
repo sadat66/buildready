@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, FileText, Plus, Calendar, User, MapPin, DollarSign } from 'lucide-react'
+import { ArrowLeft, FileText, Plus, Calendar, MapPin, DollarSign } from 'lucide-react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 import { Project } from '@/types/database'
@@ -78,7 +78,7 @@ export default function ProjectsPage() {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <Link href="/dashboard">
+          <Link href={`/${user?.role}/dashboard`}>
             <Button variant="outline" size="sm">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Dashboard
@@ -99,7 +99,7 @@ export default function ProjectsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <Link href="/dashboard">
+          <Link href="/homeowner/dashboard">
             <Button variant="outline" size="sm">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Dashboard

@@ -3,69 +3,24 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
+import { createClient } from '@/lib/supabase'
+import { Project } from '@/types/database'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Building, MapPin, Calendar, DollarSign, Search, Filter, Eye } from 'lucide-react'
-import Link from 'next/link'
-
-// Mock data for available projects
-const availableProjects = [
-  {
-    id: 1,
-    title: 'Kitchen Renovation',
-    description: 'Complete kitchen remodel including cabinets, countertops, and appliances.',
-    category: 'kitchen',
-    location: 'Seattle, WA',
-    budget_min: 15000,
-    budget_max: 25000,
-    proposal_deadline: '2024-02-15',
-    preferred_start_date: '2024-03-01',
-    preferred_end_date: '2024-04-15',
-    homeowner: 'John Smith',
-    status: 'open',
-    proposals_count: 3
-  },
-  {
-    id: 2,
-    title: 'Deck Construction',
-    description: 'Build a new 20x16 deck with composite materials and railing.',
-    category: 'deck',
-    location: 'Portland, OR',
-    budget_min: 8000,
-    budget_max: 12000,
-    proposal_deadline: '2024-02-20',
-    preferred_start_date: '2024-03-15',
-    preferred_end_date: '2024-04-30',
-    homeowner: 'Sarah Johnson',
-    status: 'open',
-    proposals_count: 1
-  },
-  {
-    id: 3,
-    title: 'Bathroom Remodel',
-    description: 'Full bathroom renovation with new fixtures, tile, and vanity.',
-    category: 'bathroom',
-    location: 'Tacoma, WA',
-    budget_min: 10000,
-    budget_max: 18000,
-    proposal_deadline: '2024-02-25',
-    preferred_start_date: '2024-04-01',
-    preferred_end_date: '2024-05-15',
-    homeowner: 'Mike Davis',
-    status: 'open',
-    proposals_count: 5
-  }
-]
 
 export default function ContractorProjectsViewPage() {
   const { user, loading } = useAuth()
   const router = useRouter()
+  const [projects, setProjects] = useState<Project[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('all')
   const [isRedirecting, setIsRedirecting] = useState(false)
+  const [projectsLoading, setProjectsLoading] = useState(true)
+  const [error, setError] = useState('')
 
   useEffect(() => {
     if (!loading && user) {
@@ -84,10 +39,58 @@ export default function ContractorProjectsViewPage() {
     }
   }, [user, loading, router])
 
-  if (loading || isRedirecting) {
+  useEffect(() => {
+    const fetchProjects = async () => {
+      if (!user) {
+        setProjectsLoading(false)
+        return
+      }
+      
+      try {
+        const supabase = createClient()
+        const { data, error: fetchError } = await supabase
+          .from('projects')
+          .select(`
+            *,
+            homeowner:users!projects_homeowner_id_fkey(
+              full_name,
+              rating,
+              review_count
+            )
+          `)
+          .eq('status', 'open')
+          .order('created_at', { ascending: false })
+        
+        if (fetchError) {
+          throw fetchError
+        }
+        
+        setProjects(data || [])
+      } catch (error) {
+        console.error('Error fetching projects:', error)
+        setError('Failed to load projects')
+      } finally {
+        setProjectsLoading(false)
+      }
+    }
+    
+    if (!loading && user && user.user_metadata?.role === 'contractor') {
+      fetchProjects()
+    }
+  }, [user, loading])
+
+  if (loading || isRedirecting || projectsLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-lg">Loading...</div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-lg text-red-600">{error}</div>
       </div>
     )
   }
@@ -110,7 +113,7 @@ export default function ContractorProjectsViewPage() {
     )
   }
 
-  const filteredProjects = availableProjects.filter(project => {
+  const filteredProjects = projects.filter(project => {
     const matchesSearch = project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          project.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          project.location.toLowerCase().includes(searchTerm.toLowerCase())
@@ -233,11 +236,11 @@ export default function ContractorProjectsViewPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4 text-gray-500" />
-                  <span>Deadline: {formatDate(project.proposal_deadline)}</span>
+                  <span>Deadline: {project.proposal_deadline ? formatDate(project.proposal_deadline) : 'Not specified'}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Eye className="h-4 w-4 text-gray-500" />
-                  <span>{project.proposals_count} proposal(s)</span>
+                  <span>View Details</span>
                 </div>
               </div>
 
@@ -245,15 +248,18 @@ export default function ContractorProjectsViewPage() {
               <div className="bg-gray-50 p-3 rounded-lg">
                 <h4 className="font-medium text-sm mb-2">Project Timeline</h4>
                 <div className="text-xs text-gray-600 space-y-1">
-                  <div>Start: {formatDate(project.preferred_start_date)}</div>
-                  <div>End: {formatDate(project.preferred_end_date)}</div>
+                  <div>Start: {project.preferred_start_date ? formatDate(project.preferred_start_date) : 'Not specified'}</div>
+                  <div>End: {project.preferred_end_date ? formatDate(project.preferred_end_date) : 'Not specified'}</div>
                 </div>
               </div>
 
               {/* Homeowner Info */}
               <div className="flex items-center justify-between pt-2 border-t">
                 <div className="text-sm text-gray-600">
-                  Posted by: <span className="font-medium">{project.homeowner}</span>
+                  Posted by: <span className="font-medium">{project.homeowner?.full_name || 'Unknown'}</span>
+                  {project.homeowner && (
+                    <span className="ml-2">⭐ {project.homeowner.rating} ({project.homeowner.review_count} reviews)</span>
+                  )}
                 </div>
                 <Badge 
                   variant={project.status === 'open' ? 'default' : 'secondary'}
