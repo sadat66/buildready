@@ -14,7 +14,7 @@ export default function RoleLayout({
   const { user, userRole, loading } = useAuth()
   const params = useParams()
   const router = useRouter()
-  const role = params.role as string
+  const role = params?.role as string
   const [accessDenied, setAccessDenied] = useState(false)
 
   useEffect(() => {
@@ -42,16 +42,56 @@ export default function RoleLayout({
     }
   }, [user, userRole, role, loading, router])
 
+  // Add a timeout to prevent infinite loading
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (loading) {
+        console.log('Loading timeout reached, forcing refresh')
+        window.location.reload()
+      }
+    }, 5000) // 5 second timeout
+
+    return () => clearTimeout(timeout)
+  }, [loading])
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">Loading...</div>
+        <div className="text-center">
+          <div className="mb-4">Loading...</div>
+          <div className="text-sm text-gray-500 mb-4">
+            <div>User: {user ? 'Loaded' : 'Loading...'}</div>
+            <div>UserRole: {userRole || 'Loading...'}</div>
+            <div>Route Role: {role || 'Loading...'}</div>
+          </div>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            Refresh Page
+          </button>
+        </div>
       </div>
     )
   }
 
   if (!user) {
-    return null
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">No user found, redirecting to signin...</div>
+      </div>
+    )
+  }
+
+  if (!role) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="mb-4">Invalid route</div>
+          <div className="text-sm text-gray-500">Role parameter not found</div>
+        </div>
+      </div>
+    )
   }
 
   // Show access denied message if user doesn't have permission
