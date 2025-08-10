@@ -6,12 +6,11 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useRouter } from 'next/navigation'
 import { toast } from 'react-hot-toast'
-import { Button } from '~/shared/components/ui/button'
-import { Input } from '~/shared/components/ui/input'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/shared/components/ui/card'
-import { createUserProfile } from '~/lib/supabase/auth'
-import { useAuth } from '~/features/auth/hooks/use-auth'
-import { Loader2, CheckCircle, Building2, Home } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { useAuth } from '@/contexts/AuthContext'
+import { Loader2, Building2, Home } from 'lucide-react'
 
 // Homeowner onboarding schema
 const homeownerSchema = z.object({
@@ -59,7 +58,7 @@ export function OnboardingForm() {
   const [userType, setUserType] = useState<'homeowner' | 'contractor' | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
-  const { user, refreshUserProfile } = useAuth()
+  const { user, createUserProfile, fetchUserProfile } = useAuth()
 
   const homeownerForm = useForm<HomeownerFormData>({
     resolver: zodResolver(homeownerSchema),
@@ -74,13 +73,17 @@ export function OnboardingForm() {
 
     setIsLoading(true)
     try {
-      await createUserProfile(user.id, 'homeowner', data)
-      await refreshUserProfile()
+      const result = await createUserProfile(user.id, 'homeowner', data)
+      if (result.error) {
+        toast.error(result.error)
+        return
+      }
+      await fetchUserProfile()
       toast.success('Profile created successfully!')
       router.push('/dashboard/homeowner')
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error creating homeowner profile:', error)
-      toast.error(error.message || 'Failed to create profile. Please try again.')
+      toast.error((error as Error).message || 'Failed to create profile. Please try again.')
     } finally {
       setIsLoading(false)
     }
@@ -91,13 +94,17 @@ export function OnboardingForm() {
 
     setIsLoading(true)
     try {
-      await createUserProfile(user.id, 'contractor', data)
-      await refreshUserProfile()
+      const result = await createUserProfile(user.id, 'contractor', data)
+      if (result.error) {
+        toast.error(result.error)
+        return
+      }
+      await fetchUserProfile()
       toast.success('Profile created successfully!')
       router.push('/dashboard/contractor')
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error creating contractor profile:', error)
-      toast.error(error.message || 'Failed to create profile. Please try again.')
+      toast.error((error as Error).message || 'Failed to create profile. Please try again.')
     } finally {
       setIsLoading(false)
     }
@@ -123,7 +130,7 @@ export function OnboardingForm() {
               >
                 <CardContent className="p-6 text-center">
                   <Home className="w-12 h-12 mx-auto mb-4 text-blue-600" />
-                  <h3 className="text-xl font-semibold mb-2">I'm a Homeowner</h3>
+                  <h3 className="text-xl font-semibold mb-2">I&apos;m a Homeowner</h3>
                   <p className="text-gray-600">
                     I need help with home improvement projects and want to find qualified contractors.
                   </p>
@@ -138,7 +145,7 @@ export function OnboardingForm() {
               >
                 <CardContent className="p-6 text-center">
                   <Building2 className="w-12 h-12 mx-auto mb-4 text-green-600" />
-                  <h3 className="text-xl font-semibold mb-2">I'm a Contractor</h3>
+                  <h3 className="text-xl font-semibold mb-2">I&apos;m a Contractor</h3>
                   <p className="text-gray-600">
                     I provide construction and renovation services and want to find new clients.
                   </p>

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, Suspense } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -19,20 +19,19 @@ function ResetPasswordConfirmContent() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   
   const router = useRouter()
-  const searchParams = useSearchParams()
   const supabase = createClient()
 
   useEffect(() => {
     // Handle the auth callback
     const handleAuthCallback = async () => {
-      const { data, error } = await supabase.auth.getSession()
+      const { error } = await supabase.auth.getSession()
       if (error) {
         setError('Invalid or expired reset link. Please request a new one.')
       }
     }
 
     handleAuthCallback()
-  }, [])
+  }, [supabase.auth])
 
   const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault()

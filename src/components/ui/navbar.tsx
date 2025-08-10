@@ -58,7 +58,7 @@ export function Navbar({ onMenuToggle, sidebarCollapsed }: NavbarProps) {
                 className="cursor-pointer"
               >
                 <Image
-                  src="/images/brand/png.png"
+                  src="/images/brand/logo.png"
                   alt="Logo"
                   width={120}
                   height={120}
