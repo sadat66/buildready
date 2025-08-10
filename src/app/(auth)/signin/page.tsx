@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { UserRole } from '@/types/database'
 import { Mail, Lock, User, Eye, EyeOff, Building2, Home } from 'lucide-react'
 import Link from 'next/link'
+import { api } from '~/components/providers/TRPCProvider'
 
 export default function SignInPage() {
   const [email, setEmail] = useState('')
@@ -22,6 +23,7 @@ export default function SignInPage() {
   
   const router = useRouter()
   const supabase = createClient()
+  const signUpMutation = api.auth.signUp.useMutation()
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -30,23 +32,23 @@ export default function SignInPage() {
 
     try {
       if (isSignUp) {
-        // Sign up
-        const { data, error } = await supabase.auth.signUp({
+        // Validate required fields
+        if (!email || !password || !fullName || !role) {
+          setError('Please fill in all required fields')
+          return
+        }
+
+
+
+        // Use tRPC mutation instead of direct Supabase client
+        const result = await signUpMutation.mutateAsync({
           email,
           password,
-          options: {
-            data: {
-              full_name: fullName,
-              role: role,
-            }
-          }
+          fullName,
+          role,
         })
 
-        if (error) throw error
-
-        if (data.user) {
-          // Note: User profile will be created automatically via database trigger
-          // or you need to create it after email confirmation
+        if (result.user) {
           alert('Check your email for the confirmation link! After confirming, you can sign in.')
         }
       } else {
@@ -61,6 +63,7 @@ export default function SignInPage() {
         router.push('/dashboard')
       }
     } catch (error: unknown) {
+      console.error('Sign up error:', error)
       setError(error instanceof Error ? error.message : 'An error occurred')
     } finally {
       setLoading(false)
