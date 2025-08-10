@@ -141,47 +141,7 @@ export default function DashboardLayout({
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
           {/* Role Selection */}
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Choose Your Role</h2>
-            <p className="text-gray-600 mb-6">
-              Select the appropriate dashboard based on your role in the system.
-            </p>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {roleRoutes.map((route) => {
-                const Icon = route.icon
-                return (
-                  <Card key={route.title} className="hover:shadow-lg transition-shadow">
-                    <CardHeader>
-                      <div className="flex items-center space-x-3">
-                        <div className={`p-3 rounded-lg ${route.color} text-white`}>
-                          <Icon className="h-6 w-6" />
-                        </div>
-                        <CardTitle className="text-lg">{route.title}</CardTitle>
-                      </div>
-                      <CardDescription>{route.description}</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <ul className="space-y-2">
-                        {route.features.map((feature) => (
-                          <li key={feature} className="flex items-center space-x-2 text-sm text-gray-600">
-                            <div className="h-1.5 w-1.5 bg-gray-400 rounded-full"></div>
-                            <span>{feature}</span>
-                          </li>
-                        ))}
-                      </ul>
-                      <Link href={route.href}>
-                        <Button className="w-full" variant="outline">
-                          Access Dashboard
-                          <ArrowRight className="h-4 w-4 ml-2" />
-                        </Button>
-                      </Link>
-                    </CardContent>
-                  </Card>
-                )
-              })}
-            </div>
-          </div>
+         
 
           {/* Common Dashboard Content */}
           {children}
