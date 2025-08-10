@@ -3,26 +3,20 @@
 import { useAuth } from '@/contexts/AuthContext'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { User, Settings, FileText, MessageSquare } from 'lucide-react'
+import { User, Settings, FileText, MessageSquare, Building } from 'lucide-react'
 import Link from 'next/link'
 
 export default function DashboardPage() {
   const { user } = useAuth()
+  const userRole = user?.user_metadata?.role || 'homeowner'
 
-  const quickActions = [
+  const baseActions = [
     {
       title: 'Profile',
       description: 'View and edit your profile',
       icon: User,
       href: '/dashboard/profile',
       color: 'bg-blue-500'
-    },
-    {
-      title: 'Projects',
-      description: 'Manage your projects',
-      icon: FileText,
-      href: '/dashboard/projects',
-      color: 'bg-green-500'
     },
     {
       title: 'Messages',
@@ -39,6 +33,26 @@ export default function DashboardPage() {
       color: 'bg-orange-500'
     }
   ]
+
+  const roleSpecificActions = userRole === 'contractor' ? [
+    {
+      title: 'Available Projects',
+      description: 'Browse projects from homeowners',
+      icon: Building,
+      href: '/dashboard/contractor-projects',
+      color: 'bg-green-500'
+    }
+  ] : [
+    {
+      title: 'My Projects',
+      description: 'Manage your projects',
+      icon: FileText,
+      href: '/dashboard/projects',
+      color: 'bg-green-500'
+    }
+  ]
+
+  const quickActions = [...baseActions.slice(0, 1), ...roleSpecificActions, ...baseActions.slice(1)]
 
   return (
     <div className="space-y-6">

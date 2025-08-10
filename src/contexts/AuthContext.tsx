@@ -1,20 +1,20 @@
 'use client'
 
 import { createContext, useContext, useEffect, useState } from 'react'
-import { User } from '@supabase/supabase-js'
+import { User as SupabaseUser } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase'
 
 interface AuthContextType {
-  user: User | null
+  user: SupabaseUser | null
   loading: boolean
-  signIn: (email: string, password: string) => Promise<{ user: User | null; error: string | null }>
+  signIn: (email: string, password: string) => Promise<{ user: SupabaseUser | null; error: string | null }>
   signOut: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
+  const [user, setUser] = useState<SupabaseUser | null>(null)
   const [loading, setLoading] = useState(true)
   const supabase = createClient()
 
@@ -43,26 +43,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     try {
-      console.log('AuthContext: Starting sign-in process')
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
 
-      console.log('AuthContext: Supabase response:', { data, error })
-
       if (error) {
-        console.log('AuthContext: Sign-in error:', error.message)
         return { user: null, error: error.message }
       }
 
       if (data.user) {
-        console.log('AuthContext: Setting user:', data.user)
         setUser(data.user)
         return { user: data.user, error: null }
       }
 
-      console.log('AuthContext: No user in response')
       return { user: null, error: 'Sign-in failed' }
     } catch (error) {
       console.error('AuthContext: Sign-in error:', error)
