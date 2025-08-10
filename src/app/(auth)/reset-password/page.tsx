@@ -38,7 +38,7 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="flex items-center justify-center py-12">
       <div className="max-w-md w-full space-y-8">
         {/* Header */}
         <div className="text-center">
@@ -118,7 +118,7 @@ export default function ResetPasswordPage() {
             {/* Back to Sign In */}
             <div className="text-center">
               <Link
-                href="/signin"
+                href="/login"
                 className="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium transition-colors duration-200"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
@@ -130,7 +130,7 @@ export default function ResetPasswordPage() {
 
         {/* Footer */}
         <div className="text-center text-sm text-gray-500">
-          <p>Remember your password? <Link href="/signin" className="text-blue-600 hover:text-blue-700">Sign in</Link></p>
+          <p>Remember your password? <Link href="/login" className="text-blue-600 hover:text-blue-700">Sign in</Link></p>
         </div>
       </div>
     </div>

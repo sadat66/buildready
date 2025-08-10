@@ -21,7 +21,7 @@ export default function DashboardLayout({
 
   useEffect(() => {
     if (!loading && !user) {
-      router.push('/signin')
+      router.push('/login')
     }
   }, [user, loading, router])
 
@@ -151,7 +151,7 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen h-screen bg-gray-50 flex">
+    <div className="min-h-screen h-screen bg-gray-50 flex  max-w-7xl mx-auto">
       {/* Sidebar */}
       <Sidebar 
         isOpen={sidebarOpen} 

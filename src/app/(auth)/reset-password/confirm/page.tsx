@@ -60,7 +60,7 @@ function ResetPasswordConfirmContent() {
 
       setSuccess(true)
       setTimeout(() => {
-        router.push('/signin')
+        router.push('/login')
       }, 3000)
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : 'An error occurred')
@@ -71,7 +71,7 @@ function ResetPasswordConfirmContent() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="flex items-center justify-center py-12">
         <div className="max-w-md w-full space-y-8">
           <Card className="shadow-2xl border-0 bg-white/80 backdrop-blur-sm">
             <CardContent className="p-8 text-center">
@@ -84,7 +84,7 @@ function ResetPasswordConfirmContent() {
               <p className="text-gray-600 mb-6">
                 Your password has been updated. You will be redirected to the sign-in page in a few seconds.
               </p>
-              <Link href="/signin">
+              <Link href="/login">
                 <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold px-6 py-2 rounded-lg">
                   Go to Sign In
                 </Button>
@@ -97,7 +97,7 @@ function ResetPasswordConfirmContent() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="flex items-center justify-center py-12">
       <div className="max-w-md w-full space-y-8">
         {/* Header */}
         <div className="text-center">
@@ -212,7 +212,7 @@ function ResetPasswordConfirmContent() {
             {/* Back to Sign In */}
             <div className="text-center">
               <Link
-                href="/signin"
+                href="/login"
                 className="text-blue-600 hover:text-blue-700 font-medium transition-colors duration-200"
               >
                 Back to Sign In
@@ -228,7 +228,7 @@ function ResetPasswordConfirmContent() {
 export default function ResetPasswordConfirmPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+      <div className="flex items-center justify-center p-4">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading...</p>
