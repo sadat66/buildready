@@ -33,22 +33,8 @@ export default function HomePage() {
         </div>
       </nav>
 
-      {/* Spacer */}
-      <div className="h-20"></div>
-      
-      {/* Top Image Section */}
-      <section className="w-full">
-        <div className="w-full h-[500px]">
-          <Image
-            src="/assets/background1.png"
-            alt="Hero Image"
-            width={1920}
-            height={500}
-            className="w-full h-full object-cover"
-            priority
-          />
-        </div>
-      </section>
+ 
+   
 
       {/* Hero Content Section */}
       <section className="bg-gradient-to-br from-orange-50 to-orange-100 py-20">
