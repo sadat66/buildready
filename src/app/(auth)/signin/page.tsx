@@ -25,14 +25,16 @@ export default function SignInPage() {
   const [showPassword, setShowPassword] = useState(false)
   
   const router = useRouter()
-  const { user, signIn } = useAuth()
+  const { user, signIn, userRole } = useAuth()
   
   // Redirect if user is already signed in
   useEffect(() => {
-    if (user) {
-      router.push('/dashboard')
+    if (user && userRole) {
+      // Redirect to role-specific dashboard using the [role] dynamic route
+      const roleDashboard = `/${userRole}/dashboard`
+      router.push(roleDashboard)
     }
-  }, [user, router])
+  }, [user, userRole, router])
   
   const signUpMutation = api.auth.signUp.useMutation({
     onError: (error) => {
@@ -60,9 +62,9 @@ export default function SignInPage() {
     
     try {
       console.log('Attempting sign-in with:', email)
-      const { user: signedInUser, error } = await signIn(email, password)
+      const { user: signedInUser, userRole: signInUserRole, error } = await signIn(email, password)
       
-      console.log('Sign-in result:', { signedInUser, error })
+      console.log('Sign-in result:', { signedInUser, signInUserRole, error })
       
       if (error) {
         // Handle specific error messages
@@ -76,23 +78,31 @@ export default function SignInPage() {
           setError(error)
         }
       } else if (signedInUser) {
-        // Successfully signed in, redirect to dashboard
-        console.log('Sign-in successful, redirecting to dashboard')
+        // Successfully signed in, redirect immediately using the returned userRole
+        console.log('Sign-in successful, redirecting to role-specific dashboard...')
         
-        // Try router.push first, with fallback to window.location
-        try {
-          router.push('/dashboard')
+        if (signInUserRole) {
+          const roleDashboard = `/${signInUserRole}/dashboard`
+          console.log(`Redirecting to ${roleDashboard}`)
           
-          // Fallback: if router doesn't work within 1 second, use window.location
-          setTimeout(() => {
-            if (window.location.pathname !== '/dashboard') {
-              console.log('Router failed, using window.location fallback')
-              window.location.href = '/dashboard'
-            }
-          }, 1000)
-        } catch (error) {
-          console.error('Router error, using window.location fallback:', error)
-          window.location.href = '/dashboard'
+          try {
+            router.push(roleDashboard)
+            
+            // Fallback: if router doesn't work within 1 second, use window.location
+            setTimeout(() => {
+              if (window.location.pathname !== roleDashboard) {
+                console.log('Router failed, using window.location fallback')
+                window.location.href = roleDashboard
+              }
+            }, 1000)
+          } catch (error) {
+            console.error('Router error, using window.location fallback:', error)
+            window.location.href = roleDashboard
+          }
+        } else {
+          // Fallback to generic dashboard if role is not available
+          console.log('User role not available, redirecting to generic dashboard')
+          router.push('/dashboard')
         }
       }
     } catch (error) {
