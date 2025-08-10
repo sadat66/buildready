@@ -5,6 +5,7 @@ import { Bell, Search, User, Settings, LogOut, Menu } from 'lucide-react'
 import { Button } from './button'
 import { useAuth } from '@/contexts/AuthContext'
 import Link from 'next/link'
+import Image from 'next/image'
 
 interface NavbarProps {
   onMenuToggle: () => void
@@ -41,13 +42,14 @@ export function Navbar({ onMenuToggle, sidebarCollapsed }: NavbarProps) {
           
           {/* Show logo in navbar only when sidebar is collapsed on desktop */}
           {sidebarCollapsed && (
-            <div className="flex items-center space-x-2 lg:block">
-              <div className="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">CX</span>
-              </div>
-              <span className="text-xl font-semibold text-gray-900 hidden sm:block">
-                CoreXLab
-              </span>
+            <div className="flex items-center lg:block">
+              <Image
+                src="/images/brand/png.png"
+                alt="Logo"
+                width={120}
+                height={120}
+                
+              />
             </div>
           )}
         </div>

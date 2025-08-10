@@ -138,7 +138,7 @@ export default function CreateProjectPage() {
         throw insertError
       }
       
-      router.push('/dashboard/projects')
+      router.push('/homeowner/projects')
     } catch (error) {
       console.error('Error creating project:', error)
       setError('Failed to create project. Please try again.')
@@ -151,10 +151,10 @@ export default function CreateProjectPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center space-x-4">
-        <Link href="/dashboard/projects">
+        <Link href="/homeowner/dashboard">
           <Button variant="outline" size="sm">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Projects
+            Back to Dashboard
           </Button>
         </Link>
       </div>
@@ -404,7 +404,7 @@ export default function CreateProjectPage() {
             
             {/* Submit Button */}
             <div className="flex justify-end space-x-4 pt-6">
-              <Link href="/dashboard/projects">
+              <Link href="/homeowner/dashboard">
                 <Button type="button" variant="outline">
                   Cancel
                 </Button>
