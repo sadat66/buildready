@@ -1,11 +1,11 @@
 'use client'
 
 import { createContext, useContext, useEffect, useState } from 'react'
-import { User } from '@supabase/supabase-js'
+import { User as SupabaseUser } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase'
 import { UserRole } from '@/types/database'
 
-interface ExtendedUser extends User {
+interface ExtendedUser extends SupabaseUser {
   role?: UserRole
   full_name?: string
 }
@@ -124,21 +124,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     try {
-      console.log('AuthContext: Starting sign-in process')
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
 
-      console.log('AuthContext: Supabase response:', { data, error })
-
       if (error) {
-        console.log('AuthContext: Sign-in error:', error.message)
         return { user: null, error: error.message }
       }
 
       if (data.user) {
-        console.log('AuthContext: Setting user:', data.user)
         setUser(data.user)
         
         // Fetch user profile data including role
@@ -150,14 +145,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (!profileError && profileData) {
           setUserRole(profileData.role)
-          setUser(prev => prev ? { ...prev, role: profileData.role, full_name: profileData.full_name } : null)
-          return { user: data.user, userRole: profileData.role, error: null }
+          const extendedUser = { ...data.user, role: profileData.role, full_name: profileData.full_name }
+          setUser(extendedUser)
+          return { user: extendedUser, userRole: profileData.role, error: null }
         }
 
         return { user: data.user, userRole: null, error: null }
       }
 
-      console.log('AuthContext: No user in response')
       return { user: null, error: 'Sign-in failed' }
     } catch (error) {
       console.error('AuthContext: Sign-in error:', error)

@@ -25,6 +25,14 @@ export interface Project {
   category: string
   status: 'open' | 'bidding' | 'awarded' | 'completed' | 'cancelled'
   deadline?: string
+  proposal_deadline: string
+  preferred_start_date: string
+  preferred_end_date: string
+  decision_date: string
+  permit_required: boolean
+  site_photos: string[]
+  project_files: string[]
+  is_closed: boolean
   created_at: string
   updated_at: string
   homeowner?: User
@@ -66,4 +74,4 @@ export interface Message {
   created_at: string
   sender?: User
   receiver?: User
-} 
+}
