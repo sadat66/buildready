@@ -43,13 +43,15 @@ export function Navbar({ onMenuToggle, sidebarCollapsed }: NavbarProps) {
           {/* Show logo in navbar only when sidebar is collapsed on desktop */}
           {sidebarCollapsed && (
             <div className="flex items-center lg:block">
-              <Image
-                src="/images/brand/png.png"
-                alt="Logo"
-                width={120}
-                height={120}
-                
-              />
+              <Link href={`/${user?.role}/dashboard`} className="cursor-pointer">
+                <Image
+                  src="/images/brand/png.png"
+                  alt="Logo"
+                  width={120}
+                  height={120}
+                  
+                />
+              </Link>
             </div>
           )}
         </div>
@@ -99,7 +101,7 @@ export function Navbar({ onMenuToggle, sidebarCollapsed }: NavbarProps) {
             {showUserMenu && (
               <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
                 <div className="px-4 py-2 border-b border-gray-100">
-                  <p className="text-sm font-medium text-gray-900">{user?.email}</p>
+                  <p className="text-sm font-medium text-gray-900 truncate">{user?.email}</p>
                   <p className="text-xs text-gray-500 capitalize">
                     {user?.role || 'User'}
                   </p>
