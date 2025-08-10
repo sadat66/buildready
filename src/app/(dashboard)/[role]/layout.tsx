@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { UserRole } from '@/types/database'
+
 
 export default function RoleLayout({
   children,
@@ -106,7 +106,7 @@ export default function RoleLayout({
           </div>
           <h2 className="text-xl font-semibold text-gray-900 mb-2">Access Denied</h2>
           <p className="text-gray-600 mb-4">
-            You don't have permission to access the {role} dashboard. 
+            You don&apos;t have permission to access the {role} dashboard. 
             Redirecting you to your {userRole} dashboard...
           </p>
           <div className="animate-pulse">

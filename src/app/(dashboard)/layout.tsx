@@ -4,9 +4,8 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import Link from 'next/link'
-import { Home, User, Wrench, Shield, ArrowRight } from 'lucide-react'
+import { Card, CardContent } from '@/components/ui/card'
+import { ArrowRight } from 'lucide-react'
 
 export default function DashboardLayout({
   children,
@@ -60,32 +59,7 @@ export default function DashboardLayout({
     }
   }
 
-  const roleRoutes = [
-    {
-      title: 'Homeowner Dashboard',
-      description: 'Manage your home improvement projects',
-      icon: Home,
-      href: '/homeowner/dashboard',
-      color: 'bg-blue-500',
-      features: ['View Projects', 'Review Proposals', 'Message Contractors']
-    },
-    {
-      title: 'Contractor Dashboard',
-      description: 'Manage projects and proposals',
-      icon: Wrench,
-      href: '/contractor/dashboard',
-      color: 'bg-green-500',
-      features: ['Track Projects', 'Manage Proposals', 'Client Communication']
-    },
-    {
-      title: 'Admin Dashboard',
-      description: 'System administration and monitoring',
-      icon: Shield,
-      href: '/admin/dashboard',
-      color: 'bg-red-500',
-      features: ['User Management', 'System Settings', 'Analytics']
-    }
-  ]
+
 
   // If user has a role and we're on the generic dashboard, show a message about automatic redirection
   if (userRole && window.location.pathname === '/dashboard') {

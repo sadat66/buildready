@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
-import { ArrowLeft, Upload, MapPin, Calendar, DollarSign, FileText, Camera, Paperclip } from 'lucide-react'
+import { ArrowLeft, MapPin, Calendar, DollarSign, FileText, Camera, Paperclip } from 'lucide-react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 
@@ -111,7 +111,7 @@ export default function CreateProjectPage() {
       const sitePhotoUrls = formData.site_photos.map(file => file.name)
       const projectFileUrls = formData.project_files.map(file => file.name)
       
-      const { data, error: insertError } = await supabase
+      const { error: insertError } = await supabase
         .from('projects')
         .insert({
           homeowner_id: user.id,

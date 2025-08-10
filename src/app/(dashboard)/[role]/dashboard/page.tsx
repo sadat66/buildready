@@ -5,9 +5,9 @@ import { useAuth } from '@/contexts/AuthContext'
 import { HomeownerDashboard, ContractorDashboard, RoleSelector } from '@/components/features/dashboard'
 
 interface DashboardPageProps {
-  params: {
+  params: Promise<{
     role: string
-  }
+  }>
 }
 
 export default function DashboardPage({ params }: DashboardPageProps) {

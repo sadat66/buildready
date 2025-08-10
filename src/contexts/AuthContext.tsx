@@ -64,7 +64,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       console.log('Initial session check:', session ? 'User found' : 'No user')
       if (session?.user) {
-        setUser(session.user)
+        setUser(session.user as ExtendedUser)
         console.log('Fetching user profile for:', session.user.id)
         // Fetch user profile data including role
         const { data, error } = await supabase
@@ -93,7 +93,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (session?.user) {
-          setUser(session.user)
+          setUser(session.user as ExtendedUser)
           // Fetch user profile data including role
           const { data, error } = await supabase
             .from('users')
@@ -130,11 +130,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       })
 
       if (error) {
-        return { user: null, error: error.message }
+        return { user: null, userRole: null, error: error.message }
       }
 
       if (data.user) {
-        setUser(data.user)
+        setUser(data.user as ExtendedUser)
         
         // Fetch user profile data including role
         const { data: profileData, error: profileError } = await supabase
@@ -150,13 +150,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return { user: extendedUser, userRole: profileData.role, error: null }
         }
 
-        return { user: data.user, userRole: null, error: null }
+        return { user: data.user as ExtendedUser, userRole: null, error: null }
       }
 
-      return { user: null, error: 'Sign-in failed' }
+      return { user: null, userRole: null, error: 'Sign-in failed' }
     } catch (error) {
       console.error('AuthContext: Sign-in error:', error)
-      return { user: null, error: 'An unexpected error occurred' }
+      return { user: null, userRole: null, error: 'An unexpected error occurred' }
     }
   }
   

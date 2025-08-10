@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { User, Mail, Phone, MapPin, Save, Edit } from 'lucide-react'
+import { User, Save, Edit } from 'lucide-react'
 
 export default function ProfilePage() {
   const { user } = useAuth()
