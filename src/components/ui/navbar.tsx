@@ -9,10 +9,9 @@ import Image from "next/image";
 
 interface NavbarProps {
   onMenuToggle: () => void;
-  sidebarCollapsed: boolean;
 }
 
-export function Navbar({ onMenuToggle, sidebarCollapsed }: NavbarProps) {
+export function Navbar({ onMenuToggle  }: NavbarProps) {
   const { user, signOut } = useAuth();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [notifications] = useState([
@@ -37,8 +36,8 @@ export function Navbar({ onMenuToggle, sidebarCollapsed }: NavbarProps) {
   };
 
   return (
-    <nav className="bg-white border-b border-gray-200 pl-6 py-3">
-      <div className="flex items-center justify-between">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 py-3 px-6 w-full">
+      <div className="flex items-center justify-between ">
         {/* Left side - Menu toggle and branding */}
         <div className="flex items-center space-x-4">
           <Button
@@ -50,23 +49,21 @@ export function Navbar({ onMenuToggle, sidebarCollapsed }: NavbarProps) {
             <Menu className="h-5 w-5" />
           </Button>
 
-          {/* Show logo in navbar only when sidebar is collapsed on desktop */}
-          {sidebarCollapsed && (
-            <div className="flex items-center lg:block">
-              <Link
-                href={`/${user?.role}/dashboard`}
-                className="cursor-pointer"
-              >
-                <Image
-                  src="/images/brand/png.png"
-                  alt="Logo"
-                  width={120}
-                  height={120}
-                  className="w-[120px] h-[40px]"
-                />
-              </Link>
-            </div>
-          )}
+          {/* Logo - Always visible */}
+          <div className="flex items-center">
+            <Link
+              href={`/${user?.role}/dashboard`}
+              className="cursor-pointer"
+            >
+              <Image
+                src="/images/brand/app-icon.png"
+                alt="Logo"
+                width={32}
+                height={32}
+                className="w-8 h-8"
+              />
+            </Link>
+          </div>
         </div>
 
         {/* Center - Search */}
@@ -142,7 +139,7 @@ export function Navbar({ onMenuToggle, sidebarCollapsed }: NavbarProps) {
                     onClick={() => setShowUserMenu(false)}
                   >
                     <Settings className="h-4 w-4 mr-2" />
-                    Settings
+                    <span>Settings</span>
                   </Button>
                 </Link>
 
