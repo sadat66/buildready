@@ -32,6 +32,14 @@ CREATE TABLE IF NOT EXISTS public.projects (
     category TEXT NOT NULL,
     status TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open', 'bidding', 'awarded', 'completed', 'cancelled')),
     deadline DATE,
+    proposal_deadline DATE NOT NULL,
+    preferred_start_date DATE NOT NULL,
+    preferred_end_date DATE NOT NULL,
+    decision_date DATE NOT NULL,
+    permit_required BOOLEAN DEFAULT false,
+    site_photos TEXT[], -- Array of photo URLs
+    project_files TEXT[], -- Array of file URLs
+    is_closed BOOLEAN DEFAULT false,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );

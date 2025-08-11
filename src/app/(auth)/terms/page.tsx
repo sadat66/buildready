@@ -24,7 +24,7 @@ export default function TermsPage() {
 
         {/* Back Button */}
         <div className="flex justify-center">
-          <Link href="/signin">
+          <Link href="/register">
             <Button variant="outline" className="inline-flex items-center">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Sign Up
@@ -138,7 +138,7 @@ export default function TermsPage() {
 
         {/* Footer */}
         <div className="text-center">
-          <Link href="/signin">
+          <Link href="/register">
             <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold px-8 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200">
               I Agree to Terms - Continue to Sign Up
             </Button>
