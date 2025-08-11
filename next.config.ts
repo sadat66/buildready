@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
     esmExternals: true,
   },
   transpilePackages: ['@supabase/ssr'],
+  output: process.env.VERCEL ? 'standalone' : undefined,
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve.fallback = {
