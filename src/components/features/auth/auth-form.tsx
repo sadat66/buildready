@@ -4,13 +4,13 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { signIn } from '~/lib/supabase/auth'
-import { Button } from '~/shared/components/ui/button'
-import { Input } from   '~/shared/components/ui/input'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/shared/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useRouter } from 'next/navigation'
 import { toast } from 'react-hot-toast'
 import { Eye, EyeOff, Loader2 } from 'lucide-react'
+import { useAuth } from '@/contexts/AuthContext'
 
 const signInSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -23,6 +23,7 @@ export function AuthForm() {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
+  const { signIn } = useAuth()
 
   const {
     register,
@@ -37,15 +38,17 @@ export function AuthForm() {
     try {
       const result = await signIn(data.email, data.password)
       
-      if (result.data?.user) {
+      if (result.user && !result.error) {
         toast.success('Successfully signed in!')
         
         // Redirect based on user type (will be determined by the auth hook)
         router.push('/dashboard')
+      } else {
+        toast.error(result.error || 'Failed to sign in. Please try again.')
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Sign in error:', error)
-      toast.error(error.message || 'Failed to sign in. Please try again.')
+      toast.error((error as Error).message || 'Failed to sign in. Please try again.')
     } finally {
       setIsLoading(false)
     }
@@ -123,7 +126,7 @@ export function AuthForm() {
 
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
-              Don't have an account?{' '}
+              Don&apos;t have an account?{' '}
               <button
                 onClick={() => router.push('/register')}
                 className="text-blue-600 hover:text-blue-800 font-medium"

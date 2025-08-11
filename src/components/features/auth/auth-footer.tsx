@@ -1,10 +1,6 @@
 'use client'
 
-interface AuthFooterProps {
-  variant: 'login' | 'register'
-}
-
-export function AuthFooter({ variant }: AuthFooterProps) {
+export function AuthFooter() {
   return (
     <footer className="text-center py-6">
       <div className="text-sm text-gray-500">

@@ -106,7 +106,7 @@ export default function LoginPage() {
         />
 
         {/* Footer */}
-        <AuthFooter variant="login" />
+        <AuthFooter />
       </div>
     </div>
   )
