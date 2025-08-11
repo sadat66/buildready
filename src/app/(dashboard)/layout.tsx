@@ -113,7 +113,7 @@ export default function DashboardLayout({
       <Navbar onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
 
       {/* Main Content Area - No flex, content flows naturally */}
-      <div className="pt-[73px]">
+      <div className="pt-16">
         {/* Sidebar - Fixed height, starts below navbar, positioned absolutely */}
         <Sidebar
           isOpen={sidebarOpen}
