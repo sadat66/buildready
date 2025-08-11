@@ -11,7 +11,8 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 import { Project } from '@/types/database'
 import dynamic from 'next/dynamic'
-import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import toast from 'react-hot-toast'
+
 
 const LocationMap = dynamic(() => import('@/components/features/projects').then(mod => ({ default: mod.LocationMap })), {
   ssr: false,
@@ -26,7 +27,7 @@ export default function ProjectViewPage() {
   const [project, setProject] = useState<Project | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+
 
   useEffect(() => {
     const fetchProject = async () => {
@@ -109,9 +110,11 @@ export default function ProjectViewPage() {
         throw deleteError
       }
       
+      toast.success('Project deleted successfully!')
       router.push('/homeowner/projects')
     } catch (error) {
       console.error('Error deleting project:', error)
+      toast.error('Failed to delete project. Please try again.')
       setError('Failed to delete project. Please try again.')
     }
   }
@@ -379,22 +382,13 @@ export default function ProjectViewPage() {
         </Link>
                  <Button 
            variant="destructive" 
-           onClick={() => setShowDeleteDialog(true)}
+           onClick={handleDeleteProject}
          >
            Delete Project
                   </Button>
        </div>
 
-       {/* Delete Confirmation Dialog */}
-       <ConfirmDialog
-         isOpen={showDeleteDialog}
-         onClose={() => setShowDeleteDialog(false)}
-         onConfirm={handleDeleteProject}
-         title="Delete Project"
-         message="Are you sure you want to delete this project? This action cannot be undone."
-         confirmText="Delete Project"
-         cancelText="Cancel"
-       />
+
      </div>
    )
  }
