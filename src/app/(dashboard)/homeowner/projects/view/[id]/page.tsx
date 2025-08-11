@@ -1,20 +1,20 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, MapPin, Calendar, DollarSign, FileText, Camera, Paperclip, Clock, User, CheckCircle, AlertCircle } from 'lucide-react'
+import { ArrowLeft, MapPin, Calendar, DollarSign, FileText, Camera, Paperclip, Clock, CheckCircle, AlertCircle } from 'lucide-react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 import { Project } from '@/types/database'
 
 export default function ProjectViewPage() {
-  const { id } = useParams()
+  const params = useParams()
+  const id = params?.id as string
   const { user } = useAuth()
-  const router = useRouter()
   const [project, setProject] = useState<Project | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+
 import { useAuth } from '@/contexts/AuthContext'
 import { createClient } from '@/lib/supabase'
 import { Project } from '@/types/database'
@@ -10,11 +10,10 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Building, MapPin, Calendar, DollarSign, Search, Filter, Eye } from 'lucide-react'
+import { Building, MapPin, Calendar, DollarSign, Search } from 'lucide-react'
 
 export default function ContractorProjectsViewPage() {
   const { user, loading } = useAuth()
-  const router = useRouter()
   const [projects, setProjects] = useState<Project[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('all')

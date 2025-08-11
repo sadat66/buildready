@@ -13,7 +13,14 @@ import { createClient } from '@/lib/supabase'
 
 export default function ProfilePage() {
   const { user } = useAuth()
-  const [userData, setUserData] = useState<any>(null)
+  const [, setUserData] = useState<{
+    full_name: string;
+    phone: string;
+    location: string;
+    bio: string;
+    role: string;
+    created_at: string;
+  } | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [formData, setFormData] = useState({
@@ -72,7 +79,7 @@ export default function ProfilePage() {
       if (error) throw error
       
       // Update local state
-      setUserData(prev => ({ ...prev, ...formData }))
+      setUserData(prev => prev ? { ...prev, ...formData } : null)
       alert('Profile updated successfully!')
     } catch (error) {
       console.error('Error updating profile:', error)

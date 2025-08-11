@@ -17,7 +17,7 @@ export default function DashboardLayout({
   const router = useRouter();
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
+
   const [accessDenied, setAccessDenied] = useState(false);
 
   useEffect(() => {

@@ -6,7 +6,17 @@ import { FileText, Clock, DollarSign, User, Eye } from 'lucide-react'
 
 export default function ContractorProposalsPage() {
 
-  const proposals: any[] = []
+  const proposals: Array<{
+    id: number;
+    projectTitle: string;
+    homeowner: string;
+    homeownerRating: number;
+    budget: string;
+    timeline: string;
+    status: string;
+    lastModified: string;
+    description: string;
+  }> = []
 
   const getStatusColor = (status: string) => {
     switch (status) {

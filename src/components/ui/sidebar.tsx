@@ -12,6 +12,7 @@ import {
   Briefcase,
   Users,
   BarChart3,
+  DollarSign,
 } from "lucide-react";
 import { Button } from "./button";
 

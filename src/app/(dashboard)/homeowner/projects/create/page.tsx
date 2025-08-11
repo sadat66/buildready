@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
-import { ArrowLeft, MapPin, Calendar, DollarSign, FileText, Camera, Paperclip, X, Upload, Image as ImageIcon } from 'lucide-react'
+import { ArrowLeft, MapPin, Calendar, DollarSign, FileText, Camera, Paperclip, X, Upload } from 'lucide-react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 
