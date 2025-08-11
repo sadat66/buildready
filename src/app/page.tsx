@@ -13,28 +13,52 @@ import { Navbar } from "@/components/shared/navbar";
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-white">
-     
       <Navbar />
 
-      {/* Hero Content Section */}
-      <section className="bg-gradient-to-br from-orange-50 to-orange-100 py-20">
+      <section className="relative bg-gradient-to-br from-orange-50 via-orange-50 to-orange-100 py-20 overflow-hidden">
+        {/* Background Pattern - Blueprint Grid */}
+        <div className="absolute inset-0 opacity-5">
+          <div className="absolute inset-0" style={{
+            backgroundImage: `
+              linear-gradient(rgba(0,0,0,0.1) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(0,0,0,0.1) 1px, transparent 1px)
+            `,
+            backgroundSize: '20px 20px'
+          }}></div>
+        </div>
+  
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-            Connect with Trusted
-            <span className="text-orange-600"> Contractors</span>
-          </h1>
-          <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-            BuildReady brings homeowners and contractors together. Create
-            projects, get proposals, and build with confidence.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          {/* Logo and Brand Section */}
+          <div className="flex items-center justify-center mb-8">
+            <div className="flex items-center ">
+              <Image
+                src="/images/brand/app-icon-original.png"
+                alt="BuildReady Icon"
+                width={200}
+                height={200}
+                className="w-44 h-44 drop-shadow-lg"
+              />
+              <h1 className="text-7xl md:text-7xl font-bold text-orange-500 drop-shadow-sm">
+                BuildReady
+              </h1>
+            </div>
+          </div>
+          
+          {/* Tagline */}
+          <div className="text-3xl md:text-4xl text-gray-800 mb-12 max-w-6xl mx-auto font-medium leading-tight">
+            <div className="mb-2">Where <span className="font-bold text-gray-900">Build-Ready Projects</span></div>
+            <div>Meet <span className="font-bold text-gray-900">Ready Builders</span></div>
+          </div>
+          
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-6 justify-center">
             <Link href="/login">
-              <Button size="lg" className="text-lg px-8 py-3">
+              <Button size="lg" className="text-lg px-10 py-4 bg-orange-600 hover:bg-orange-700 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105">
                 Start Your Project
               </Button>
             </Link>
             <Link href="/register">
-              <Button variant="outline" size="lg" className="text-lg px-8 py-3">
+              <Button variant="outline" size="lg" className="text-lg px-10 py-4 border-2 border-orange-600 text-orange-600 hover:bg-orange-600 hover:text-white transition-all duration-200 transform hover:scale-105 shadow-lg">
                 Join as Contractor
               </Button>
             </Link>
