@@ -17,6 +17,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ user: ExtendedUser | null; userRole: UserRole | null; error: string | null }>
   signOut: () => Promise<void>
   fetchUserProfile: () => Promise<void>
+  createUserProfile: (userId: string, role: UserRole, profileData: Record<string, unknown>) => Promise<{ error: string | null }>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -120,7 +121,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
      return () => {
        subscription.unsubscribe()
      }
-  }, [])
+   }, [supabase, loading])
 
   const signOut = async () => {
     setUser(null)
@@ -169,6 +170,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return { user: null, userRole: null, error: 'An unexpected error occurred' }
     }
   }
+
+  const createUserProfile = async (userId: string, role: UserRole, profileData: Record<string, unknown>) => {
+    try {
+      const { error } = await supabase
+        .from('users')
+        .upsert({
+          id: userId,
+          role: role,
+          ...profileData,
+          updated_at: new Date().toISOString()
+        })
+
+      if (error) {
+        console.error('Error creating user profile:', error)
+        return { error: error.message }
+      }
+
+      // Refresh user profile after creation
+      await fetchUserProfile()
+      return { error: null }
+    } catch (error) {
+      console.error('Unexpected error creating user profile:', error)
+      return { error: 'An unexpected error occurred' }
+    }
+  }
   
   return (
     <AuthContext.Provider value={{
@@ -177,7 +203,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       loading,
       signIn,
       signOut,
-      fetchUserProfile
+      fetchUserProfile,
+      createUserProfile
     }}>
       {children}
     </AuthContext.Provider>

@@ -18,7 +18,7 @@ export function RegistrationSuccess() {
               Check Your Email!
             </CardTitle>
             <CardDescription className="text-base text-gray-600">
-              We've sent you a confirmation link to verify your account.
+              We&apos;ve sent you a confirmation link to verify your account.
             </CardDescription>
           </CardHeader>
           

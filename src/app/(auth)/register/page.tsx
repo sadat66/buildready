@@ -105,7 +105,7 @@ export default function RegisterPage() {
         />
 
         {/* Footer */}
-        <AuthFooter variant="register" />
+        <AuthFooter />
       </div>
     </div>
   )
