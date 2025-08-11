@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { User, Settings, Building, ClipboardList, Search, Briefcase } from 'lucide-react'
+import { Building, ClipboardList, Search, Briefcase } from 'lucide-react'
 import Link from 'next/link'
 
 interface ContractorDashboardProps {
@@ -11,13 +11,6 @@ interface ContractorDashboardProps {
 
 export default function ContractorDashboard({ userEmail }: ContractorDashboardProps) {
   const quickActions = [
-    {
-      title: 'Profile',
-      description: 'View and edit your profile',
-      icon: User,
-      href: '/contractor/profile',
-      color: 'bg-blue-500'
-    },
     {
       title: 'Available Projects',
       description: 'Browse projects from homeowners',
@@ -31,13 +24,6 @@ export default function ContractorDashboard({ userEmail }: ContractorDashboardPr
       icon: ClipboardList,
       href: '/contractor/proposals',
       color: 'bg-blue-600'
-    },
-    {
-      title: 'Settings',
-      description: 'Configure your account',
-      icon: Settings,
-      href: '/contractor/settings',
-      color: 'bg-orange-500'
     }
   ]
 
@@ -70,7 +56,7 @@ export default function ContractorDashboard({ userEmail }: ContractorDashboardPr
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Link href="/contractor/projects/view">
+          <Link href="/contractor/projects">
             <Button className="bg-blue-600 hover:bg-blue-700">
               <Search className="h-4 w-4 mr-2" />
               Browse Projects
@@ -80,7 +66,7 @@ export default function ContractorDashboard({ userEmail }: ContractorDashboardPr
       </Card>
 
       {/* Quick Actions Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {quickActions.map((action) => {
           const Icon = action.icon
           return (
@@ -107,68 +93,6 @@ export default function ContractorDashboard({ userEmail }: ContractorDashboardPr
           )
         })}
       </div>
-
-      {/* Business Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Active Proposals</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">0</div>
-            <p className="text-xs text-gray-500">Proposals awaiting response</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Won Projects</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">0</div>
-            <p className="text-xs text-gray-500">Projects awarded to you</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Success Rate</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-orange-600">-</div>
-            <p className="text-xs text-gray-500">Proposal success rate</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Recent Activity */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Activity</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            <div className="flex items-center space-x-3 text-sm">
-              <div className="h-2 w-2 bg-blue-500 rounded-full"></div>
-              <span className="text-gray-600">No recent activity</span>
-            </div>
-            <p className="text-xs text-gray-500 mt-2">
-              Your proposal updates and project notifications will appear here.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* System Status */}
-      <Card>
-        <CardHeader>
-          <CardTitle>System Status</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center space-x-2">
-            <div className="h-3 w-3 bg-green-500 rounded-full"></div>
-            <span className="text-sm text-gray-600">All systems operational</span>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   )
 }

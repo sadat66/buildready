@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
-import { ArrowLeft, MapPin, Calendar, DollarSign, FileText, Camera, Paperclip } from 'lucide-react'
+import { ArrowLeft, MapPin, Calendar, DollarSign, FileText, Camera, Paperclip, X, Upload, Image as ImageIcon } from 'lucide-react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 
@@ -33,6 +33,7 @@ export default function CreateProjectPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [dragActive, setDragActive] = useState(false)
   
   // Form state
   const [formData, setFormData] = useState({
@@ -57,9 +58,73 @@ export default function CreateProjectPage() {
 
   const handleFileChange = (field: 'site_photos' | 'project_files', files: FileList | null) => {
     if (files) {
-      setFormData(prev => ({ ...prev, [field]: Array.from(files) }))
+      const newFiles = Array.from(files)
+      
+      // Validate file types and sizes
+      const validFiles = newFiles.filter(file => {
+        if (field === 'site_photos') {
+          if (!file.type.startsWith('image/')) {
+            setError('Please select only image files for site photos')
+            return false
+          }
+          if (file.size > 5 * 1024 * 1024) { // 5MB limit
+            setError('Photo files must be smaller than 5MB')
+            return false
+          }
+        } else {
+          if (file.size > 10 * 1024 * 1024) { // 10MB limit
+            setError('Project files must be smaller than 10MB')
+            return false
+          }
+        }
+        return true
+      })
+      
+      if (validFiles.length > 0) {
+        setError('')
+        setFormData(prev => ({ 
+          ...prev, 
+          [field]: field === 'site_photos' 
+            ? [...prev[field], ...validFiles] 
+            : validFiles 
+        }))
+      }
     }
   }
+
+  const removePhoto = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      site_photos: prev.site_photos.filter((_, i) => i !== index)
+    }))
+  }
+
+  const removeProjectFile = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      project_files: prev.project_files.filter((_, i) => i !== index)
+    }))
+  }
+
+  const handleDrag = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true)
+    } else if (e.type === "dragleave") {
+      setDragActive(false)
+    }
+  }, [])
+
+  const handleDrop = useCallback((e: React.DragEvent, field: 'site_photos' | 'project_files') => {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragActive(false)
+    
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleFileChange(field, e.dataTransfer.files)
+    }
+  }, [])
 
   const validateForm = () => {
     const required = [
@@ -360,22 +425,75 @@ export default function CreateProjectPage() {
                   <Camera className="h-4 w-4" />
                   <span>Site Photos * (Required)</span>
                 </Label>
-                <Input
-                  id="site_photos"
-                  type="file"
-                  multiple
-                  accept="image/*"
-                  onChange={(e) => handleFileChange('site_photos', e.target.files)}
-                  className="mt-1"
-                />
-                <p className="text-xs text-gray-500 mt-1">
+                
+                {/* Drag & Drop Area */}
+                <div
+                  className={`mt-2 border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+                    dragActive 
+                      ? 'border-blue-500 bg-blue-50' 
+                      : 'border-gray-300 hover:border-gray-400'
+                  }`}
+                  onDragEnter={handleDrag}
+                  onDragLeave={handleDrag}
+                  onDragOver={handleDrag}
+                  onDrop={(e) => handleDrop(e, 'site_photos')}
+                >
+                  <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                  <p className="text-sm text-gray-600 mb-2">
+                    Drag and drop photos here, or click to browse
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    Supports JPG, PNG, GIF up to 5MB each
+                  </p>
+                  <Input
+                    id="site_photos"
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={(e) => handleFileChange('site_photos', e.target.files)}
+                    className="mt-4"
+                  />
+                </div>
+                
+                {/* Photo Previews */}
+                {formData.site_photos.length > 0 && (
+                  <div className="mt-4">
+                    <p className="text-sm font-medium text-gray-700 mb-3">
+                      Selected Photos ({formData.site_photos.length})
+                    </p>
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                      {formData.site_photos.map((file, index) => (
+                        <div key={index} className="relative group">
+                          <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden border">
+                            <img
+                              src={URL.createObjectURL(file)}
+                              alt={`Photo ${index + 1}`}
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 flex items-center justify-center">
+                              <Button
+                                type="button"
+                                variant="destructive"
+                                size="sm"
+                                className="opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                                onClick={() => removePhoto(index)}
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                          <p className="text-xs text-gray-500 mt-1 truncate">
+                            {file.name}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                <p className="text-xs text-gray-500 mt-2">
                   Include photos showing site access, current conditions, and areas to be worked on
                 </p>
-                {formData.site_photos.length > 0 && (
-                  <p className="text-sm text-green-600 mt-1">
-                    {formData.site_photos.length} photo(s) selected
-                  </p>
-                )}
               </div>
               
               <div>
@@ -383,22 +501,72 @@ export default function CreateProjectPage() {
                   <Paperclip className="h-4 w-4" />
                   <span>Project Files (Optional)</span>
                 </Label>
-                <Input
-                  id="project_files"
-                  type="file"
-                  multiple
-                  accept=".pdf,.doc,.docx,.dwg,.jpg,.jpeg,.png"
-                  onChange={(e) => handleFileChange('project_files', e.target.files)}
-                  className="mt-1"
-                />
-                <p className="text-xs text-gray-500 mt-1">
+                
+                {/* Drag & Drop Area for Project Files */}
+                <div
+                  className={`mt-2 border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+                    dragActive 
+                      ? 'border-blue-500 bg-blue-50' 
+                      : 'border-gray-300 hover:border-gray-400'
+                  }`}
+                  onDragEnter={handleDrag}
+                  onDragLeave={handleDrag}
+                  onDragOver={handleDrag}
+                  onDrop={(e) => handleDrop(e, 'project_files')}
+                >
+                  <Paperclip className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                  <p className="text-sm text-gray-600 mb-2">
+                    Drag and drop files here, or click to browse
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    Supports PDF, DOC, DWG, images up to 10MB each
+                  </p>
+                  <Input
+                    id="project_files"
+                    type="file"
+                    multiple
+                    accept=".pdf,.doc,.docx,.dwg,.jpg,.jpeg,.png"
+                    onChange={(e) => handleFileChange('project_files', e.target.files)}
+                    className="mt-4"
+                  />
+                </div>
+                
+                {/* Project Files List */}
+                {formData.project_files.length > 0 && (
+                  <div className="mt-4">
+                    <p className="text-sm font-medium text-gray-700 mb-3">
+                      Selected Files ({formData.project_files.length})
+                    </p>
+                    <div className="space-y-2">
+                      {formData.project_files.map((file, index) => (
+                        <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                          <div className="flex items-center space-x-3">
+                            <FileText className="h-5 w-5 text-gray-400" />
+                            <div>
+                              <p className="text-sm font-medium text-gray-700">{file.name}</p>
+                              <p className="text-xs text-gray-500">
+                                {(file.size / 1024 / 1024).toFixed(2)} MB
+                              </p>
+                            </div>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeProjectFile(index)}
+                            className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                <p className="text-xs text-gray-500 mt-2">
                   Upload plans, specifications, or other relevant documents
                 </p>
-                {formData.project_files.length > 0 && (
-                  <p className="text-sm text-green-600 mt-1">
-                    {formData.project_files.length} file(s) selected
-                  </p>
-                )}
               </div>
             </div>
             

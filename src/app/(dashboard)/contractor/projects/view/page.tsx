@@ -18,26 +18,8 @@ export default function ContractorProjectsViewPage() {
   const [projects, setProjects] = useState<Project[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('all')
-  const [isRedirecting, setIsRedirecting] = useState(false)
   const [projectsLoading, setProjectsLoading] = useState(true)
   const [error, setError] = useState('')
-
-  useEffect(() => {
-    if (!loading && user) {
-      const userRole = user.user_metadata?.role
-      
-      // Only contractors can access this page
-      if (userRole !== 'contractor') {
-        setIsRedirecting(true)
-        if (userRole === 'homeowner') {
-          router.push('/homeowner/projects')
-        } else {
-          router.push('/dashboard')
-        }
-        return
-      }
-    }
-  }, [user, loading, router])
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -79,10 +61,10 @@ export default function ContractorProjectsViewPage() {
     }
   }, [user, loading])
 
-  if (loading || isRedirecting || projectsLoading) {
+  if (loading || projectsLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg">Loading...</div>
+        <div className="text-lg">Loading projects...</div>
       </div>
     )
   }
@@ -95,20 +77,10 @@ export default function ContractorProjectsViewPage() {
     )
   }
 
-  if (!user) {
+  if (!user || user.user_metadata?.role !== 'contractor') {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg">Please log in to view projects.</div>
-      </div>
-    )
-  }
-
-  const userRole = user.user_metadata?.role
-  
-  if (userRole !== 'contractor') {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg">Only contractors can view available projects.</div>
+        <div className="text-lg">Access denied. Only contractors can view available projects.</div>
       </div>
     )
   }
@@ -139,22 +111,20 @@ export default function ContractorProjectsViewPage() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-              <Building className="h-8 w-8" />
-              Available Projects
-            </h1>
-            <p className="text-gray-600 mt-2">
-              Browse and bid on construction projects from homeowners
-            </p>
-          </div>
-          <div className="text-sm text-gray-500">
-            {filteredProjects.length} project(s) available
-          </div>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+            <Building className="h-8 w-8" />
+            Available Projects
+          </h1>
+          <p className="text-gray-600 mt-2">
+            Browse and bid on construction projects from homeowners
+          </p>
+        </div>
+        <div className="text-sm text-gray-500">
+          {filteredProjects.length} project(s) available
         </div>
       </div>
 
@@ -163,26 +133,22 @@ export default function ContractorProjectsViewPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Search className="h-5 w-5" />
-            Search & Filter Projects
+            Search & Filter
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                <Input
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Search projects by title, description, or location..."
-                  className="pl-10"
-                />
-              </div>
+              <Input
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search projects by title, description, or location..."
+                className="pl-10"
+              />
             </div>
             <div className="w-full md:w-48">
               <Select value={categoryFilter} onValueChange={setCategoryFilter}>
                 <SelectTrigger>
-                  <Filter className="h-4 w-4 mr-2" />
                   <SelectValue placeholder="Category" />
                 </SelectTrigger>
                 <SelectContent>
@@ -206,26 +172,26 @@ export default function ContractorProjectsViewPage() {
         </CardContent>
       </Card>
 
-      {/* Projects Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Projects List */}
+      <div className="space-y-4">
         {filteredProjects.map((project) => (
-          <Card key={project.id} className="hover:shadow-lg transition-shadow">
+          <Card key={project.id} className="hover:shadow-md transition-shadow">
             <CardHeader>
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <CardTitle className="text-xl mb-2">{project.title}</CardTitle>
-                  <CardDescription className="text-sm mb-3">
+                  <CardTitle className="text-xl">{project.title}</CardTitle>
+                  <CardDescription className="text-sm mt-2">
                     {project.description}
                   </CardDescription>
                 </div>
-                <Badge variant="outline" className="ml-2">
+                <Badge variant="outline" className="ml-2 capitalize">
                   {project.category.replace('_', ' ')}
                 </Badge>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
               {/* Project Details */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                 <div className="flex items-center gap-2">
                   <MapPin className="h-4 w-4 text-gray-500" />
                   <span>{project.location}</span>
@@ -236,20 +202,7 @@ export default function ContractorProjectsViewPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4 text-gray-500" />
-                  <span>Deadline: {project.proposal_deadline ? formatDate(project.proposal_deadline) : 'Not specified'}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Eye className="h-4 w-4 text-gray-500" />
-                  <span>View Details</span>
-                </div>
-              </div>
-
-              {/* Timeline */}
-              <div className="bg-gray-50 p-3 rounded-lg">
-                <h4 className="font-medium text-sm mb-2">Project Timeline</h4>
-                <div className="text-xs text-gray-600 space-y-1">
-                  <div>Start: {project.preferred_start_date ? formatDate(project.preferred_start_date) : 'Not specified'}</div>
-                  <div>End: {project.preferred_end_date ? formatDate(project.preferred_end_date) : 'Not specified'}</div>
+                  <span>Deadline: {formatDate(project.proposal_deadline)}</span>
                 </div>
               </div>
 
@@ -257,14 +210,11 @@ export default function ContractorProjectsViewPage() {
               <div className="flex items-center justify-between pt-2 border-t">
                 <div className="text-sm text-gray-600">
                   Posted by: <span className="font-medium">{project.homeowner?.full_name || 'Unknown'}</span>
-                  {project.homeowner && (
+                  {project.homeowner?.rating && (
                     <span className="ml-2">⭐ {project.homeowner.rating} ({project.homeowner.review_count} reviews)</span>
                   )}
                 </div>
-                <Badge 
-                  variant={project.status === 'open' ? 'default' : 'secondary'}
-                  className="text-xs"
-                >
+                <Badge variant="default" className="text-xs">
                   {project.status}
                 </Badge>
               </div>
@@ -281,22 +231,21 @@ export default function ContractorProjectsViewPage() {
             </CardContent>
           </Card>
         ))}
+        
+        {filteredProjects.length === 0 && (
+          <Card>
+            <CardContent className="text-center py-12">
+              <Building className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No projects found</h3>
+              <p className="text-gray-600">
+                {searchTerm || categoryFilter !== 'all' 
+                  ? 'Try adjusting your search criteria or filters.'
+                  : 'No projects are currently available. Check back later for new opportunities.'}
+              </p>
+            </CardContent>
+          </Card>
+        )}
       </div>
-
-      {/* No Results */}
-      {filteredProjects.length === 0 && (
-        <Card>
-          <CardContent className="text-center py-12">
-            <Building className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No projects found</h3>
-            <p className="text-gray-600">
-              {searchTerm || categoryFilter !== 'all' 
-                ? 'Try adjusting your search criteria or filters.'
-                : 'No projects are currently available. Check back later for new opportunities.'}
-            </p>
-          </CardContent>
-        </Card>
-      )}
     </div>
   )
 }

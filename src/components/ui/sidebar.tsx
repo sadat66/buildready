@@ -7,16 +7,11 @@ import Image from "next/image";
 import {
   Home,
   FileText,
-  MessageSquare,
-  User,
-  Settings,
   ChevronLeft,
   ChevronRight,
   Briefcase,
   Users,
   BarChart3,
-  Calendar,
-  DollarSign,
 } from "lucide-react";
 import { Button } from "./button";
 
@@ -39,28 +34,18 @@ export function Sidebar({
   const getMenuItems = () => {
     const baseItems = [
       { name: "Dashboard", href: `/${userRole}/dashboard`, icon: Home },
-      { name: "Profile", href: `/${userRole}/profile`, icon: User },
-      { name: "Settings", href: `/${userRole}/settings`, icon: Settings },
     ];
 
     switch (userRole) {
       case "homeowner":
         return [
-          ...baseItems,
+          { name: "Dashboard", href: "/homeowner/dashboard", icon: Home },
           { name: "My Projects", href: "/homeowner/projects", icon: FileText },
-          { name: "Proposals", href: "/homeowner/proposals", icon: Briefcase },
-          {
-            name: "Messages",
-            href: "/homeowner/messages",
-            icon: MessageSquare,
-          },
-          { name: "Calendar", href: "/homeowner/calendar", icon: Calendar },
-          { name: "Payments", href: "/homeowner/payments", icon: DollarSign },
         ];
 
       case "contractor":
         return [
-          ...baseItems,
+          { name: "Dashboard", href: "/contractor/dashboard", icon: Home },
           {
             name: "Active Projects",
             href: "/contractor/projects",
@@ -71,18 +56,11 @@ export function Sidebar({
             href: "/contractor/proposals",
             icon: Briefcase,
           },
-          {
-            name: "Messages",
-            href: "/contractor/messages",
-            icon: MessageSquare,
-          },
-          { name: "Calendar", href: "/contractor/calendar", icon: Calendar },
-          { name: "Earnings", href: "/contractor/earnings", icon: DollarSign },
         ];
 
       case "admin":
         return [
-          ...baseItems,
+          { name: "Dashboard", href: "/admin/dashboard", icon: Home },
           { name: "User Management", href: "/admin/users", icon: Users },
           {
             name: "System Analytics",

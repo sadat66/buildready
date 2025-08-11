@@ -188,9 +188,11 @@ export default function ProjectsPage() {
                       <span>Deadline: {formatDate(project.proposal_deadline)}</span>
                     </div>
                   </div>
-                  <Button variant="outline" size="sm">
-                    View Details
-                  </Button>
+                  <Link href={`/homeowner/projects/view/${project.id}`}>
+                    <Button variant="outline" size="sm">
+                      View Details
+                    </Button>
+                  </Link>
                 </div>
               </div>
             </CardContent>
