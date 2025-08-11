@@ -70,8 +70,8 @@ export default function ProjectsPage() {
     return new Date(dateString).toLocaleDateString()
   }
 
-  const formatBudget = (min: number, max: number) => {
-    return `$${min.toLocaleString()} - $${max.toLocaleString()}`
+  const formatBudget = (budget: number) => {
+    return `$${budget.toLocaleString()}`
   }
 
   if (loading) {
@@ -170,7 +170,7 @@ export default function ProjectsPage() {
                     </div>
                     <div className="flex items-center space-x-1 text-gray-600">
                       <DollarSign className="h-4 w-4" />
-                      <span>{formatBudget(project.budget_min, project.budget_max)}</span>
+                      <span>{formatBudget(project.budget)}</span>
                     </div>
                   </div>
                   <div className="text-xs text-gray-500 capitalize">

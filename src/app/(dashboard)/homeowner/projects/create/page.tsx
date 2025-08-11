@@ -41,8 +41,7 @@ export default function CreateProjectPage() {
     description: '',
     category: '',
     location: '',
-    budget_min: '',
-    budget_max: '',
+    budget: '',
     proposal_deadline: '',
     preferred_start_date: '',
     preferred_end_date: '',
@@ -129,7 +128,7 @@ export default function CreateProjectPage() {
   const validateForm = () => {
     const required = [
       'title', 'description', 'category', 'location', 
-      'budget_min', 'budget_max', 'proposal_deadline',
+      'budget', 'proposal_deadline',
       'preferred_start_date', 'preferred_end_date', 'decision_date'
     ]
     
@@ -145,8 +144,8 @@ export default function CreateProjectPage() {
       return false
     }
     
-    if (parseFloat(formData.budget_min) >= parseFloat(formData.budget_max)) {
-      setError('Maximum budget must be greater than minimum budget')
+    if (parseFloat(formData.budget) <= 0) {
+      setError('Budget must be a positive number')
       return false
     }
     
@@ -184,8 +183,7 @@ export default function CreateProjectPage() {
           description: formData.description,
           category: formData.category,
           location: formData.location,
-          budget_min: parseFloat(formData.budget_min),
-          budget_max: parseFloat(formData.budget_max),
+          budget: parseFloat(formData.budget),
           proposal_deadline: formData.proposal_deadline,
           preferred_start_date: formData.preferred_start_date,
           preferred_end_date: formData.preferred_end_date,
@@ -322,29 +320,19 @@ export default function CreateProjectPage() {
                 <span>Budget</span>
               </h3>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="budget_min">Minimum Budget *</Label>
-                  <Input
-                    id="budget_min"
-                    type="number"
-                    value={formData.budget_min}
-                    onChange={(e) => handleInputChange('budget_min', e.target.value)}
-                    placeholder="5000"
-                    className="mt-1"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="budget_max">Maximum Budget *</Label>
-                  <Input
-                    id="budget_max"
-                    type="number"
-                    value={formData.budget_max}
-                    onChange={(e) => handleInputChange('budget_max', e.target.value)}
-                    placeholder="10000"
-                    className="mt-1"
-                  />
-                </div>
+              <div>
+                <Label htmlFor="budget">Project Budget *</Label>
+                <Input
+                  id="budget"
+                  type="number"
+                  value={formData.budget}
+                  onChange={(e) => handleInputChange('budget', e.target.value)}
+                  placeholder="15000"
+                  className="mt-1"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Enter your total budget for this project
+                </p>
               </div>
             </div>
             

@@ -19,8 +19,7 @@ export interface Project {
   homeowner_id: string
   title: string
   description: string
-  budget_min: number
-  budget_max: number
+  budget: number
   location: string
   category: string
   status: 'open' | 'bidding' | 'awarded' | 'completed' | 'cancelled'

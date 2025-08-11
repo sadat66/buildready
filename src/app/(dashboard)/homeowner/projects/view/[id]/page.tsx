@@ -82,8 +82,8 @@ export default function ProjectViewPage() {
     })
   }
 
-  const formatBudget = (min: number, max: number) => {
-    return `$${min.toLocaleString()} - $${max.toLocaleString()}`
+  const formatBudget = (budget: number) => {
+    return `$${budget.toLocaleString()}`
   }
 
   if (loading) {
@@ -175,8 +175,8 @@ export default function ProjectViewPage() {
             <div className="flex items-center space-x-3">
               <DollarSign className="h-5 w-5 text-gray-500" />
               <div>
-                <p className="text-sm font-medium text-gray-900">Budget Range</p>
-                <p className="text-sm text-gray-600">{formatBudget(project.budget_min, project.budget_max)}</p>
+                <p className="text-sm font-medium text-gray-900">Budget</p>
+                <p className="text-sm text-gray-600">{formatBudget(project.budget)}</p>
               </div>
             </div>
             <div className="flex items-center space-x-3">
