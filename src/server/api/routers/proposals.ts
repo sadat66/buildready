@@ -4,12 +4,32 @@ import { TRPCError } from '@trpc/server'
 
 const proposalSchema = z.object({
   project_id: z.string().uuid(),
-  amount: z.number().positive('Amount must be positive'),
-  timeline: z.string().min(1, 'Timeline is required'),
+  
+  // Financial details
+  net_amount: z.number().positive('Net amount must be positive'),
+  tax_amount: z.number().min(0, 'Tax amount must be non-negative'),
+  total_amount: z.number().positive('Total amount must be positive'),
+  deposit_amount: z.number().min(0, 'Deposit amount must be non-negative'),
+  deposit_due_date: z.string().min(1, 'Deposit due date is required'),
+  
+  // Timeline details
+  proposed_start_date: z.string().min(1, 'Proposed start date is required'),
+  proposed_end_date: z.string().min(1, 'Proposed end date is required'),
+  estimated_days: z.number().positive('Estimated days must be positive'),
+  
+  // Penalties
+  delay_penalty: z.number().min(0, 'Delay penalty must be non-negative'),
+  abandonment_penalty: z.number().min(0, 'Abandonment penalty must be non-negative'),
+  
+  // Description and additional info
   description: z.string().min(10, 'Description must be at least 10 characters'),
+  timeline: z.string().min(1, 'Timeline is required'),
   materials_included: z.boolean().default(false),
   warranty_period: z.string().optional(),
   additional_notes: z.string().optional(),
+  
+  // Files
+  uploaded_files: z.array(z.string()).optional(),
 })
 
 export const proposalsRouter = createTRPCRouter({
@@ -60,10 +80,20 @@ export const proposalsRouter = createTRPCRouter({
         })
       }
 
+      // Calculate total amount if not provided
+      const calculatedTotal = input.total_amount || (input.net_amount + input.tax_amount)
+      
+      // Calculate estimated days if not provided
+      const startDate = new Date(input.proposed_start_date)
+      const endDate = new Date(input.proposed_end_date)
+      const calculatedDays = input.estimated_days || Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
+      
       const { data, error } = await ctx.supabase
         .from('proposals')
         .insert({
           ...input,
+          total_amount: calculatedTotal,
+          estimated_days: calculatedDays,
           contractor_id: ctx.user.id,
           status: 'pending',
         })
@@ -384,12 +414,32 @@ export const proposalsRouter = createTRPCRouter({
     .input(
       z.object({
         id: z.string().uuid(),
-        amount: z.number().positive().optional(),
+        
+        // Financial details
+        net_amount: z.number().positive().optional(),
+        tax_amount: z.number().min(0).optional(),
+        total_amount: z.number().positive().optional(),
+        deposit_amount: z.number().min(0).optional(),
+        deposit_due_date: z.string().optional(),
+        
+        // Timeline details
+        proposed_start_date: z.string().optional(),
+        proposed_end_date: z.string().optional(),
+        estimated_days: z.number().positive().optional(),
+        
+        // Penalties
+        delay_penalty: z.number().min(0).optional(),
+        abandonment_penalty: z.number().min(0).optional(),
+        
+        // Description and additional info
         timeline: z.string().optional(),
         description: z.string().min(10).optional(),
         materials_included: z.boolean().optional(),
         warranty_period: z.string().optional(),
         additional_notes: z.string().optional(),
+        
+        // Files
+        uploaded_files: z.array(z.string()).optional(),
       })
     )
     .mutation(async ({ input, ctx }) => {
@@ -423,12 +473,44 @@ export const proposalsRouter = createTRPCRouter({
         })
       }
 
+      // Calculate total amount and estimated days if relevant fields are updated
+      let finalUpdateData = { ...updateData, updated_at: new Date().toISOString() }
+      
+      if (updateData.net_amount !== undefined || updateData.tax_amount !== undefined) {
+        const { data: currentProposal } = await ctx.supabase
+          .from('proposals')
+          .select('net_amount, tax_amount')
+          .eq('id', id)
+          .single()
+        
+        const netAmount = updateData.net_amount ?? currentProposal?.net_amount
+        const taxAmount = updateData.tax_amount ?? currentProposal?.tax_amount
+        
+        if (netAmount !== undefined && taxAmount !== undefined) {
+          finalUpdateData.total_amount = netAmount + taxAmount
+        }
+      }
+      
+      if (updateData.proposed_start_date !== undefined || updateData.proposed_end_date !== undefined) {
+        const { data: currentProposal } = await ctx.supabase
+          .from('proposals')
+          .select('proposed_start_date, proposed_end_date')
+          .eq('id', id)
+          .single()
+        
+        const startDate = updateData.proposed_start_date ?? currentProposal?.proposed_start_date
+        const endDate = updateData.proposed_end_date ?? currentProposal?.proposed_end_date
+        
+        if (startDate && endDate) {
+          const start = new Date(startDate)
+          const end = new Date(endDate)
+          finalUpdateData.estimated_days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
+        }
+      }
+      
       const { data, error } = await ctx.supabase
         .from('proposals')
-        .update({
-          ...updateData,
-          updated_at: new Date().toISOString(),
-        })
+        .update(finalUpdateData)
         .eq('id', id)
         .select()
         .single()

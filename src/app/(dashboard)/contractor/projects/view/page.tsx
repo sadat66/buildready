@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 
 import { useAuth } from '@/contexts/AuthContext'
 import { createClient } from '@/lib/supabase'
@@ -14,6 +15,7 @@ import { Building, MapPin, Calendar, DollarSign, Search } from 'lucide-react'
 
 export default function ContractorProjectsViewPage() {
   const { user, loading } = useAuth()
+  const router = useRouter()
   const [projects, setProjects] = useState<Project[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('all')
@@ -220,10 +222,18 @@ export default function ContractorProjectsViewPage() {
 
               {/* Action Buttons */}
               <div className="flex gap-2 pt-4">
-                <Button className="flex-1" size="sm">
+                <Button 
+                  className="flex-1" 
+                  size="sm"
+                  onClick={() => router.push(`/contractor/projects/view/${project.id}`)}
+                >
                   View Details
                 </Button>
-                <Button variant="outline" size="sm">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => router.push(`/contractor/projects/submit-proposal/${project.id}`)}
+                >
                   Submit Proposal
                 </Button>
               </div>

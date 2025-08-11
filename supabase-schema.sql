@@ -123,6 +123,9 @@ CREATE POLICY "Homeowners can insert their own projects" ON public.projects
 CREATE POLICY "Homeowners can update their own projects" ON public.projects
     FOR UPDATE USING (homeowner_id = auth.uid());
 
+CREATE POLICY "Homeowners can delete their own projects" ON public.projects
+    FOR DELETE USING (homeowner_id = auth.uid());
+
 -- Proposals policies
 CREATE POLICY "Contractors can view proposals for projects they bid on" ON public.proposals
     FOR SELECT USING (contractor_id = auth.uid());
