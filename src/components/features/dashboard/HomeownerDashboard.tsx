@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { FileText, Plus, Calendar, MapPin, DollarSign, Home, Eye } from 'lucide-react'
+import { FileText, Plus, Calendar, MapPin, DollarSign, Home, Eye, Briefcase } from 'lucide-react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 import { Project } from '@/types/database'
@@ -14,11 +14,12 @@ interface HomeownerDashboardProps {
 
 export default function HomeownerDashboard({ userEmail }: HomeownerDashboardProps) {
   const [projects, setProjects] = useState<Project[]>([])
+  const [proposalsCount, setProposalsCount] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
   useEffect(() => {
-    const fetchProjects = async () => {
+    const fetchData = async () => {
       try {
         const supabase = createClient()
         const { data: { user } } = await supabase.auth.getUser()
@@ -28,27 +29,41 @@ export default function HomeownerDashboard({ userEmail }: HomeownerDashboardProp
           return
         }
         
-        const { data, error: fetchError } = await supabase
+        // Fetch projects
+        const { data: projectsData, error: projectsError } = await supabase
           .from('projects')
           .select('*')
           .eq('homeowner_id', user.id)
           .order('created_at', { ascending: false })
           .limit(6) // Show only recent 6 projects on dashboard
         
-        if (fetchError) {
-          throw fetchError
+        if (projectsError) {
+          throw projectsError
         }
         
-        setProjects(data || [])
+        setProjects(projectsData || [])
+        
+        // Fetch proposals count
+        const { count: proposalsCount, error: proposalsError } = await supabase
+          .from('proposals')
+          .select('*', { count: 'exact', head: true })
+          .eq('projects.homeowner_id', user.id)
+          .eq('status', 'pending')
+        
+        if (proposalsError) {
+          console.warn('Failed to fetch proposals count:', proposalsError)
+        } else {
+          setProposalsCount(proposalsCount || 0)
+        }
       } catch (error) {
-        console.error('Error fetching projects:', error)
-        setError('Failed to load projects')
+        console.error('Error fetching data:', error)
+        setError('Failed to load data')
       } finally {
         setLoading(false)
       }
     }
     
-    fetchProjects()
+    fetchData()
   }, [])
 
   const getStatusColor = (status: string) => {
@@ -103,6 +118,33 @@ export default function HomeownerDashboard({ userEmail }: HomeownerDashboardProp
             <Button className="bg-green-600 hover:bg-green-700">
               <Plus className="h-4 w-4 mr-2" />
               Create New Project
+            </Button>
+          </Link>
+        </CardContent>
+      </Card>
+
+      {/* Quick View Proposals */}
+      <Card className="border-blue-200 bg-blue-50">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-lg text-blue-800">Review Contractor Proposals</CardTitle>
+              <CardDescription className="text-blue-600">
+                Check proposals from contractors for your projects and choose the best one.
+              </CardDescription>
+            </div>
+            {proposalsCount > 0 && (
+              <div className="bg-blue-600 text-white text-sm font-medium px-3 py-1 rounded-full">
+                {proposalsCount} pending
+              </div>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent>
+          <Link href="/homeowner/proposals">
+            <Button className="bg-blue-600 hover:bg-blue-700">
+              <Briefcase className="h-4 w-4 mr-2" />
+              View Proposals
             </Button>
           </Link>
         </CardContent>

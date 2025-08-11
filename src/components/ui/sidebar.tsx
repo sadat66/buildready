@@ -42,6 +42,7 @@ export function Sidebar({
         return [
           { name: "Dashboard", href: "/homeowner/dashboard", icon: Home },
           { name: "My Projects", href: "/homeowner/projects", icon: FileText },
+          { name: "Proposals", href: "/homeowner/proposals", icon: Briefcase },
         ];
 
       case "contractor":

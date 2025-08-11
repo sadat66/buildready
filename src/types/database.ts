@@ -43,14 +43,42 @@ export interface Proposal {
   id: string
   project_id: string
   contractor_id: string
-  bid_amount: number
+  bid_amount?: number // Made optional for backward compatibility
   description: string
   timeline: string
   status: 'pending' | 'accepted' | 'rejected'
   created_at: string
   updated_at: string
+  
+  // Financial details
+  net_amount?: number
+  tax_amount?: number
+  total_amount?: number
+  deposit_amount?: number
+  deposit_due_date?: string
+  
+  // Timeline details
+  proposed_start_date?: string
+  proposed_end_date?: string
+  estimated_days?: number
+  
+  // Penalties
+  delay_penalty?: number
+  abandonment_penalty?: number
+  
+  // Additional information
+  uploaded_files?: string[]
+  materials_included?: boolean
+  warranty_period?: string
+  additional_notes?: string
+  feedback?: string
+  
+  // Relationships
   contractor?: User
   project?: Project
+  // Database query aliases
+  projects?: Project
+  users?: User
 }
 
 export interface Review {

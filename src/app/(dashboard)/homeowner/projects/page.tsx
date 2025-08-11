@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, FileText, Plus, Calendar, MapPin, DollarSign } from 'lucide-react'
+import { ArrowLeft, FileText, Plus, Calendar, MapPin, DollarSign, Briefcase } from 'lucide-react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 import { Project } from '@/types/database'
@@ -134,14 +134,24 @@ export default function ProjectsPage() {
             </Button>
           </Link>
         </div>
-        {(user?.user_metadata?.role || 'homeowner') === 'homeowner' && (
-          <Link href="/homeowner/projects/create">
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Post a Project
-            </Button>
-          </Link>
-        )}
+        <div className="flex items-center space-x-2">
+          {(user?.user_metadata?.role || 'homeowner') === 'homeowner' && (
+            <>
+              <Link href="/homeowner/proposals">
+                <Button variant="outline">
+                  <Briefcase className="h-4 w-4 mr-2" />
+                  View Proposals
+                </Button>
+              </Link>
+              <Link href="/homeowner/projects/create">
+                <Button>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Post a Project
+                </Button>
+              </Link>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Page Title */}
