@@ -36,8 +36,8 @@ export function Navbar({ onMenuToggle  }: NavbarProps) {
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 py-3 px-6 w-full">
-      <div className="flex items-center justify-between ">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 h-16 px-4 w-full flex items-center">
+      <div className="flex items-center justify-between w-full">
         {/* Left side - Menu toggle and branding */}
         <div className="flex items-center space-x-4">
           <Button

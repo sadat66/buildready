@@ -125,7 +125,7 @@ export function Sidebar({
       {/* Sidebar - Fixed height, starts below navbar */}
       <div
         className={`
-        fixed top-[72px] left-0 h-[calc(100vh-72px)] bg-white border-r border-gray-200 z-40 transition-all duration-300 ease-in-out
+        fixed top-16 left-0 h-16 bg-white border-r border-gray-200 z-40 transition-all duration-300 ease-in-out
         ${isOpen ? "translate-x-0" : "-translate-x-full"}
         ${isCollapsed ? "w-16" : "w-64"}
         lg:translate-x-0 lg:z-auto lg:h-screen lg:top-0
@@ -206,9 +206,7 @@ export function Sidebar({
                     }}
                   >
                     <Icon
-                      className={`h-4 w-4 transition-all duration-300 flex-shrink-0 ${
-                        isCollapsed ? "mr-0" : "mr-3"
-                      } group-hover:mr-3`}
+                      className={`h-5 w-5 transition-all duration-300 flex-shrink-0 ${isCollapsed ? "mr-0" : "mr-3"} group-hover:mr-3`}
                     />
                     <span
                       className={`transition-all duration-300 overflow-hidden ${
