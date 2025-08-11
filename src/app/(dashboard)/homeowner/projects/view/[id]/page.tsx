@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -10,15 +10,23 @@ import { ArrowLeft, MapPin, Calendar, DollarSign, FileText, Camera, Paperclip, C
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 import { Project } from '@/types/database'
+import dynamic from 'next/dynamic'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+
+const LocationMap = dynamic(() => import('@/components/features/projects').then(mod => ({ default: mod.LocationMap })), {
+  ssr: false,
+  loading: () => <div className="h-48 bg-gray-100 rounded-lg flex items-center justify-center">Loading map...</div>
+})
 
 export default function ProjectViewPage() {
   const params = useParams()
+  const router = useRouter()
   const id = params?.id as string
   const { user } = useAuth()
   const [project, setProject] = useState<Project | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
   useEffect(() => {
     const fetchProject = async () => {
@@ -82,8 +90,30 @@ export default function ProjectViewPage() {
     })
   }
 
-  const formatBudget = (min: number, max: number) => {
-    return `$${min.toLocaleString()} - $${max.toLocaleString()}`
+  const formatBudget = (budget: number) => {
+    return `$${budget.toLocaleString()}`
+  }
+
+  const handleDeleteProject = async () => {
+    if (!project || !user) return
+    
+    try {
+      const supabase = createClient()
+      const { error: deleteError } = await supabase
+        .from('projects')
+        .delete()
+        .eq('id', project.id)
+        .eq('homeowner_id', user.id)
+      
+      if (deleteError) {
+        throw deleteError
+      }
+      
+      router.push('/homeowner/projects')
+    } catch (error) {
+      console.error('Error deleting project:', error)
+      setError('Failed to delete project. Please try again.')
+    }
   }
 
   if (loading) {
@@ -175,8 +205,8 @@ export default function ProjectViewPage() {
             <div className="flex items-center space-x-3">
               <DollarSign className="h-5 w-5 text-gray-500" />
               <div>
-                <p className="text-sm font-medium text-gray-900">Budget Range</p>
-                <p className="text-sm text-gray-600">{formatBudget(project.budget_min, project.budget_max)}</p>
+                <p className="text-sm font-medium text-gray-900">Budget</p>
+                <p className="text-sm text-gray-600">{formatBudget(project.budget)}</p>
               </div>
             </div>
             <div className="flex items-center space-x-3">
@@ -191,7 +221,7 @@ export default function ProjectViewPage() {
       </Card>
 
       {/* Project Details Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Timeline Information */}
         <Card>
           <CardHeader>
@@ -249,53 +279,57 @@ export default function ProjectViewPage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Project Location Map */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <MapPin className="h-5 w-5" />
+              <span>Project Location</span>
+            </CardTitle>
+            <CardDescription>
+              {project.location}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {project.latitude && project.longitude ? (
+              <div className="h-48 border rounded-lg overflow-hidden">
+                <LocationMap 
+                  onLocationSelect={() => {}} // Read-only in view mode
+                  initialCoordinates={{ lat: project.latitude, lng: project.longitude }}
+                  className="h-full"
+                  readOnly={true}
+                />
+              </div>
+            ) : (
+              <div className="h-48 bg-gray-100 rounded-lg flex items-center justify-center">
+                <p className="text-gray-500 text-sm">Location coordinates not available</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Site Photos */}
+      {/* Site Photos - Compact View */}
       {project.site_photos && project.site_photos.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
               <Camera className="h-5 w-5" />
-              <span>Site Photos</span>
+              <span>Site Photos ({project.site_photos.length})</span>
             </CardTitle>
-            <CardDescription>
-              {project.site_photos.length} photo{project.site_photos.length !== 1 ? 's' : ''} uploaded
-            </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {/* Main Photo Display */}
-              <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
-                <img
-                  src={project.site_photos[selectedPhotoIndex]}
-                  alt={`Site photo ${selectedPhotoIndex + 1}`}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              
-              {/* Photo Thumbnails */}
-              {project.site_photos.length > 1 && (
-                <div className="grid grid-cols-4 md:grid-cols-6 gap-2">
-                  {project.site_photos.map((photo, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setSelectedPhotoIndex(index)}
-                      className={`aspect-square rounded-lg overflow-hidden border-2 transition-all ${
-                        index === selectedPhotoIndex 
-                          ? 'border-blue-500 ring-2 ring-blue-200' 
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                    >
-                      <img
-                        src={photo}
-                        alt={`Site photo ${index + 1}`}
-                        className="w-full h-full object-cover"
-                      />
-                    </button>
-                  ))}
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+              {project.site_photos.map((photo, index) => (
+                <div key={index} className="aspect-square bg-gray-100 rounded-lg overflow-hidden border">
+                  <img
+                    src={photo}
+                    alt={`Site photo ${index + 1}`}
+                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-200"
+                  />
                 </div>
-              )}
+              ))}
             </div>
           </CardContent>
         </Card>
@@ -338,10 +372,29 @@ export default function ProjectViewPage() {
             Back to Projects
           </Button>
         </Link>
-        <Button>
-          Edit Project
-        </Button>
-      </div>
-    </div>
-  )
-}
+        <Link href={`/homeowner/projects/edit/${project.id}`}>
+          <Button>
+            Edit Project
+          </Button>
+        </Link>
+                 <Button 
+           variant="destructive" 
+           onClick={() => setShowDeleteDialog(true)}
+         >
+           Delete Project
+                  </Button>
+       </div>
+
+       {/* Delete Confirmation Dialog */}
+       <ConfirmDialog
+         isOpen={showDeleteDialog}
+         onClose={() => setShowDeleteDialog(false)}
+         onConfirm={handleDeleteProject}
+         title="Delete Project"
+         message="Are you sure you want to delete this project? This action cannot be undone."
+         confirmText="Delete Project"
+         cancelText="Cancel"
+       />
+     </div>
+   )
+ }

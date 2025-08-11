@@ -154,8 +154,7 @@ export const proposalsRouter = createTRPCRouter({
             category,
             location,
             status,
-            budget_min,
-            budget_max,
+            budget,
             homeowner_id,
             profiles!projects_homeowner_id_fkey (
               id,
@@ -206,8 +205,7 @@ export const proposalsRouter = createTRPCRouter({
             category,
             location,
             status,
-            budget_min,
-            budget_max,
+            budget,
             homeowner_id
           ),
           profiles!proposals_contractor_id_fkey (
@@ -261,8 +259,7 @@ export const proposalsRouter = createTRPCRouter({
             category,
             location,
             status,
-            budget_min,
-            budget_max,
+            budget,
             homeowner_id,
             profiles!projects_homeowner_id_fkey (
               id,

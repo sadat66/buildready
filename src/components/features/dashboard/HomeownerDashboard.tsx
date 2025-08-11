@@ -66,8 +66,8 @@ export default function HomeownerDashboard({ userEmail }: HomeownerDashboardProp
     return new Date(dateString).toLocaleDateString()
   }
 
-  const formatBudget = (min: number, max: number) => {
-    return `$${min.toLocaleString()} - $${max.toLocaleString()}`
+  const formatBudget = (budget: number) => {
+    return `$${budget.toLocaleString()}`
   }
 
   return (
@@ -162,7 +162,7 @@ export default function HomeownerDashboard({ userEmail }: HomeownerDashboardProp
                     </div>
                     <div className="flex items-center space-x-1">
                       <DollarSign className="h-4 w-4" />
-                      <span>{formatBudget(project.budget_min, project.budget_max)}</span>
+                      <span>{formatBudget(project.budget)}</span>
                     </div>
                     <div className="flex items-center space-x-1">
                       <Calendar className="h-4 w-4" />

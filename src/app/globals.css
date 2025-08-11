@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "leaflet/dist/leaflet.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -165,4 +166,17 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Leaflet map styles */
+.leaflet-container {
+  z-index: 1;
+}
+
+.leaflet-popup-content-wrapper {
+  z-index: 1000;
+}
+
+.leaflet-control {
+  z-index: 1000;
 }

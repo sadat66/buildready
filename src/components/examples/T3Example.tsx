@@ -46,8 +46,7 @@ export function T3Example() {
       title: projectTitle,
       description: projectDescription,
       category: 'General',
-      budget_min: 1000,
-      budget_max: 5000,
+      budget: 3000,
       location: 'Example Location',
       timeline: '2-4 weeks',
       requirements: ['Example requirement'],
@@ -195,7 +194,7 @@ export function T3Example() {
                         <Badge variant="outline">{project.category}</Badge>
                         <Badge variant="secondary">{project.status}</Badge>
                         <span className="text-xs text-gray-500">
-                          ${project.budget_min.toLocaleString()} - ${project.budget_max.toLocaleString()}
+                          ${project.budget.toLocaleString()}
                         </span>
                       </div>
                     </div>
