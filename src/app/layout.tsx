@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { TRPCProvider } from "@/components/providers/TRPCProvider";
+import { ToastProvider } from "@/components/providers/toast";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,6 +33,7 @@ export default function RootLayout({
         <TRPCProvider>
           <AuthProvider>
             {children}
+            <ToastProvider />
           </AuthProvider>
         </TRPCProvider>
       </body>

@@ -1,40 +1,20 @@
-import Link from 'next/link'
-import Image from 'next/image'
-import { Button } from '@/components/ui/button'
-import { Card,  CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Hammer, Home, Users, Star, Shield, MessageSquare } from 'lucide-react'
+import Link from "next/link";
+import Image from "next/image";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Hammer, Home, Users, Star, Shield, MessageSquare } from "lucide-react";
+import { Navbar } from "@/components/shared/navbar";
 
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-white">
-      {/* Navigation */}
-      <nav className="bg-white/90 backdrop-blur-sm shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center">
-              <Link href="/" className="flex items-center">
-                <Image
-                  src="/assets/logo.svg"
-                  alt="BuildReady Logo"
-                  width={120}
-                  height={120}
-                />
-              </Link>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Link href="/login">
-                <Button variant="outline">Sign In</Button>
-              </Link>
-              <Link href="/register">
-                <Button>Get Started</Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
-
- 
-   
+     
+      <Navbar />
 
       {/* Hero Content Section */}
       <section className="bg-gradient-to-br from-orange-50 to-orange-100 py-20">
@@ -44,8 +24,8 @@ export default function HomePage() {
             <span className="text-orange-600"> Contractors</span>
           </h1>
           <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-            BuildReady brings homeowners and contractors together. Create projects, 
-            get proposals, and build with confidence.
+            BuildReady brings homeowners and contractors together. Create
+            projects, get proposals, and build with confidence.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/login">
@@ -70,7 +50,8 @@ export default function HomePage() {
               Why Choose BuildReady?
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Our platform makes it easy to find the right contractor for your project
+              Our platform makes it easy to find the right contractor for your
+              project
             </p>
           </div>
 
@@ -82,8 +63,8 @@ export default function HomePage() {
                 </div>
                 <CardTitle>Easy Project Creation</CardTitle>
                 <CardDescription>
-                  Homeowners can easily create detailed project requests with budgets, 
-                  timelines, and specific requirements.
+                  Homeowners can easily create detailed project requests with
+                  budgets, timelines, and specific requirements.
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -95,8 +76,8 @@ export default function HomePage() {
                 </div>
                 <CardTitle>Quality Contractors</CardTitle>
                 <CardDescription>
-                  Verified contractors with ratings and reviews to ensure you get 
-                  the best service for your project.
+                  Verified contractors with ratings and reviews to ensure you
+                  get the best service for your project.
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -108,7 +89,7 @@ export default function HomePage() {
                 </div>
                 <CardTitle>Direct Communication</CardTitle>
                 <CardDescription>
-                  Built-in messaging system allows direct communication between 
+                  Built-in messaging system allows direct communication between
                   homeowners and contractors.
                 </CardDescription>
               </CardHeader>
@@ -121,7 +102,7 @@ export default function HomePage() {
                 </div>
                 <CardTitle>Review System</CardTitle>
                 <CardDescription>
-                  Comprehensive review system helps build trust and ensures 
+                  Comprehensive review system helps build trust and ensures
                   quality service delivery.
                 </CardDescription>
               </CardHeader>
@@ -134,7 +115,7 @@ export default function HomePage() {
                 </div>
                 <CardTitle>Secure & Reliable</CardTitle>
                 <CardDescription>
-                  Secure platform with verified profiles and protected 
+                  Secure platform with verified profiles and protected
                   communication channels.
                 </CardDescription>
               </CardHeader>
@@ -147,7 +128,7 @@ export default function HomePage() {
                 </div>
                 <CardTitle>Community Driven</CardTitle>
                 <CardDescription>
-                  Join a community of professionals and homeowners working 
+                  Join a community of professionals and homeowners working
                   together to build better projects.
                 </CardDescription>
               </CardHeader>
@@ -175,7 +156,8 @@ export default function HomePage() {
               </div>
               <h3 className="text-xl font-semibold mb-2">Create Project</h3>
               <p className="text-gray-600">
-                Homeowners create detailed project requests with budgets and requirements
+                Homeowners create detailed project requests with budgets and
+                requirements
               </p>
             </div>
 
@@ -209,7 +191,7 @@ export default function HomePage() {
             Ready to Get Started?
           </h2>
           <p className="text-xl text-orange-100 mb-8 max-w-2xl mx-auto">
-            Join thousands of homeowners and contractors who trust BuildReady 
+            Join thousands of homeowners and contractors who trust BuildReady
             for their construction projects.
           </p>
           <Link href="/register">
@@ -243,5 +225,5 @@ export default function HomePage() {
         </div>
       </footer>
     </div>
-  )
+  );
 }

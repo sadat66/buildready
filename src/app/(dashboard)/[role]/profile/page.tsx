@@ -10,6 +10,7 @@ import { User, Save, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase'
+import toast from 'react-hot-toast'
 
 export default function ProfilePage() {
   const { user } = useAuth()
@@ -80,10 +81,10 @@ export default function ProfilePage() {
       
       // Update local state
       setUserData(prev => prev ? { ...prev, ...formData } : null)
-      alert('Profile updated successfully!')
+      toast.success('Profile updated successfully!')
     } catch (error) {
       console.error('Error updating profile:', error)
-      alert('Failed to update profile. Please try again.')
+      toast.error('Failed to update profile. Please try again.')
     } finally {
       setSaving(false)
     }

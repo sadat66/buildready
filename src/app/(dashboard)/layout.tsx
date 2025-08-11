@@ -4,9 +4,9 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter, usePathname } from "next/navigation";
 
-import { Navbar } from "@/components/ui/navbar";
+import { Navbar } from "@/components/shared/navbar";
 import { Sidebar } from "@/components/ui/sidebar";
-import LoadingSpinner from "@/components/ui/loading-spinner";
+import LoadingSpinner from "@/components/shared/loading-spinner";
 
 export default function DashboardLayout({
   children,
@@ -110,7 +110,7 @@ export default function DashboardLayout({
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Top Navbar - Full width, fixed */}
-      <Navbar onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
+      <Navbar />
 
       {/* Main Content Area - No flex, content flows naturally */}
       <div className="pt-16">
