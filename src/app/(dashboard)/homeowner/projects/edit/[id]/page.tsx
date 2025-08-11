@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useParams, useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
-import { ArrowLeft, MapPin, Calendar, DollarSign, FileText, Camera, Paperclip, X, Upload } from 'lucide-react'
+import { ArrowLeft, MapPin, Calendar, DollarSign, FileText, Camera, Paperclip, Save } from 'lucide-react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 import dynamic from 'next/dynamic'
@@ -34,12 +34,14 @@ const tradeCategories = [
   'other'
 ]
 
-export default function CreateProjectPage() {
-  const { user } = useAuth()
+export default function EditProjectPage() {
+  const params = useParams()
   const router = useRouter()
-  const [loading, setLoading] = useState(false)
+  const id = params?.id as string
+  const { user } = useAuth()
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
-  const [dragActive, setDragActive] = useState(false)
   
   // Form state
   const [formData, setFormData] = useState({
@@ -55,9 +57,59 @@ export default function CreateProjectPage() {
     preferred_end_date: '',
     decision_date: '',
     permit_required: false,
-    site_photos: [] as File[],
-    project_files: [] as File[]
+    site_photos: [] as string[],
+    project_files: [] as string[]
   })
+
+  // Fetch existing project data
+  useEffect(() => {
+    const fetchProject = async () => {
+      if (!id || !user) {
+        setLoading(false)
+        return
+      }
+      
+      try {
+        const supabase = createClient()
+        const { data, error: fetchError } = await supabase
+          .from('projects')
+          .select('*')
+          .eq('id', id)
+          .eq('homeowner_id', user.id)
+          .single()
+        
+        if (fetchError) {
+          throw fetchError
+        }
+        
+        if (data) {
+          setFormData({
+            title: data.title || '',
+            description: data.description || '',
+            category: data.category || '',
+            location: data.location || '',
+            latitude: data.latitude || null,
+            longitude: data.longitude || null,
+            budget: data.budget?.toString() || '',
+            proposal_deadline: data.proposal_deadline || '',
+            preferred_start_date: data.preferred_start_date || '',
+            preferred_end_date: data.preferred_end_date || '',
+            decision_date: data.decision_date || '',
+            permit_required: data.permit_required || false,
+            site_photos: data.site_photos || [],
+            project_files: data.project_files || []
+          })
+        }
+      } catch (error) {
+        console.error('Error fetching project:', error)
+        setError('Failed to load project details')
+      } finally {
+        setLoading(false)
+      }
+    }
+    
+    fetchProject()
+  }, [id, user])
 
   const handleInputChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }))
@@ -71,76 +123,6 @@ export default function CreateProjectPage() {
       longitude: coordinates.lng
     }))
   }
-
-  const handleFileChange = (field: 'site_photos' | 'project_files', files: FileList | null) => {
-    if (files) {
-      const newFiles = Array.from(files)
-      
-      // Validate file types and sizes
-      const validFiles = newFiles.filter(file => {
-        if (field === 'site_photos') {
-          if (!file.type.startsWith('image/')) {
-            setError('Please select only image files for site photos')
-            return false
-          }
-          if (file.size > 5 * 1024 * 1024) { // 5MB limit
-            setError('Photo files must be smaller than 5MB')
-            return false
-          }
-        } else {
-          if (file.size > 10 * 1024 * 1024) { // 10MB limit
-            setError('Project files must be smaller than 10MB')
-            return false
-          }
-        }
-        return true
-      })
-      
-      if (validFiles.length > 0) {
-        setError('')
-        setFormData(prev => ({ 
-          ...prev, 
-          [field]: field === 'site_photos' 
-            ? [...prev[field], ...validFiles] 
-            : validFiles 
-        }))
-      }
-    }
-  }
-
-  const removePhoto = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      site_photos: prev.site_photos.filter((_, i) => i !== index)
-    }))
-  }
-
-  const removeProjectFile = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      project_files: prev.project_files.filter((_, i) => i !== index)
-    }))
-  }
-
-  const handleDrag = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true)
-    } else if (e.type === "dragleave") {
-      setDragActive(false)
-    }
-  }, [])
-
-  const handleDrop = useCallback((e: React.DragEvent, field: 'site_photos' | 'project_files') => {
-    e.preventDefault()
-    e.stopPropagation()
-    setDragActive(false)
-    
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFileChange(field, e.dataTransfer.files)
-    }
-  }, [])
 
   const validateForm = () => {
     const required = [
@@ -161,11 +143,6 @@ export default function CreateProjectPage() {
       return false
     }
     
-    if (formData.site_photos.length === 0) {
-      setError('At least one site photo is required')
-      return false
-    }
-    
     if (parseFloat(formData.budget) <= 0) {
       setError('Budget must be a positive number')
       return false
@@ -178,7 +155,7 @@ export default function CreateProjectPage() {
     e.preventDefault()
     
     if (!user || (user.user_metadata?.role || 'homeowner') !== 'homeowner') {
-      setError('Only homeowners can create projects')
+      setError('Only homeowners can edit projects')
       return
     }
     
@@ -186,21 +163,15 @@ export default function CreateProjectPage() {
       return
     }
     
-    setLoading(true)
+    setSaving(true)
     setError('')
     
     try {
       const supabase = createClient()
       
-      // For now, we'll store file names as placeholders
-      // In a real implementation, you'd upload files to storage first
-      const sitePhotoUrls = formData.site_photos.map(file => file.name)
-      const projectFileUrls = formData.project_files.map(file => file.name)
-      
-      const { error: insertError } = await supabase
+      const { error: updateError } = await supabase
         .from('projects')
-        .insert({
-          homeowner_id: user.id,
+        .update({
           title: formData.title,
           description: formData.description,
           category: formData.category,
@@ -213,35 +184,79 @@ export default function CreateProjectPage() {
           preferred_end_date: formData.preferred_end_date,
           decision_date: formData.decision_date,
           permit_required: formData.permit_required,
-          site_photos: sitePhotoUrls,
-          project_files: projectFileUrls,
-          is_closed: false,
-          status: 'open'
+          site_photos: formData.site_photos,
+          project_files: formData.project_files,
+          updated_at: new Date().toISOString()
         })
-        .select()
-        .single()
+        .eq('id', id)
+        .eq('homeowner_id', user.id)
       
-      if (insertError) {
-        throw insertError
+      if (updateError) {
+        throw updateError
       }
       
-      router.push('/homeowner/projects')
+      router.push(`/homeowner/projects/view/${id}`)
     } catch (error) {
-      console.error('Error creating project:', error)
-      setError('Failed to create project. Please try again.')
+      console.error('Error updating project:', error)
+      setError('Failed to update project. Please try again.')
     } finally {
-      setLoading(false)
+      setSaving(false)
     }
+  }
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center space-x-4">
+          <Link href={`/homeowner/projects/view/${id}`}>
+            <Button variant="outline" size="sm">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Project
+            </Button>
+          </Link>
+        </div>
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p>Loading project details...</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  if (error && !formData.title) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center space-x-4">
+          <Link href="/homeowner/projects">
+            <Button variant="outline" size="sm">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Projects
+            </Button>
+          </Link>
+        </div>
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-center text-red-600">
+              {error}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
   }
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center space-x-4">
-        <Link href="/homeowner/dashboard">
+        <Link href={`/homeowner/projects/view/${id}`}>
           <Button variant="outline" size="sm">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Dashboard
+            Back to Project
           </Button>
         </Link>
       </div>
@@ -251,10 +266,10 @@ export default function CreateProjectPage() {
         <CardHeader>
           <CardTitle className="text-2xl flex items-center space-x-3">
             <FileText className="h-6 w-6" />
-            <span>Post a Project</span>
+            <span>Edit Project</span>
           </CardTitle>
           <CardDescription>
-            Create a detailed project request to attract quality contractors
+            Update your project details to better attract quality contractors
           </CardDescription>
         </CardHeader>
       </Card>
@@ -264,7 +279,7 @@ export default function CreateProjectPage() {
         <CardHeader>
           <CardTitle>Project Details</CardTitle>
           <CardDescription>
-            Provide comprehensive information to help contractors understand your project requirements
+            Update the information to help contractors understand your project requirements
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -326,6 +341,8 @@ export default function CreateProjectPage() {
                 </Label>
                 <LocationMap 
                   onLocationSelect={handleLocationSelect}
+                  initialCoordinates={formData.latitude && formData.longitude ? 
+                    { lat: formData.latitude, lng: formData.longitude } : undefined}
                   className="mt-2"
                 />
                 {formData.location && (
@@ -430,169 +447,64 @@ export default function CreateProjectPage() {
               </div>
             </div>
             
-            {/* File Uploads */}
+            {/* Current Photos and Files */}
             <div className="space-y-4">
-              <h3 className="text-lg font-medium">Project Documentation</h3>
+              <h3 className="text-lg font-medium">Current Project Files</h3>
               
-              <div>
-                <Label htmlFor="site_photos" className="flex items-center space-x-2">
-                  <Camera className="h-4 w-4" />
-                  <span>Site Photos * (Required)</span>
-                </Label>
-                
-                {/* Drag & Drop Area */}
-                <div
-                  className={`mt-2 border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
-                    dragActive 
-                      ? 'border-blue-500 bg-blue-50' 
-                      : 'border-gray-300 hover:border-gray-400'
-                  }`}
-                  onDragEnter={handleDrag}
-                  onDragLeave={handleDrag}
-                  onDragOver={handleDrag}
-                  onDrop={(e) => handleDrop(e, 'site_photos')}
-                >
-                  <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                  <p className="text-sm text-gray-600 mb-2">
-                    Drag and drop photos here, or click to browse
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    Supports JPG, PNG, GIF up to 5MB each
-                  </p>
-                  <Input
-                    id="site_photos"
-                    type="file"
-                    multiple
-                    accept="image/*"
-                    onChange={(e) => handleFileChange('site_photos', e.target.files)}
-                    className="mt-4"
-                  />
-                </div>
-                
-                {/* Photo Previews */}
-                {formData.site_photos.length > 0 && (
-                  <div className="mt-4">
-                    <p className="text-sm font-medium text-gray-700 mb-3">
-                      Selected Photos ({formData.site_photos.length})
-                    </p>
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                      {formData.site_photos.map((file, index) => (
-                        <div key={index} className="relative group">
-                          <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden border">
-                            <img
-                              src={URL.createObjectURL(file)}
-                              alt={`Photo ${index + 1}`}
-                              className="w-full h-full object-cover"
-                            />
-                            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 flex items-center justify-center">
-                              <Button
-                                type="button"
-                                variant="destructive"
-                                size="sm"
-                                className="opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                                onClick={() => removePhoto(index)}
-                              >
-                                <X className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </div>
-                          <p className="text-xs text-gray-500 mt-1 truncate">
-                            {file.name}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
+              {formData.site_photos.length > 0 && (
+                <div>
+                  <Label className="flex items-center space-x-2">
+                    <Camera className="h-4 w-4" />
+                    <span>Site Photos ({formData.site_photos.length})</span>
+                  </Label>
+                  <div className="mt-2 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                    {formData.site_photos.map((photo, index) => (
+                      <div key={index} className="aspect-square bg-gray-100 rounded-lg overflow-hidden border">
+                        <img
+                          src={photo}
+                          alt={`Site photo ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    ))}
                   </div>
-                )}
-                
-                <p className="text-xs text-gray-500 mt-2">
-                  Include photos showing site access, current conditions, and areas to be worked on
-                </p>
-              </div>
+                  <p className="text-xs text-gray-500 mt-2">
+                    Note: Photos cannot be modified in edit mode. Create a new project to change photos.
+                  </p>
+                </div>
+              )}
               
-              <div>
-                <Label htmlFor="project_files" className="flex items-center space-x-2">
-                  <Paperclip className="h-4 w-4" />
-                  <span>Project Files (Optional)</span>
-                </Label>
-                
-                {/* Drag & Drop Area for Project Files */}
-                <div
-                  className={`mt-2 border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
-                    dragActive 
-                      ? 'border-blue-500 bg-blue-50' 
-                      : 'border-gray-300 hover:border-gray-400'
-                  }`}
-                  onDragEnter={handleDrag}
-                  onDragLeave={handleDrag}
-                  onDragOver={handleDrag}
-                  onDrop={(e) => handleDrop(e, 'project_files')}
-                >
-                  <Paperclip className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                  <p className="text-sm text-gray-600 mb-2">
-                    Drag and drop files here, or click to browse
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    Supports PDF, DOC, DWG, images up to 10MB each
-                  </p>
-                  <Input
-                    id="project_files"
-                    type="file"
-                    multiple
-                    accept=".pdf,.doc,.docx,.dwg,.jpg,.jpeg,.png"
-                    onChange={(e) => handleFileChange('project_files', e.target.files)}
-                    className="mt-4"
-                  />
-                </div>
-                
-                {/* Project Files List */}
-                {formData.project_files.length > 0 && (
-                  <div className="mt-4">
-                    <p className="text-sm font-medium text-gray-700 mb-3">
-                      Selected Files ({formData.project_files.length})
-                    </p>
-                    <div className="space-y-2">
-                      {formData.project_files.map((file, index) => (
-                        <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                          <div className="flex items-center space-x-3">
-                            <FileText className="h-5 w-5 text-gray-400" />
-                            <div>
-                              <p className="text-sm font-medium text-gray-700">{file.name}</p>
-                              <p className="text-xs text-gray-500">
-                                {(file.size / 1024 / 1024).toFixed(2)} MB
-                              </p>
-                            </div>
-                          </div>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeProjectFile(index)}
-                            className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
+              {formData.project_files.length > 0 && (
+                <div>
+                  <Label className="flex items-center space-x-2">
+                    <Paperclip className="h-4 w-4" />
+                    <span>Project Files ({formData.project_files.length})</span>
+                  </Label>
+                  <div className="mt-2 space-y-2">
+                    {formData.project_files.map((file, index) => (
+                      <div key={index} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                        <FileText className="h-4 w-4 text-gray-400" />
+                        <span className="text-sm font-medium text-gray-700">{file}</span>
+                      </div>
+                    ))}
                   </div>
-                )}
-                
-                <p className="text-xs text-gray-500 mt-2">
-                  Upload plans, specifications, or other relevant documents
-                </p>
-              </div>
+                  <p className="text-xs text-gray-500 mt-2">
+                    Note: Files cannot be modified in edit mode. Create a new project to change files.
+                  </p>
+                </div>
+              )}
             </div>
             
             {/* Submit Button */}
             <div className="flex justify-end space-x-4 pt-6">
-              <Link href="/homeowner/dashboard">
+              <Link href={`/homeowner/projects/view/${id}`}>
                 <Button type="button" variant="outline">
                   Cancel
                 </Button>
               </Link>
-              <Button type="submit" disabled={loading}>
-                {loading ? 'Creating Project...' : 'Post Project'}
+              <Button type="submit" disabled={saving}>
+                <Save className="h-4 w-4 mr-2" />
+                {saving ? 'Saving Changes...' : 'Save Changes'}
               </Button>
             </div>
           </form>

@@ -6,8 +6,7 @@ const projectSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   description: z.string().min(10, 'Description must be at least 10 characters'),
   category: z.string().min(1, 'Category is required'),
-  budget_min: z.number().positive('Minimum budget must be positive'),
-  budget_max: z.number().positive('Maximum budget must be positive'),
+  budget: z.number().positive('Budget must be positive'),
   location: z.string().min(1, 'Location is required'),
   timeline: z.string().min(1, 'Timeline is required'),
   requirements: z.array(z.string()).optional(),
@@ -19,14 +18,6 @@ export const projectsRouter = createTRPCRouter({
   create: protectedProcedure
     .input(projectSchema)
     .mutation(async ({ input, ctx }) => {
-      // Validate budget range
-      if (input.budget_min > input.budget_max) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Minimum budget cannot be greater than maximum budget',
-        })
-      }
-
       const { data, error } = await ctx.supabase
         .from('projects')
         .insert({
@@ -85,11 +76,11 @@ export const projectsRouter = createTRPCRouter({
       }
 
       if (input.minBudget !== undefined) {
-        query = query.gte('budget_min', input.minBudget)
+        query = query.gte('budget', input.minBudget)
       }
 
       if (input.maxBudget !== undefined) {
-        query = query.lte('budget_max', input.maxBudget)
+        query = query.lte('budget', input.maxBudget)
       }
 
       if (input.status) {
@@ -223,14 +214,6 @@ export const projectsRouter = createTRPCRouter({
     )
     .mutation(async ({ input, ctx }) => {
       const { id, ...updateData } = input
-
-      // Validate budget range if both are provided
-      if (updateData.budget_min && updateData.budget_max && updateData.budget_min > updateData.budget_max) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Minimum budget cannot be greater than maximum budget',
-        })
-      }
 
       // Check if user owns the project
       const { data: existingProject, error: fetchError } = await ctx.supabase

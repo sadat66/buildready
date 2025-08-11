@@ -8,12 +8,15 @@ import { ArrowLeft, FileText, Plus, Calendar, MapPin, DollarSign } from 'lucide-
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 import { Project } from '@/types/database'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 
 export default function ProjectsPage() {
   const { user } = useAuth()
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [projectToDelete, setProjectToDelete] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -70,8 +73,41 @@ export default function ProjectsPage() {
     return new Date(dateString).toLocaleDateString()
   }
 
-  const formatBudget = (min: number, max: number) => {
-    return `$${min.toLocaleString()} - $${max.toLocaleString()}`
+  const formatBudget = (budget: number) => {
+    return `$${budget.toLocaleString()}`
+  }
+
+  const handleDeleteProject = async (projectId: string) => {
+    try {
+      const supabase = createClient()
+      const { error: deleteError } = await supabase
+        .from('projects')
+        .delete()
+        .eq('id', projectId)
+        .eq('homeowner_id', user?.id)
+      
+      if (deleteError) {
+        throw deleteError
+      }
+      
+      // Remove the deleted project from the local state
+      setProjects(prev => prev.filter(project => project.id !== projectId))
+    } catch (error) {
+      console.error('Error deleting project:', error)
+      setError('Failed to delete project. Please try again.')
+    }
+  }
+
+  const openDeleteDialog = (projectId: string) => {
+    setProjectToDelete(projectId)
+    setShowDeleteDialog(true)
+  }
+
+  const confirmDelete = () => {
+    if (projectToDelete) {
+      handleDeleteProject(projectToDelete)
+      setProjectToDelete(null)
+    }
   }
 
   if (loading) {
@@ -170,7 +206,7 @@ export default function ProjectsPage() {
                     </div>
                     <div className="flex items-center space-x-1 text-gray-600">
                       <DollarSign className="h-4 w-4" />
-                      <span>{formatBudget(project.budget_min, project.budget_max)}</span>
+                      <span>{formatBudget(project.budget)}</span>
                     </div>
                   </div>
                   <div className="text-xs text-gray-500 capitalize">
@@ -188,11 +224,29 @@ export default function ProjectsPage() {
                       <span>Deadline: {formatDate(project.proposal_deadline)}</span>
                     </div>
                   </div>
-                  <Link href={`/homeowner/projects/view/${project.id}`}>
-                    <Button variant="outline" size="sm">
-                      View Details
-                    </Button>
-                  </Link>
+                                     <div className="flex items-center space-x-2">
+                     <Link href={`/homeowner/projects/view/${project.id}`}>
+                       <Button variant="outline" size="sm">
+                         View Details
+                       </Button>
+                     </Link>
+                     {(user?.user_metadata?.role || 'homeowner') === 'homeowner' && (
+                       <>
+                         <Link href={`/homeowner/projects/edit/${project.id}`}>
+                           <Button variant="outline" size="sm">
+                             Edit
+                           </Button>
+                         </Link>
+                         <Button 
+                           variant="destructive" 
+                           size="sm"
+                           onClick={() => openDeleteDialog(project.id)}
+                         >
+                           Delete
+                         </Button>
+                       </>
+                     )}
+                   </div>
                 </div>
               </div>
             </CardContent>
@@ -224,8 +278,19 @@ export default function ProjectsPage() {
               </div>
             </CardContent>
           </Card>
-        )}
-      </div>
-    </div>
-  )
-}
+                 )}
+       </div>
+
+       {/* Delete Confirmation Dialog */}
+       <ConfirmDialog
+         isOpen={showDeleteDialog}
+         onClose={() => setShowDeleteDialog(false)}
+         onConfirm={confirmDelete}
+         title="Delete Project"
+         message="Are you sure you want to delete this project? This action cannot be undone."
+         confirmText="Delete Project"
+         cancelText="Cancel"
+       />
+     </div>
+   )
+ }

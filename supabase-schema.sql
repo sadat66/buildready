@@ -26,8 +26,7 @@ CREATE TABLE IF NOT EXISTS public.projects (
     homeowner_id UUID REFERENCES public.users(id) ON DELETE CASCADE NOT NULL,
     title TEXT NOT NULL,
     description TEXT NOT NULL,
-    budget_min DECIMAL(10,2) NOT NULL,
-    budget_max DECIMAL(10,2) NOT NULL,
+    budget DECIMAL(10,2) NOT NULL,
     location TEXT NOT NULL,
     category TEXT NOT NULL,
     status TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open', 'bidding', 'awarded', 'completed', 'cancelled')),
@@ -251,10 +250,10 @@ INSERT INTO public.users (id, email, role, full_name, location, bio, rating, rev
     ('550e8400-e29b-41d4-a716-446655440004', 'lisa@example.com', 'contractor', 'Lisa Brown', 'Portland, OR', 'Professional contractor with 10+ years of experience in residential construction.', 4.9, 8);
 
 -- Insert sample projects
-INSERT INTO public.projects (id, homeowner_id, title, description, budget_min, budget_max, location, category, status) VALUES
-    ('550e8400-e29b-41d4-a716-446655440005', '550e8400-e29b-41d4-a716-446655440001', 'Kitchen Renovation', 'Complete kitchen remodel including new cabinets, countertops, and appliances. Looking for experienced contractor.', 15000.00, 25000.00, 'Seattle, WA', 'kitchen', 'open'),
-    ('550e8400-e29b-41d4-a716-446655440006', '550e8400-e29b-41d4-a716-446655440002', 'Bathroom Remodel', 'Master bathroom renovation with new tile, fixtures, and plumbing. Need professional contractor.', 8000.00, 15000.00, 'Portland, OR', 'bathroom', 'open'),
-    ('550e8400-e29b-41d4-a716-446655440007', '550e8400-e29b-41d4-a716-446655440001', 'Deck Construction', 'Build a new wooden deck in the backyard. Approximately 200 sq ft.', 5000.00, 8000.00, 'Seattle, WA', 'deck', 'open');
+INSERT INTO public.projects (id, homeowner_id, title, description, budget, location, category, status) VALUES
+    ('550e8400-e29b-41d4-a716-446655440005', '550e8400-e29b-41d4-a716-446655440001', 'Kitchen Renovation', 'Complete kitchen remodel including new cabinets, countertops, and appliances. Looking for experienced contractor.', 20000.00, 'Seattle, WA', 'kitchen', 'open'),
+    ('550e8400-e29b-41d4-a716-446655440006', '550e8400-e29b-41d4-a716-446655440002', 'Bathroom Remodel', 'Master bathroom renovation with new tile, fixtures, and plumbing. Need professional contractor.', 12000.00, 'Portland, OR', 'bathroom', 'open'),
+    ('550e8400-e29b-41d4-a716-446655440007', '550e8400-e29b-41d4-a716-446655440001', 'Deck Construction', 'Build a new wooden deck in the backyard. Approximately 200 sq ft.', 6500.00, 'Seattle, WA', 'deck', 'open');
 
 -- Insert sample proposals
 INSERT INTO public.proposals (project_id, contractor_id, bid_amount, description, timeline, status) VALUES

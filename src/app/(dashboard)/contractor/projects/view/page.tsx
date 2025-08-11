@@ -197,7 +197,7 @@ export default function ContractorProjectsViewPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <DollarSign className="h-4 w-4 text-gray-500" />
-                  <span>{formatCurrency(project.budget_min)} - {formatCurrency(project.budget_max)}</span>
+                  <span>{formatCurrency(project.budget)}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4 text-gray-500" />
