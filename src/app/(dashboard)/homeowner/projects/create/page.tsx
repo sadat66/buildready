@@ -12,6 +12,12 @@ import { Switch } from '@/components/ui/switch'
 import { ArrowLeft, MapPin, Calendar, DollarSign, FileText, Camera, Paperclip, X, Upload } from 'lucide-react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
+import dynamic from 'next/dynamic'
+
+const LocationMap = dynamic(() => import('@/components/features/projects').then(mod => ({ default: mod.LocationMap })), {
+  ssr: false,
+  loading: () => <div className="h-96 bg-gray-100 rounded-lg flex items-center justify-center">Loading map...</div>
+})
 
 const tradeCategories = [
   'kitchen',
@@ -41,6 +47,8 @@ export default function CreateProjectPage() {
     description: '',
     category: '',
     location: '',
+    latitude: null as number | null,
+    longitude: null as number | null,
     budget: '',
     proposal_deadline: '',
     preferred_start_date: '',
@@ -53,6 +61,15 @@ export default function CreateProjectPage() {
 
   const handleInputChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }))
+  }
+
+  const handleLocationSelect = (coordinates: { lat: number; lng: number; address: string }) => {
+    setFormData(prev => ({
+      ...prev,
+      location: coordinates.address,
+      latitude: coordinates.lat,
+      longitude: coordinates.lng
+    }))
   }
 
   const handleFileChange = (field: 'site_photos' | 'project_files', files: FileList | null) => {
@@ -139,6 +156,11 @@ export default function CreateProjectPage() {
       }
     }
     
+    if (!formData.latitude || !formData.longitude) {
+      setError('Please select a location on the map')
+      return false
+    }
+    
     if (formData.site_photos.length === 0) {
       setError('At least one site photo is required')
       return false
@@ -183,6 +205,8 @@ export default function CreateProjectPage() {
           description: formData.description,
           category: formData.category,
           location: formData.location,
+          latitude: formData.latitude,
+          longitude: formData.longitude,
           budget: parseFloat(formData.budget),
           proposal_deadline: formData.proposal_deadline,
           preferred_start_date: formData.preferred_start_date,
@@ -296,17 +320,19 @@ export default function CreateProjectPage() {
               </div>
               
               <div>
-                <Label htmlFor="location" className="flex items-center space-x-2">
+                <Label className="flex items-center space-x-2">
                   <MapPin className="h-4 w-4" />
-                  <span>Location *</span>
+                  <span>Project Location *</span>
                 </Label>
-                <Input
-                  id="location"
-                  value={formData.location}
-                  onChange={(e) => handleInputChange('location', e.target.value)}
-                  placeholder="Enter project address or city"
-                  className="mt-1"
+                <LocationMap 
+                  onLocationSelect={handleLocationSelect}
+                  className="mt-2"
                 />
+                {formData.location && (
+                  <p className="text-xs text-gray-500 mt-2">
+                    Selected: {formData.location}
+                  </p>
+                )}
                 <p className="text-xs text-gray-500 mt-1">
                   Note: Only city will be visible to contractors for privacy
                 </p>

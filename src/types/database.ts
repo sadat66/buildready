@@ -21,6 +21,8 @@ export interface Project {
   description: string
   budget: number
   location: string
+  latitude?: number
+  longitude?: number
   category: string
   status: 'open' | 'bidding' | 'awarded' | 'completed' | 'cancelled'
   deadline?: string
