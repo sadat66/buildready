@@ -2,45 +2,21 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { FileText, Clock, DollarSign, User, Plus, Edit, Eye } from 'lucide-react'
+import { FileText, Clock, DollarSign, User, Eye } from 'lucide-react'
 
 export default function ContractorProposalsPage() {
 
-  const proposals = [
-    {
-      id: 1,
-      projectTitle: 'Kitchen Renovation',
-      homeowner: 'John Smith',
-      homeownerRating: 4.9,
-      budget: '$20,000 - $30,000',
-      timeline: '8-10 weeks',
-      status: 'Draft',
-      lastModified: '2024-01-10',
-      description: 'Complete kitchen remodel including new cabinets, countertops, and appliances'
-    },
-    {
-      id: 2,
-      projectTitle: 'Bathroom Update',
-      homeowner: 'Sarah Johnson',
-      homeownerRating: 4.7,
-      budget: '$15,000 - $20,000',
-      timeline: '4-6 weeks',
-      status: 'Submitted',
-      lastModified: '2024-01-08',
-      description: 'Contemporary bathroom design with walk-in shower and double vanity'
-    },
-    {
-      id: 3,
-      projectTitle: 'Deck Construction',
-      homeowner: 'Mike Wilson',
-      homeownerRating: 4.8,
-      budget: '$12,000 - $18,000',
-      timeline: '6-8 weeks',
-      status: 'Submitted',
-      lastModified: '2024-01-05',
-      description: 'Wooden deck with railing and stairs'
-    }
-  ]
+  const proposals: Array<{
+    id: number;
+    projectTitle: string;
+    homeowner: string;
+    homeownerRating: number;
+    budget: string;
+    timeline: string;
+    status: string;
+    lastModified: string;
+    description: string;
+  }> = []
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -62,21 +38,15 @@ export default function ContractorProposalsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">My Proposals</h1>
-          <p className="text-gray-600">Manage and track your project proposals</p>
-        </div>
-        <Button className="flex items-center space-x-2">
-          <Plus className="h-4 w-4" />
-          <span>New Proposal</span>
-        </Button>
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900">My Proposals</h1>
+        <p className="text-gray-600">Track your submitted project proposals</p>
       </div>
 
       {/* Proposals List */}
       <div className="space-y-4">
         {proposals.map((proposal) => (
-          <Card key={proposal.id} className="hover:shadow-lg transition-shadow">
+          <Card key={proposal.id} className="hover:shadow-md transition-shadow">
             <CardHeader>
               <div className="flex justify-between items-start">
                 <div className="flex-1">
@@ -120,32 +90,9 @@ export default function ContractorProposalsPage() {
               </div>
 
               <div className="flex space-x-2">
-                {proposal.status === 'Draft' && (
-                  <>
-                    <Button variant="outline" className="flex items-center space-x-2">
-                      <Edit className="h-4 w-4" />
-                      <span>Edit</span>
-                    </Button>
-                    <Button className="flex items-center space-x-2">
-                      <Eye className="h-4 w-4" />
-                      <span>Submit</span>
-                    </Button>
-                  </>
-                )}
-                
-                {proposal.status === 'Submitted' && (
-                  <>
-                    <Button variant="outline" size="sm">
-                      View Details
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      Message Homeowner
-                    </Button>
-                  </>
-                )}
-
                 <Button variant="outline" size="sm">
-                  Duplicate
+                  <Eye className="h-4 w-4 mr-2" />
+                  View Details
                 </Button>
               </div>
             </CardContent>
@@ -159,8 +106,8 @@ export default function ContractorProposalsPage() {
           <CardContent>
             <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">No proposals yet</h3>
-            <p className="text-gray-600 mb-4">Create your first proposal to get started</p>
-            <Button>Create Your First Proposal</Button>
+            <p className="text-gray-600 mb-4">Submit your first proposal to get started</p>
+            <Button>Browse Projects</Button>
           </CardContent>
         </Card>
       )}
