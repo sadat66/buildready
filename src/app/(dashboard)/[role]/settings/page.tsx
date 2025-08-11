@@ -6,10 +6,11 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Bell, Shield, Globe, Save } from 'lucide-react'
+import { useState } from 'react'
+import toast from 'react-hot-toast'
 
 export default function SettingsPage() {
-
-  const notificationSettings = [
+  const [notificationSettings, setNotificationSettings] = useState([
     {
       id: 'email_notifications',
       name: 'Email Notifications',
@@ -40,7 +41,52 @@ export default function SettingsPage() {
       description: 'Get notified about new messages',
       enabled: true
     }
-  ]
+  ])
+
+  const [privacySettings, setPrivacySettings] = useState({
+    profileVisibility: true,
+    projectSharing: true,
+    analyticsData: false
+  })
+
+  const [displaySettings, setDisplaySettings] = useState({
+    theme: 'Light',
+    language: 'English',
+    timezone: 'UTC',
+    dateFormat: 'MM/DD/YYYY'
+  })
+
+  const [saving, setSaving] = useState(false)
+
+  const handleNotificationChange = (id: string, enabled: boolean) => {
+    setNotificationSettings(prev => 
+      prev.map(setting => 
+        setting.id === id ? { ...setting, enabled } : setting
+      )
+    )
+  }
+
+  const handlePrivacyChange = (key: string, value: boolean) => {
+    setPrivacySettings(prev => ({ ...prev, [key]: value }))
+  }
+
+  const handleDisplayChange = (key: string, value: string) => {
+    setDisplaySettings(prev => ({ ...prev, [key]: value }))
+  }
+
+  const handleSave = async () => {
+    setSaving(true)
+    try {
+      // Simulate API call to save settings
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      
+      toast.success('Settings saved successfully!')
+    } catch (error) {
+      toast.error('Failed to save settings. Please try again.')
+    } finally {
+      setSaving(false)
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -68,7 +114,8 @@ export default function SettingsPage() {
                   <p className="text-sm text-gray-600">{setting.description}</p>
                 </div>
                 <Switch 
-                  defaultChecked={setting.enabled}
+                  checked={setting.enabled}
+                  onCheckedChange={(enabled) => handleNotificationChange(setting.id, enabled)}
                   className="ml-4"
                 />
               </div>
@@ -92,7 +139,10 @@ export default function SettingsPage() {
               <h3 className="font-medium">Profile Visibility</h3>
               <p className="text-sm text-gray-600">Allow other users to see your profile information</p>
             </div>
-            <Switch defaultChecked={true} />
+            <Switch 
+              checked={privacySettings.profileVisibility}
+              onCheckedChange={(value) => handlePrivacyChange('profileVisibility', value)}
+            />
           </div>
           
           <div className="flex items-center justify-between p-4 border rounded-lg">
@@ -100,7 +150,10 @@ export default function SettingsPage() {
               <h3 className="font-medium">Project Sharing</h3>
               <p className="text-sm text-gray-600">Allow contractors to see your project details</p>
             </div>
-            <Switch defaultChecked={true} />
+            <Switch 
+              checked={privacySettings.projectSharing}
+              onCheckedChange={(value) => handlePrivacyChange('projectSharing', value)}
+            />
           </div>
 
           <div className="flex items-center justify-between p-4 border rounded-lg">
@@ -108,7 +161,10 @@ export default function SettingsPage() {
               <h3 className="font-medium">Analytics Data</h3>
               <p className="text-sm text-gray-600">Share anonymous usage data to improve the platform</p>
             </div>
-            <Switch defaultChecked={false} />
+            <Switch 
+              checked={privacySettings.analyticsData}
+              onCheckedChange={(value) => handlePrivacyChange('analyticsData', value)}
+            />
           </div>
         </CardContent>
       </Card>
@@ -126,19 +182,35 @@ export default function SettingsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="theme">Theme</Label>
-              <Input id="theme" defaultValue="Light" />
+              <Input 
+                id="theme" 
+                value={displaySettings.theme}
+                onChange={(e) => handleDisplayChange('theme', e.target.value)}
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="language">Language</Label>
-              <Input id="language" defaultValue="English" />
+              <Input 
+                id="language" 
+                value={displaySettings.language}
+                onChange={(e) => handleDisplayChange('language', e.target.value)}
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="timezone">Timezone</Label>
-              <Input id="timezone" defaultValue="UTC" />
+              <Input 
+                id="timezone" 
+                value={displaySettings.timezone}
+                onChange={(e) => handleDisplayChange('timezone', e.target.value)}
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="date_format">Date Format</Label>
-              <Input id="date_format" defaultValue="MM/DD/YYYY" />
+              <Input 
+                id="date_format" 
+                value={displaySettings.dateFormat}
+                onChange={(e) => handleDisplayChange('dateFormat', e.target.value)}
+              />
             </div>
           </div>
         </CardContent>
@@ -146,9 +218,13 @@ export default function SettingsPage() {
 
       {/* Save Button */}
       <div className="flex justify-end">
-        <Button className="flex items-center space-x-2">
+        <Button 
+          className="flex items-center space-x-2" 
+          onClick={handleSave}
+          disabled={saving}
+        >
           <Save className="h-4 w-4" />
-          <span>Save All Changes</span>
+          <span>{saving ? 'Saving...' : 'Save All Changes'}</span>
         </Button>
       </div>
     </div>

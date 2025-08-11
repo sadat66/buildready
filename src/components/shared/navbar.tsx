@@ -2,19 +2,14 @@
 
 import { useState } from "react";
 import { User, LogOut, Menu } from "lucide-react";
-import { Button } from "./button";
+import { Button } from "../ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import Link from "next/link";
 import Image from "next/image";
 
-interface NavbarProps {
-  onMenuToggle: () => void;
-}
-
-export function Navbar({ onMenuToggle  }: NavbarProps) {
+export function Navbar() {
   const { user, signOut } = useAuth();
   const [showUserMenu, setShowUserMenu] = useState(false);
-
 
   const handleSignOut = async () => {
     await signOut();
@@ -24,23 +19,9 @@ export function Navbar({ onMenuToggle  }: NavbarProps) {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 h-16 px-4 w-full flex items-center">
       <div className="flex items-center justify-between w-full">
-        {/* Left side - Menu toggle and branding */}
         <div className="flex items-center space-x-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onMenuToggle}
-            className="lg:hidden"
-          >
-            <Menu className="h-5 w-5" />
-          </Button>
-
-          {/* Logo - Always visible */}
           <div className="flex items-center">
-            <Link
-              href={`/${user?.role}/dashboard`}
-              className="cursor-pointer"
-            >
+            <Link href={`/${user?.role}/dashboard`} className="cursor-pointer">
               <Image
                 src="/images/brand/app-icon.png"
                 alt="Logo"
@@ -52,11 +33,8 @@ export function Navbar({ onMenuToggle  }: NavbarProps) {
           </div>
         </div>
 
-
-
         {/* Right side - User menu */}
         <div className="flex items-center space-x-4">
-
           {/* User menu */}
           <div className="relative">
             <Button
@@ -69,11 +47,13 @@ export function Navbar({ onMenuToggle  }: NavbarProps) {
                 <User className="h-4 w-4 text-gray-600" />
               </div>
               <span className="hidden sm:block text-sm font-medium text-gray-700">
-                {user?.user_metadata?.full_name || user?.email?.split("@")[0] || "User"}
+                {user?.user_metadata?.full_name ||
+                  user?.email?.split("@")[0] ||
+                  "User"}
               </span>
             </Button>
 
-            {showUserMenu && (
+            {showUserMenu ? (
               <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
                 <div className="px-4 py-2 border-b border-gray-100">
                   <p className="text-sm font-medium text-gray-900 truncate">
@@ -84,7 +64,11 @@ export function Navbar({ onMenuToggle  }: NavbarProps) {
                   </p>
                 </div>
 
-                <Link href={`/${user?.user_metadata?.role || user?.role || 'homeowner'}/profile`}>
+                <Link
+                  href={`/${
+                    user?.user_metadata?.role || user?.role || "homeowner"
+                  }/profile`}
+                >
                   <Button
                     variant="ghost"
                     size="sm"
@@ -107,6 +91,15 @@ export function Navbar({ onMenuToggle  }: NavbarProps) {
                     Sign Out
                   </Button>
                 </div>
+              </div>
+            ) : (
+              <div className="flex items-center space-x-4">
+                <Link href="/login">
+                  <Button variant="outline">Sign In</Button>
+                </Link>
+                <Link href="/register">
+                  <Button>Get Started</Button>
+                </Link>
               </div>
             )}
           </div>
