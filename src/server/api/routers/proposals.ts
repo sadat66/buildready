@@ -474,7 +474,7 @@ export const proposalsRouter = createTRPCRouter({
       }
 
       // Calculate total amount and estimated days if relevant fields are updated
-      let finalUpdateData = { ...updateData, updated_at: new Date().toISOString() }
+      const finalUpdateData = { ...updateData, updated_at: new Date().toISOString() }
       
       if (updateData.net_amount !== undefined || updateData.tax_amount !== undefined) {
         const { data: currentProposal } = await ctx.supabase

@@ -1,28 +1,32 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { createClient } from '@/lib/supabase'
 import { Proposal } from '@/types/database'
+
+interface Project {
+  id: string
+  title: string
+  status?: string
+}
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Building, MapPin, Calendar, DollarSign, Search, CheckCircle, XCircle, Eye, User, FileText, Clock, AlertTriangle } from 'lucide-react'
+import { MapPin, Calendar, DollarSign, Search, CheckCircle, XCircle, User, FileText, Clock, AlertTriangle } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { Label } from '@/components/ui/label'
 
 export default function HomeownerProposalsPage() {
-  const { user, loading } = useAuth()
-  const router = useRouter()
+  const { user } = useAuth()
   
   const [proposals, setProposals] = useState<Proposal[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [projectFilter, setProjectFilter] = useState('all')
-  const [projects, setProjects] = useState<any[]>([])
+  const [projects, setProjects] = useState<Project[]>([])
   const [proposalsLoading, setProposalsLoading] = useState(true)
   const [error, setError] = useState('')
   const [actionLoading, setActionLoading] = useState<string | null>(null)
@@ -95,24 +99,20 @@ export default function HomeownerProposalsPage() {
           console.log('No projects found for homeowner, setting empty proposals')
           setProposals([])
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Error fetching data:', error)
-        console.error('Error details:', {
-          message: error?.message || 'Unknown error',
-          code: error?.code || 'No code',
-          details: error?.details || 'No details',
-          hint: error?.hint || 'No hint'
-        })
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+        console.error('Error details:', errorMessage)
         setError('Failed to load proposals')
       } finally {
         setProposalsLoading(false)
       }
     }
     
-    if (!loading && user && user.user_metadata?.role === 'homeowner') {
+    if (user && user.user_metadata?.role === 'homeowner') {
       fetchData()
     }
-  }, [user, loading])
+  }, [user])
 
   const handleStatusUpdate = async (proposalId: string, status: 'accepted' | 'rejected', feedback?: string) => {
     if (!user) return
@@ -123,7 +123,7 @@ export default function HomeownerProposalsPage() {
       const supabase = createClient()
       
       // Update proposal status
-      const updateData: any = { 
+      const updateData: Record<string, unknown> = { 
         status,
         updated_at: new Date().toISOString()
       }
@@ -135,7 +135,7 @@ export default function HomeownerProposalsPage() {
       }
       
       // Try to update with feedback first, fallback to without feedback if field doesn't exist
-      let { error: updateError } = await supabase
+      const { error: updateError } = await supabase
         .from('proposals')
         .update(updateData)
         .eq('id', proposalId)
@@ -143,7 +143,7 @@ export default function HomeownerProposalsPage() {
       // If feedback field doesn't exist, try without it
       if (updateError && updateError.message?.includes('feedback')) {
         console.log('Feedback field not found, updating without feedback field')
-        const { feedback: _, ...updateDataWithoutFeedback } = updateData
+        const { ...updateDataWithoutFeedback } = updateData
         const { error: retryError } = await supabase
           .from('proposals')
           .update(updateDataWithoutFeedback)
@@ -183,7 +183,7 @@ export default function HomeownerProposalsPage() {
     } catch (error) {
       console.error('Error updating proposal status:', error)
       console.error('Error type:', typeof error)
-      console.error('Error message:', (error as any)?.message)
+      console.error('Error message:', error instanceof Error ? error.message : 'Unknown error')
       console.error('Error details:', JSON.stringify(error, null, 2))
       toast.error("Failed to update proposal status. Please try again.")
     } finally {
@@ -217,7 +217,7 @@ export default function HomeownerProposalsPage() {
     })
   }
 
-  if (loading || proposalsLoading) {
+  if (proposalsLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-lg">Loading proposals...</div>

@@ -19,7 +19,7 @@ export default function SubmitProposalPage() {
   const { user, loading } = useAuth()
   const router = useRouter()
   const params = useParams()
-  const projectId = params.projectId as string
+  const projectId = params?.projectId as string
   
   const [project, setProject] = useState<Project | null>(null)
   const [submitting, setSubmitting] = useState(false)
