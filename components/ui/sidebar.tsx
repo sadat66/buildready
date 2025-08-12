@@ -41,7 +41,7 @@ export function Sidebar({
       case "homeowner":
         return [
           { name: "Dashboard", href: "/homeowner/dashboard", icon: Home },
-          { name: "My Projects", href: "/homeowner/projects", icon: FileText },
+          { name: "Projects", href: "/homeowner/projects", icon: FileText },
           { name: "Proposals", href: "/homeowner/proposals", icon: Briefcase },
         ];
 
