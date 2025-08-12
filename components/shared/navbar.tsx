@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 
-export function Navbar() {
+export default function Navbar() {
   const { user } = useAuth();
   const pathname = usePathname();
   const isHomePage = pathname === "/";
