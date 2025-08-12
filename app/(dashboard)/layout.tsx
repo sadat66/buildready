@@ -4,9 +4,9 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter, usePathname } from "next/navigation";
 
-import { Navbar } from "@/components/shared/navbar";
 import { Sidebar } from "@/components/ui/sidebar";
 import LoadingSpinner from "@/components/shared/loading-spinner";
+import { Navbar } from "@/components/shared";
 
 export default function DashboardLayout({
   children,

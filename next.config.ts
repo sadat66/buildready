@@ -4,7 +4,8 @@ const nextConfig: NextConfig = {
   experimental: {
     esmExternals: true,
   },
-  transpilePackages: ['@supabase/ssr'],
+  serverExternalPackages: ['@supabase/ssr'],
+  transpilePackages: [],
   output: process.env.VERCEL ? 'standalone' : undefined,
   webpack: (config, { isServer }) => {
     if (!isServer) {
@@ -17,6 +18,8 @@ const nextConfig: NextConfig = {
     }
     return config;
   },
+  // React 19 compatibility
+  reactStrictMode: false,
 };
 
 export default nextConfig;

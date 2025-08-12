@@ -16,7 +16,7 @@ interface SidebarControlMenuProps {
   onToggleCollapse: () => void;
 }
 
-export function SidebarControlMenu({
+export default function SidebarControlMenu({
   isCollapsed,
   onToggleCollapse,
 }: SidebarControlMenuProps) {
