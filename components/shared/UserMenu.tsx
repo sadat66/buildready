@@ -18,7 +18,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import Link from 'next/link'
 import { capitalizeWords } from '@/lib/helpers'
 
-export function UserMenu() {
+export default function UserMenu() {
   const { user, signOut } = useAuth()
 
   const handleSignOut = async () => {

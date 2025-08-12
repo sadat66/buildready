@@ -1,12 +1,12 @@
 "use client";
 
-import { UserMenu } from "./UserMenu";
-import Image from "next/image";
+ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
+import UserMenu from "./UserMenu";
 
 export default function Navbar() {
   const { user } = useAuth();
