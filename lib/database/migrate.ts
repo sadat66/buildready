@@ -6,18 +6,14 @@
  */
 
 import { migrationRegistry } from './migrations'
-// import { config } from '../config'
-// import { createClient } from '@supabase/supabase-js'
+// Import all migrations to ensure they're registered
+import './migrations'
 
 // CLI argument parsing
 const args = process.argv.slice(2)
 const command = args[0]
 
-// Initialize Supabase client (for future use)
-// const supabase = createClient(
-//   config.database.url,
-//   config.database.anonKey
-// )
+
 
 // Migration commands
 async function runMigrations() {

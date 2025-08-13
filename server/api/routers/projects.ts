@@ -46,7 +46,7 @@ export const projectsRouter = createTRPCRouter({
         location: z.string().optional(),
         minBudget: z.number().optional(),
         maxBudget: z.number().optional(),
-        status: z.enum(['pending', 'active', 'completed', 'cancelled']).optional(),
+        status: z.enum(['open', 'bidding', 'awarded', 'completed', 'cancelled']).optional(),
         search: z.string().optional(),
         limit: z.number().min(1).max(50).default(10),
         offset: z.number().min(0).default(0),
@@ -162,7 +162,7 @@ export const projectsRouter = createTRPCRouter({
   getMy: protectedProcedure
     .input(
       z.object({
-        status: z.enum(['pending', 'active', 'completed', 'cancelled']).optional(),
+        status: z.enum(['open', 'bidding', 'awarded', 'completed', 'cancelled']).optional(),
         limit: z.number().min(1).max(50).default(10),
         offset: z.number().min(0).default(0),
       })
@@ -209,7 +209,7 @@ export const projectsRouter = createTRPCRouter({
       z.object({
         id: z.string().uuid(),
         ...projectSchema.partial().shape,
-        status: z.enum(['pending', 'active', 'completed', 'cancelled']).optional(),
+        status: z.enum(['open', 'bidding', 'awarded', 'completed', 'cancelled']).optional(),
       })
     )
     .mutation(async ({ input, ctx }) => {

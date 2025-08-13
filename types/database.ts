@@ -46,7 +46,7 @@ export interface Proposal {
   bid_amount?: number // Made optional for backward compatibility
   description: string
   timeline: string
-  status: 'pending' | 'accepted' | 'rejected'
+  status: 'pending' | 'accepted' | 'rejected' | 'withdrawn'
   created_at: string
   updated_at: string
   

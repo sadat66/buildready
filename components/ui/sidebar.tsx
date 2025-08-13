@@ -3,16 +3,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
-import Image from "next/image";
 import {
   Home,
   FileText,
-  ChevronLeft,
-  ChevronRight,
   Briefcase,
   Users,
   BarChart3,
   DollarSign,
+  X,
 } from "lucide-react";
 import { Button } from "./button";
 
@@ -29,7 +27,7 @@ export function Sidebar({
   isCollapsed,
   onToggleCollapse,
 }: SidebarProps) {
-  const { userRole, user } = useAuth();
+  const { userRole } = useAuth();
   const pathname = usePathname();
 
   const getMenuItems = () => {
@@ -41,7 +39,7 @@ export function Sidebar({
       case "homeowner":
         return [
           { name: "Dashboard", href: "/homeowner/dashboard", icon: Home },
-          { name: "My Projects", href: "/homeowner/projects", icon: FileText },
+          { name: "Projects", href: "/homeowner/projects", icon: FileText },
           { name: "Proposals", href: "/homeowner/proposals", icon: Briefcase },
         ];
 
@@ -94,26 +92,29 @@ export function Sidebar({
 
   return (
     <>
-      {/* Mobile overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          className="fixed inset-0 bg-black bg-opacity-30 z-30 lg:hidden transition-opacity duration-300"
           onClick={onClose}
+          style={{ touchAction: "none" }}
+          aria-hidden="true"
         />
       )}
 
-      {/* Sidebar - Fixed height, starts below navbar */}
       <div
         className={`
-        fixed top-16 left-0 h-16 bg-white border-r border-gray-200 z-40 transition-all duration-300 ease-in-out
+        fixed top-16 left-0 h-[calc(100vh-4rem)] bg-white border-r border-gray-200 z-40 transition-all duration-300 ease-in-out
         ${isOpen ? "translate-x-0" : "-translate-x-full"}
-        ${isCollapsed ? "w-16" : "w-64"}
-        lg:translate-x-0 lg:z-auto lg:h-screen lg:top-0
-        group
+        w-64
+        lg:translate-x-0 lg:z-50 lg:h-[calc(100vh-4rem)] lg:top-16
+        lg:group
         ${isCollapsed ? "lg:w-16" : "lg:w-64"}
         lg:hover:w-64
         overflow-hidden
+        shadow-2xl lg:shadow-none
         `}
+        role="navigation"
+        aria-label="Main navigation"
         onMouseEnter={() => {
           if (window.innerWidth >= 1024 && isCollapsed) {
             onToggleCollapse();
@@ -126,37 +127,18 @@ export function Sidebar({
         }}
       >
         <div className="flex flex-col h-full bg-white overflow-hidden">
-          {/* Header - Show logo based on collapsed state */}
-          <div className="flex items-center justify-between py-4 px-4 flex-shrink-0 overflow-hidden">
-            <Link
-              href={`/${user?.role}/dashboard`}
-              className="cursor-pointer flex-shrink-0"
-            >
-              <Image
-                src="/images/brand/app-icon.png"
-                alt="Logo"
-                width={32}
-                height={32}
-                className="w-8 h-8"
-              />
-            </Link>
-
-            {/* Collapse toggle button - only show on desktop */}
+          <div className="relative py-2 px-4 flex-shrink-0">
             <Button
               variant="ghost"
               size="sm"
-              onClick={onToggleCollapse}
-              className="hidden lg:flex cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
+              onClick={onClose}
+              className="lg:hidden absolute top-1 right-1 cursor-pointer p-1 h-7 w-7 rounded-full hover:bg-orange-50"
+              aria-label="Close sidebar"
             >
-              {isCollapsed ? (
-                <ChevronRight className="h-4 w-4" />
-              ) : (
-                <ChevronLeft className="h-4 w-4" />
-              )}
+              <X className="h-4 w-4 text-gray-600" />
             </Button>
           </div>
 
-          {/* Navigation - Takes remaining height */}
           <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto overflow-x-hidden min-h-0">
             {menuItems.map((item) => {
               const Icon = item.icon;
@@ -166,18 +148,19 @@ export function Sidebar({
                     variant={isActive(item.href) ? "default" : "ghost"}
                     size="sm"
                     className={`
-                      w-full transition-colors overflow-hidden
+                      w-full transition-colors overflow-hidden cursor-pointer
                       ${
                         isActive(item.href)
-                          ? "bg-blue-600 text-white hover:bg-blue-700"
-                          : "text-gray-700 hover:bg-gray-100"
+                          ? "bg-orange-100 text-orange-700 hover:bg-orange-200 hover:text-orange-800"
+                          : "text-gray-700 hover:bg-orange-50 hover:text-orange-700"
                       }
+                      justify-start px-3 py-3
                       ${
                         isCollapsed
-                          ? "justify-center px-2"
-                          : "justify-start px-3"
+                          ? "lg:justify-center lg:px-2"
+                          : "lg:justify-start lg:px-3"
                       }
-                      group-hover:justify-start group-hover:px-3
+                      lg:group-hover:justify-start lg:group-hover:px-3
                     `}
                     onClick={() => {
                       if (window.innerWidth < 1024) {
@@ -186,12 +169,18 @@ export function Sidebar({
                     }}
                   >
                     <Icon
-                      className={`h-5 w-5 transition-all duration-300 flex-shrink-0 ${isCollapsed ? "mr-0" : "mr-3"} group-hover:mr-3`}
+                      className={`
+                        h-5 w-5 transition-all duration-300 flex-shrink-0 mr-3
+                        ${isCollapsed ? "lg:mr-0" : "lg:mr-3"}
+                        lg:group-hover:mr-3
+                      `}
                     />
                     <span
-                      className={`transition-all duration-300 overflow-hidden ${
-                        isCollapsed ? "hidden" : "block"
-                      } group-hover:block`}
+                      className={`
+                        transition-all duration-300 overflow-hidden block
+                        ${isCollapsed ? "lg:hidden" : "lg:block"}
+                        lg:group-hover:block
+                      `}
                     >
                       {item.name}
                     </span>
