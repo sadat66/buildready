@@ -167,7 +167,7 @@ export const proposalsRouter = createTRPCRouter({
   getMy: protectedProcedure
     .input(
       z.object({
-        status: z.enum(['pending', 'accepted', 'rejected']).optional(),
+        status: z.enum(['pending', 'accepted', 'rejected', 'withdrawn']).optional(),
         limit: z.number().min(1).max(50).default(10),
         offset: z.number().min(0).default(0),
       })
@@ -218,7 +218,7 @@ export const proposalsRouter = createTRPCRouter({
     .input(
       z.object({
         projectId: z.string().uuid().optional(),
-        status: z.enum(['pending', 'accepted', 'rejected']).optional(),
+        status: z.enum(['pending', 'accepted', 'rejected', 'withdrawn']).optional(),
         limit: z.number().min(1).max(50).default(10),
         offset: z.number().min(0).default(0),
       })
@@ -333,81 +333,7 @@ export const proposalsRouter = createTRPCRouter({
       return data
     }),
 
-  // Update proposal status (homeowner only)
-  updateStatus: protectedProcedure
-    .input(
-      z.object({
-        id: z.string().uuid(),
-        status: z.enum(['accepted', 'rejected']),
-        feedback: z.string().optional(),
-      })
-    )
-    .mutation(async ({ input, ctx }) => {
-      // Get proposal with project info
-      const { data: proposal, error: fetchError } = await ctx.supabase
-        .from('proposals')
-        .select(`
-          *,
-          projects (
-            id,
-            homeowner_id,
-            status
-          )
-        `)
-        .eq('id', input.id)
-        .single()
-
-      if (fetchError) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Proposal not found',
-        })
-      }
-
-      // Check if user is the homeowner
-      if (proposal.projects?.homeowner_id !== ctx.user.id) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Only the project owner can update proposal status',
-        })
-      }
-
-      // Check if proposal is still pending
-      if (proposal.status !== 'pending') {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Can only update pending proposals',
-        })
-      }
-
-      const { data, error } = await ctx.supabase
-        .from('proposals')
-        .update({
-          status: input.status,
-          feedback: input.feedback,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', input.id)
-        .select()
-        .single()
-
-      if (error) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: error.message,
-        })
-      }
-
-      // If proposal is accepted, update project status to active
-      if (input.status === 'accepted') {
-        await ctx.supabase
-          .from('projects')
-          .update({ status: 'active' })
-          .eq('id', proposal.project_id)
-      }
-
-      return data
-    }),
+  // Note: updateStatus endpoint removed - proposal status updates now handled directly via Supabase in frontend
 
   // Update proposal (contractor only)
   update: protectedProcedure
@@ -570,5 +496,92 @@ export const proposalsRouter = createTRPCRouter({
       }
 
       return { success: true }
+    }),
+
+  // Resubmit proposal (contractor only)
+  resubmit: protectedProcedure
+    .input(
+      z.object({
+        originalProposalId: z.string().uuid(),
+        ...proposalSchema.omit({ project_id: true }).shape,
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const { originalProposalId, ...proposalData } = input
+
+      // Get the original proposal to check status and get project_id
+      const { data: originalProposal, error: fetchError } = await ctx.supabase
+        .from('proposals')
+        .select('project_id, contractor_id, status')
+        .eq('id', originalProposalId)
+        .single()
+
+      if (fetchError) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Original proposal not found',
+        })
+      }
+
+      // Check if user owns the original proposal
+      if (originalProposal.contractor_id !== ctx.user.id) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'You can only resubmit your own proposals',
+        })
+      }
+
+      // Check if original proposal is rejected or withdrawn
+      if (!['rejected', 'withdrawn'].includes(originalProposal.status)) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Can only resubmit rejected or withdrawn proposals',
+        })
+      }
+
+      // Check if there's already a pending proposal for this project
+      const { data: existingPending } = await ctx.supabase
+        .from('proposals')
+        .select('id')
+        .eq('project_id', originalProposal.project_id)
+        .eq('contractor_id', ctx.user.id)
+        .eq('status', 'pending')
+        .single()
+
+      if (existingPending) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'You already have a pending proposal for this project',
+        })
+      }
+
+      // Calculate total amount and estimated days
+      const totalAmount = proposalData.net_amount + proposalData.tax_amount
+      const startDate = new Date(proposalData.proposed_start_date)
+      const endDate = new Date(proposalData.proposed_end_date)
+      const estimatedDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
+
+      // Create new proposal
+      const { data, error } = await ctx.supabase
+        .from('proposals')
+        .insert({
+          project_id: originalProposal.project_id,
+          contractor_id: ctx.user.id,
+          ...proposalData,
+          total_amount: totalAmount,
+          estimated_days: estimatedDays,
+          status: 'pending',
+        })
+        .select()
+        .single()
+
+      if (error) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: error.message,
+        })
+      }
+
+      return data
     }),
 })

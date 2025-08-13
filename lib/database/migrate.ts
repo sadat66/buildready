@@ -6,6 +6,8 @@
  */
 
 import { migrationRegistry } from './migrations'
+// Import all migrations to ensure they're registered
+import './migrations'
 // import { config } from '../config'
 // import { createClient } from '@supabase/supabase-js'
 

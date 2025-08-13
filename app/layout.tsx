@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { TRPCProvider } from "@/components/providers/TRPCProvider";
+
 import { ToastProvider } from "@/components/providers/toast";
 
 const geistSans = Geist({
@@ -30,12 +30,10 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased `}
       >
-        <TRPCProvider>
-          <AuthProvider>
-            {children}
-            <ToastProvider />
-          </AuthProvider>
-        </TRPCProvider>
+        <AuthProvider>
+          {children}
+          <ToastProvider />
+        </AuthProvider>
       </body>
     </html>
   );
