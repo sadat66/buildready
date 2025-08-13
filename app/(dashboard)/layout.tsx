@@ -17,6 +17,7 @@ export default function DashboardLayout({
   const router = useRouter();
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const [accessDenied, setAccessDenied] = useState(false);
 
@@ -67,6 +68,28 @@ export default function DashboardLayout({
     return () => clearTimeout(timeout);
   }, [loading]);
 
+  // Handle mobile sidebar toggle
+  const handleMobileMenuToggle = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
+
+  // Handle sidebar collapse toggle
+  const handleSidebarToggleCollapse = () => {
+    setSidebarCollapsed(!sidebarCollapsed);
+  };
+
+  // Close sidebar on mobile when screen size changes
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        setSidebarOpen(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -110,21 +133,26 @@ export default function DashboardLayout({
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Top Navbar - Full width, fixed */}
-      <Navbar />
+      <Navbar 
+        onMobileMenuToggle={handleMobileMenuToggle}
+        showMobileMenuButton={true}
+      />
 
-      {/* Main Content Area - No flex, content flows naturally */}
+      {/* Main Content Area - Properly positioned below navbar */}
       <div className="pt-16">
-        {/* Sidebar - Fixed height, starts below navbar, positioned absolutely */}
+        {/* Sidebar - Fixed positioning, starts below navbar */}
         <Sidebar
           isOpen={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
-          isCollapsed={!sidebarOpen}
-          onToggleCollapse={() => setSidebarOpen(!sidebarOpen)}
+          isCollapsed={sidebarCollapsed}
+          onToggleCollapse={handleSidebarToggleCollapse}
         />
 
-        {/* Main Content - Properly centered with sidebar space */}
-        <main className="transition-all duration-300 min-h-screen lg:pl-16">
-          <div className="max-w-[1440px] mx-auto px-6 py-6">{children}</div>
+        {/* Main Content - Fixed position, sidebar expands on top */}
+        <main className="transition-all duration-300 min-h-[calc(100vh-4rem)] lg:pl-16">
+          <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+            {children}
+          </div>
         </main>
       </div>
     </div>
