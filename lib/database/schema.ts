@@ -54,7 +54,7 @@ export const proposalSchema = z.object({
   bidAmount: z.number().positive(),
   description: z.string().min(1),
   timeline: z.string().min(1),
-  status: z.enum(['pending', 'accepted', 'rejected']).default('pending'),
+  status: z.enum(['pending', 'accepted', 'rejected', 'withdrawn']).default('pending'),
 })
 
 // Review schema

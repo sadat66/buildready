@@ -478,9 +478,9 @@ export default function HomeownerProposalsPage() {
               {proposal.status === 'pending' && (
                 <div className="flex gap-2 pt-4 border-t">
                   <Button
-                    onClick={() => handleStatusUpdate(proposal.id, 'accepted')}
+                    // onClick={() => handleStatusUpdate(proposal.id, 'accepted')}
                     disabled={actionLoading === proposal.id}
-                    className="flex-1 bg-green-600 hover:bg-green-700"
+                    className="flex-1 bg-green-600 hover:bg-green-700 pointer-events-none opacity-50"
                   >
                     {actionLoading === proposal.id ? 'Processing...' : (
                       <>
