@@ -59,8 +59,17 @@ export default function CreateProjectPage() {
     project_files: [] as File[]
   })
 
+  // Validation state
+  const [validationErrors, setValidationErrors] = useState<{[key: string]: boolean}>({})
+  const [hasSubmitted, setHasSubmitted] = useState(false)
+
   const handleInputChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }))
+    
+    // Clear validation error when user starts typing
+    if (hasSubmitted && validationErrors[field]) {
+      setValidationErrors(prev => ({ ...prev, [field]: false }))
+    }
   }
 
   const handleLocationSelect = (coordinates: { lat: number; lng: number; address: string }) => {
@@ -70,6 +79,23 @@ export default function CreateProjectPage() {
       latitude: coordinates.lat,
       longitude: coordinates.lng
     }))
+    
+    // Clear location validation error when location is selected
+    if (hasSubmitted && validationErrors['location']) {
+      setValidationErrors(prev => ({ ...prev, location: false }))
+    }
+  }
+
+  const getInputClassName = (field: string) => {
+    const baseClass = "mt-1"
+    if (hasSubmitted && validationErrors[field]) {
+      return `${baseClass} border-red-500 focus:border-red-500 focus:ring-red-500`
+    }
+    return baseClass
+  }
+
+  const showFieldError = (field: string) => {
+    return hasSubmitted && validationErrors[field]
   }
 
   const handleFileChange = (field: 'site_photos' | 'project_files', files: FileList | null) => {
@@ -98,6 +124,12 @@ export default function CreateProjectPage() {
       
       if (validFiles.length > 0) {
         setError('')
+        
+        // Clear validation error when files are added
+        if (hasSubmitted && validationErrors[field]) {
+          setValidationErrors(prev => ({ ...prev, [field]: false }))
+        }
+        
         setFormData(prev => ({ 
           ...prev, 
           [field]: field === 'site_photos' 
@@ -149,25 +181,35 @@ export default function CreateProjectPage() {
       'preferred_start_date', 'preferred_end_date', 'decision_date'
     ]
     
+    const newValidationErrors: {[key: string]: boolean} = {}
+    
     for (const field of required) {
       if (!formData[field as keyof typeof formData]) {
-        setError(`${field.replace('_', ' ')} is required`)
-        return false
+        newValidationErrors[field] = true
       }
     }
     
+    // Check location coordinates
     if (!formData.latitude || !formData.longitude) {
-      setError('Please select a location on the map')
-      return false
+      newValidationErrors['location'] = true
     }
     
+    // Check site photos
     if (formData.site_photos.length === 0) {
-      setError('At least one site photo is required')
-      return false
+      newValidationErrors['site_photos'] = true
     }
     
+    // Check budget
     if (parseFloat(formData.budget) <= 0) {
-      setError('Budget must be a positive number')
+      newValidationErrors['budget'] = true
+    }
+    
+    setValidationErrors(newValidationErrors)
+    
+    // Set general error message
+    if (Object.keys(newValidationErrors).length > 0) {
+      const firstError = Object.keys(newValidationErrors)[0]
+      setError(`${firstError.replace('_', ' ')} is required`)
       return false
     }
     
@@ -181,6 +223,8 @@ export default function CreateProjectPage() {
       setError('Only homeowners can create projects')
       return
     }
+    
+    setHasSubmitted(true)
     
     if (!validateForm()) {
       return
@@ -286,8 +330,11 @@ export default function CreateProjectPage() {
                   value={formData.title}
                   onChange={(e) => handleInputChange('title', e.target.value)}
                   placeholder="e.g., Kitchen Renovation"
-                  className="mt-1"
+                  className={getInputClassName('title')}
                 />
+                {showFieldError('title') && (
+                  <p className="text-red-500 text-sm mt-1">Project title is required</p>
+                )}
               </div>
               
               <div>
@@ -298,8 +345,11 @@ export default function CreateProjectPage() {
                   onChange={(e) => handleInputChange('description', e.target.value)}
                   placeholder="Provide detailed description of the work to be done..."
                   rows={4}
-                  className="mt-1"
+                  className={getInputClassName('description')}
                 />
+                {showFieldError('description') && (
+                  <p className="text-red-500 text-sm mt-1">Description is required</p>
+                )}
               </div>
               
               <div>
@@ -308,7 +358,11 @@ export default function CreateProjectPage() {
                   id="category"
                   value={formData.category}
                   onChange={(e) => handleInputChange('category', e.target.value)}
-                  className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+                    hasSubmitted && validationErrors['category']
+                      ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
+                      : 'border-gray-300 focus:ring-blue-500'
+                  } ${getInputClassName('category')}`}
                 >
                   <option value="">Select a category</option>
                   {tradeCategories.map(category => (
@@ -317,26 +371,34 @@ export default function CreateProjectPage() {
                     </option>
                   ))}
                 </select>
+                {showFieldError('category') && (
+                  <p className="text-red-500 text-sm mt-1">Trade category is required</p>
+                )}
               </div>
               
-              <div>
-                <Label className="flex items-center space-x-2">
-                  <MapPin className="h-4 w-4" />
-                  <span>Project Location *</span>
-                </Label>
-                <LocationMap 
-                  onLocationSelect={handleLocationSelect}
-                  className="mt-2"
-                />
-                {formData.location && (
-                  <p className="text-xs text-gray-500 mt-2">
-                    Selected: {formData.location}
-                  </p>
-                )}
-                <p className="text-xs text-gray-500 mt-1">
-                  Note: Only city will be visible to contractors for privacy
-                </p>
-              </div>
+                             <div>
+                 <Label className={`flex items-center space-x-2 ${hasSubmitted && validationErrors['location'] ? 'text-red-600' : ''}`}>
+                   <MapPin className={`h-4 w-4 ${hasSubmitted && validationErrors['location'] ? 'text-red-600' : ''}`} />
+                   <span>Project Location *</span>
+                 </Label>
+                 <div className="mt-2">
+                   <LocationMap 
+                     onLocationSelect={handleLocationSelect}
+                     className="mt-2"
+                   />
+                 </div>
+                 {formData.location && (
+                   <p className="text-xs text-gray-500 mt-2">
+                     Selected: {formData.location}
+                   </p>
+                 )}
+                 <p className="text-xs text-gray-500 mt-1">
+                   Note: Only city will be visible to contractors for privacy
+                 </p>
+                 {showFieldError('location') && (
+                   <p className="text-red-500 text-sm mt-1">Please search for and select a location on the map</p>
+                 )}
+               </div>
             </div>
             
             {/* Budget */}
@@ -354,11 +416,14 @@ export default function CreateProjectPage() {
                   value={formData.budget}
                   onChange={(e) => handleInputChange('budget', e.target.value)}
                   placeholder="15000"
-                  className="mt-1"
+                  className={getInputClassName('budget')}
                 />
                 <p className="text-xs text-gray-500 mt-1">
                   Enter your total budget for this project
                 </p>
+                {showFieldError('budget') && (
+                  <p className="text-red-500 text-sm mt-1">Valid budget amount is required</p>
+                )}
               </div>
             </div>
             
@@ -377,8 +442,11 @@ export default function CreateProjectPage() {
                     type="date"
                     value={formData.proposal_deadline}
                     onChange={(e) => handleInputChange('proposal_deadline', e.target.value)}
-                    className="mt-1"
+                    className={getInputClassName('proposal_deadline')}
                   />
+                  {showFieldError('proposal_deadline') && (
+                    <p className="text-red-500 text-sm mt-1">Proposal deadline is required</p>
+                  )}
                 </div>
                 <div>
                   <Label htmlFor="decision_date">Decision Date *</Label>
@@ -387,8 +455,11 @@ export default function CreateProjectPage() {
                     type="date"
                     value={formData.decision_date}
                     onChange={(e) => handleInputChange('decision_date', e.target.value)}
-                    className="mt-1"
+                    className={getInputClassName('decision_date')}
                   />
+                  {showFieldError('decision_date') && (
+                    <p className="text-red-500 text-sm mt-1">Decision date is required</p>
+                  )}
                 </div>
               </div>
               
@@ -400,8 +471,11 @@ export default function CreateProjectPage() {
                     type="date"
                     value={formData.preferred_start_date}
                     onChange={(e) => handleInputChange('preferred_start_date', e.target.value)}
-                    className="mt-1"
+                    className={getInputClassName('preferred_start_date')}
                   />
+                  {showFieldError('preferred_start_date') && (
+                    <p className="text-red-500 text-sm mt-1">Preferred start date is required</p>
+                  )}
                 </div>
                 <div>
                   <Label htmlFor="preferred_end_date">Preferred End Date *</Label>
@@ -410,8 +484,11 @@ export default function CreateProjectPage() {
                     type="date"
                     value={formData.preferred_end_date}
                     onChange={(e) => handleInputChange('preferred_end_date', e.target.value)}
-                    className="mt-1"
+                    className={getInputClassName('preferred_end_date')}
                   />
+                  {showFieldError('preferred_end_date') && (
+                    <p className="text-red-500 text-sm mt-1">Preferred end date is required</p>
+                  )}
                 </div>
               </div>
             </div>
@@ -445,6 +522,8 @@ export default function CreateProjectPage() {
                   className={`mt-2 border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
                     dragActive 
                       ? 'border-blue-500 bg-blue-50' 
+                      : hasSubmitted && validationErrors['site_photos']
+                      ? 'border-red-500 bg-red-50'
                       : 'border-gray-300 hover:border-gray-400'
                   }`}
                   onDragEnter={handleDrag}
@@ -468,6 +547,10 @@ export default function CreateProjectPage() {
                     className="mt-4"
                   />
                 </div>
+                
+                {showFieldError('site_photos') && (
+                  <p className="text-red-500 text-sm mt-2">At least one site photo is required</p>
+                )}
                 
                 {/* Photo Previews */}
                 {formData.site_photos.length > 0 && (
