@@ -6,7 +6,7 @@ export const usersRouter = createTRPCRouter({
   // Get current user profile
   getProfile: protectedProcedure.query(async ({ ctx }) => {
     const { data: profile, error } = await ctx.supabase
-      .from('profiles')
+      .from('users')
       .select('*')
       .eq('id', ctx.user.id)
       .single()
@@ -25,21 +25,15 @@ export const usersRouter = createTRPCRouter({
   updateProfile: protectedProcedure
     .input(
       z.object({
-        full_name: z.string().min(1).optional(),
-        bio: z.string().optional(),
-        location: z.string().optional(),
-        phone: z.string().optional(),
-        website: z.string().url().optional().or(z.literal('')),
-        skills: z.array(z.string()).optional(),
-        hourly_rate: z.number().positive().optional(),
-        years_experience: z.number().min(0).optional(),
-        license_number: z.string().optional(),
-        insurance_verified: z.boolean().optional(),
+        first_name: z.string().min(1).optional(),
+        last_name: z.string().min(1).optional(),
+        phone_number: z.string().optional(),
+        address: z.string().optional(),
       })
     )
     .mutation(async ({ input, ctx }) => {
       const { data, error } = await ctx.supabase
-        .from('profiles')
+        .from('users')
         .update({
           ...input,
           updated_at: new Date().toISOString(),
@@ -65,19 +59,15 @@ export const usersRouter = createTRPCRouter({
       const supabase = ctx.supabase
 
       const { data: profile, error } = await supabase
-        .from('profiles')
+        .from('users')
         .select(`
           id,
           full_name,
-          bio,
-          location,
-          website,
-          role,
-          skills,
-          hourly_rate,
-          years_experience,
-          license_number,
-          insurance_verified,
+          first_name,
+          last_name,
+          phone_number,
+          address,
+          user_role,
           created_at
         `)
         .eq('id', input.id)
@@ -99,11 +89,6 @@ export const usersRouter = createTRPCRouter({
       z.object({
         query: z.string().optional(),
         location: z.string().optional(),
-        skills: z.array(z.string()).optional(),
-        minRate: z.number().optional(),
-        maxRate: z.number().optional(),
-        minExperience: z.number().optional(),
-        insuranceVerified: z.boolean().optional(),
         limit: z.number().min(1).max(50).default(10),
         offset: z.number().min(0).default(0),
       })
@@ -112,51 +97,28 @@ export const usersRouter = createTRPCRouter({
       const supabase = ctx.supabase
 
       let query = supabase
-        .from('profiles')
+        .from('users')
         .select(`
           id,
           full_name,
-          bio,
-          location,
-          website,
-          skills,
-          hourly_rate,
-          years_experience,
-          license_number,
-          insurance_verified,
+          first_name,
+          last_name,
+          phone_number,
+          address,
+          user_role,
           created_at
         `)
-        .eq('role', 'contractor')
+        .eq('user_role', 'contractor')
 
       // Apply filters
       if (input.query) {
         query = query.or(
-          `full_name.ilike.%${input.query}%,bio.ilike.%${input.query}%`
+          `full_name.ilike.%${input.query}%,first_name.ilike.%${input.query}%,last_name.ilike.%${input.query}%`
         )
       }
 
       if (input.location) {
-        query = query.ilike('location', `%${input.location}%`)
-      }
-
-      if (input.skills && input.skills.length > 0) {
-        query = query.overlaps('skills', input.skills)
-      }
-
-      if (input.minRate !== undefined) {
-        query = query.gte('hourly_rate', input.minRate)
-      }
-
-      if (input.maxRate !== undefined) {
-        query = query.lte('hourly_rate', input.maxRate)
-      }
-
-      if (input.minExperience !== undefined) {
-        query = query.gte('years_experience', input.minExperience)
-      }
-
-      if (input.insuranceVerified !== undefined) {
-        query = query.eq('insurance_verified', input.insuranceVerified)
+        query = query.ilike('address', `%${input.location}%`)
       }
 
       const { data, error } = await query

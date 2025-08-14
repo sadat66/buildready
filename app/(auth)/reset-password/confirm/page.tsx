@@ -43,7 +43,7 @@ function ResetPasswordConfirmContent() {
   const {
     register,
     handleSubmit,
-    watch,  // Add this line
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<ResetPasswordConfirmFormData>({
     resolver: zodResolver(resetPasswordConfirmSchema),
@@ -152,9 +152,9 @@ function ResetPasswordConfirmContent() {
                   {...register('password')}
                 />
                 {/* Password Strength Indicator */}
-                 <InlinePasswordStrength 
-                   password={watch('password') || ''} 
-                 />
+                <InlinePasswordStrength 
+                  password={watch('password') || ''} 
+                />
               </div>
 
               <AuthInput
@@ -164,19 +164,6 @@ function ResetPasswordConfirmContent() {
                 showPasswordToggle={true}
                 {...register('confirmPassword')}
               />
-
-              {/* Password Requirements */}
-              <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
-                <p className="text-sm text-orange-800 font-medium mb-1">Password Requirements:</p>
-                <ul className="text-xs text-orange-700 space-y-1">
-                  <li>• At least 8 characters long</li>
-                  <li>• Lowercase letter (a-z)</li>
-                  <li>• Uppercase letter (A-Z)</li>
-                  <li>• Number (0-9)</li>
-                  <li>• Special character (@$!%*?&)</li>
-                  <li>• Must match confirmation password</li>
-                </ul>
-              </div>
 
               <Button
                 type="submit"
@@ -213,7 +200,7 @@ function ResetPasswordConfirmContent() {
 
 export default function ResetPasswordConfirmPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-100 flex flex-col">
+    <div className="min-h-screen flex flex-col">
       <Suspense fallback={
         <div className="flex items-center justify-center min-h-screen">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>

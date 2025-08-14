@@ -61,7 +61,7 @@ export default function UserMenu() {
           {/* Role Badge - Top Right Corner */}
           <div className="absolute top-1 right-1">
             <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-500 text-white capitalize">
-              {user?.user_metadata?.role || user?.role || "User"}
+              {user?.user_metadata?.role || user?.user_role || "User"}
             </span>
           </div>
           
@@ -87,7 +87,7 @@ export default function UserMenu() {
         <DropdownMenuItem asChild className="p-2 rounded-lg hover:bg-orange-50 hover:text-orange-700 transition-colors">
           <Link
             href={`/${
-              user?.user_metadata?.role || user?.role || "homeowner"
+              user?.user_metadata?.role || user?.user_role || "homeowner"
             }/profile`}
             className="cursor-pointer flex items-center w-full"
           >
@@ -99,7 +99,7 @@ export default function UserMenu() {
         <DropdownMenuItem asChild className="p-2 rounded-lg hover:bg-orange-50 hover:text-orange-700 transition-colors">
           <Link
             href={`/${
-              user?.user_metadata?.role || user?.role || "homeowner"
+              user?.user_metadata?.role || user?.user_role || "homeowner"
             }/settings`}
             className="cursor-pointer flex items-center w-full"
           >
