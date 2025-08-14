@@ -14,8 +14,10 @@ import { ContactManagementSection } from "./ContactManagementSection";
 import { ServiceLocationSection } from "./ServiceLocationSection";
 import { Label } from "@/components/ui/label";
 
+import { ExtendedUser } from '@/contexts/AuthContext'
+
 interface ContractorProfileProps {
-  user: any;
+  user: ExtendedUser;
 }
 
 export function ContractorProfile({ user }: ContractorProfileProps) {

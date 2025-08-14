@@ -5,22 +5,33 @@
  * Command-line tool for managing database migrations
  */
 
-import { migrationRegistry } from './migrations'
+import { migrationRegistry, SupabaseDatabaseClient } from './migrations'
 // Import all migrations to ensure they're registered
 import './migrations'
+
+// Force import of individual migrations to ensure they're registered
+import { migration_002_proposal_resubmission } from './migrations/002_proposal_resubmission'
+import { migration_004_add_email_verification_field } from './migrations/004_add_email_verification_field'
+import { migration_005_complete_user_schema } from './migrations/005_complete_user_schema'
+import { migration_006_create_contractor_profiles } from './migrations/006_create_contractor_profiles'
+
+// Explicitly register migrations to ensure they're loaded
+migrationRegistry.register(migration_002_proposal_resubmission)
+migrationRegistry.register(migration_004_add_email_verification_field)
+migrationRegistry.register(migration_005_complete_user_schema)
+migrationRegistry.register(migration_006_create_contractor_profiles)
 
 // CLI argument parsing
 const args = process.argv.slice(2)
 const command = args[0]
-
-
 
 // Migration commands
 async function runMigrations() {
   console.log('🚀 Running pending migrations...')
   
   try {
-    await migrationRegistry.migrate()
+    const db = new SupabaseDatabaseClient()
+    await migrationRegistry.migrate(db)
     console.log('✅ All migrations completed successfully!')
   } catch (error) {
     console.error('❌ Migration failed:', error)
@@ -58,7 +69,8 @@ async function rollback(targetVersion: number) {
   console.log(`🔄 Rolling back to version ${targetVersion}...`)
   
   try {
-    await migrationRegistry.rollback(targetVersion)
+    const db = new SupabaseDatabaseClient()
+    await migrationRegistry.rollback(targetVersion, db)
     console.log('✅ Rollback completed successfully!')
   } catch (error) {
     console.error('❌ Rollback failed:', error)

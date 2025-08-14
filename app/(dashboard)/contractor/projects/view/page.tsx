@@ -210,10 +210,13 @@ export default function ContractorProjectsViewPage() {
               {/* Homeowner Info */}
               <div className="flex items-center justify-between pt-2 border-t">
                 <div className="text-sm text-gray-600">
-                  Posted by: <span className="font-medium">{project.homeowner?.full_name || 'Unknown'}</span>
-                  {project.homeowner?.rating && (
-                    <span className="ml-2">⭐ {project.homeowner.rating} ({project.homeowner.review_count} reviews)</span>
-                  )}
+                  Posted by: <span className="font-medium">
+                    {project.homeowner ? 
+                      `${project.homeowner.first_name} ${project.homeowner.last_name}`.trim() || 'Unknown' 
+                      : 'Unknown'
+                    }
+                  </span>
+                  {/* Rating and reviews not available in current User interface */}
                 </div>
                 <Badge variant="default" className="text-xs">
                   {project.status}

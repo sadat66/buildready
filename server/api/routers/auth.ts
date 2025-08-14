@@ -10,8 +10,10 @@ export const authRouter = createTRPCRouter({
       z.object({
         email: z.string().email(),
         password: z.string().min(6),
-        fullName: z.string().min(1),
-        role: z.enum(['homeowner', 'contractor']),
+        first_name: z.string().min(1),
+        last_name: z.string().min(1),
+        user_role: z.enum(['homeowner', 'contractor']),
+        user_agreed_to_terms: z.boolean().default(false),
       })
     )
     .mutation(async ({ input }) => {
@@ -26,8 +28,11 @@ export const authRouter = createTRPCRouter({
         password: input.password,
         options: {
           data: {
-            full_name: input.fullName,
-            role: input.role,
+            full_name: `${input.first_name} ${input.last_name}`,
+            first_name: input.first_name,
+            last_name: input.last_name,
+            user_role: input.user_role,
+            user_agreed_to_terms: input.user_agreed_to_terms,
           },
           emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`,
         },
@@ -51,6 +56,69 @@ export const authRouter = createTRPCRouter({
           code: 'BAD_REQUEST',
           message: errorMessage,
         })
+      }
+
+      if (data.user) {
+        try {
+          // Insert user data into the users table with essential fields only
+          const { error: insertError } = await supabase
+            .from('users')
+            .insert({
+              id: data.user.id,
+              email: input.email,
+              user_role: input.user_role,
+              full_name: `${input.first_name} ${input.last_name}`,
+              first_name: input.first_name,
+              last_name: input.last_name,
+              user_agreed_to_terms: input.user_agreed_to_terms,
+            })
+
+          if (insertError) {
+            console.error('Failed to insert user into database:', insertError)
+            console.error('Error details:', {
+              message: insertError.message,
+              details: insertError.details,
+              hint: insertError.hint,
+              code: insertError.code
+            })
+            // Don't throw error here as the user was created in Supabase Auth
+            // The user can still sign in, but some profile data might be missing
+          }
+
+          // If user is a contractor, create a contractor profile
+          if (input.user_role === 'contractor' && data.user.id) {
+            const { error: profileError } = await supabase
+              .from('contractor_profiles')
+              .insert({
+                user_id: data.user.id,
+                business_name: `${input.first_name} ${input.last_name}`, // Default business name
+                is_insurance_verified: false,
+              })
+
+            if (profileError) {
+              console.error('Failed to create contractor profile:', profileError)
+              // Don't throw error here as the user was created successfully
+            } else {
+              // Update the user's contractor_profile field with the new profile ID
+              const { data: profileData } = await supabase
+                .from('contractor_profiles')
+                .select('id')
+                .eq('user_id', data.user.id)
+                .single()
+
+              if (profileData?.id) {
+                await supabase
+                  .from('users')
+                  .update({ contractor_profile: profileData.id })
+                  .eq('id', data.user.id)
+              }
+            }
+          }
+        } catch (dbError) {
+          console.error('Database operation failed:', dbError)
+          // Don't throw error here as the user was created in Supabase Auth
+          // The user can still sign in, but some profile data might be missing
+        }
       }
 
       return {

@@ -56,6 +56,23 @@ export default function LoginPage() {
               // Get user's role from metadata
               const userRole = data.user.user_metadata?.role || 'homeowner';
               
+              // Update user's is_verified_email field to true in the database
+              try {
+                const { error: updateError } = await supabase
+                  .from('users')
+                  .update({ is_verified_email: true })
+                  .eq('id', data.user.id);
+                
+                if (updateError) {
+                  console.error('Failed to update email verification status:', updateError);
+                  // Don't fail the whole process for this, just log it
+                } else {
+                  console.log('Successfully updated is_verified_email to true for user:', data.user.id);
+                }
+              } catch (updateError) {
+                console.error('Error updating email verification status:', updateError);
+              }
+              
               // Clear the hash from URL to prevent re-processing
               window.location.hash = '';
               
@@ -71,14 +88,18 @@ export default function LoginPage() {
               // and the useEffect in this component will redirect to dashboard
               return;
             } else {
-              setError("Failed to confirm email. Please try signing up again.");
+              setError("Failed to confirm email. Please try signing up again or contact support.");
+              setIsConfirmingEmail(false);
             }
           } catch (error) {
             console.error('Failed to handle email confirmation:', error);
-            setError("An error occurred while confirming your email. Please try again.");
+            setError("An error occurred while confirming your email. Please try again or contact support.");
           } finally {
             setIsConfirmingEmail(false);
           }
+        } else {
+          // No valid tokens found, stop loading
+          setIsConfirmingEmail(false);
         }
       }
     };

@@ -12,7 +12,11 @@ interface PersonalInfoSectionProps {
     location: string;
     bio: string;
   };
-  user: any;
+  user: {
+    id: string;
+    email: string;
+    [key: string]: unknown;
+  };
   onInputChange: (field: string, value: string) => void;
 }
 

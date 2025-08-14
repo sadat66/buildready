@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label'
 import { ArrowRight, Home, Building2 } from 'lucide-react'
 import { RegistrationFormData } from '@/lib/validation'
 
+
 interface RoleSelectionStepProps {
   form: UseFormReturn<RegistrationFormData>
   onNext: () => void
