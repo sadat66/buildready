@@ -4,7 +4,6 @@ export const migration_007_fix_role_field_conflicts: Migration = {
   id: '007_fix_role_field_conflicts',
   version: 7,
   name: 'Fix role field conflicts and ensure full_name field is properly handled',
-  description: 'Resolves conflicts between role and user_role fields, ensures full_name field exists and is populated',
   
   async up(client) {
     // First, ensure we have the full_name field

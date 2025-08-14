@@ -126,7 +126,7 @@ export const migrationRegistry = new MigrationRegistry()
  * Supabase Database Client for Migrations
  */
 export class SupabaseDatabaseClient implements DatabaseClient {
-  private supabase: { rpc: (name: string, params: { sql: string }) => Promise<{ data?: unknown; error?: { message: string } }> } | null = null
+  private supabase: any = null // eslint-disable-line @typescript-eslint/no-explicit-any
 
   constructor() {
     // Check if environment variables are available

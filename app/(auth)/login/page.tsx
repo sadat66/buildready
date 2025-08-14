@@ -5,15 +5,17 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { AuthFooter, AuthHero, LoginForm } from "@/components/features/auth";
 import { useAuth } from "@/contexts/AuthContext";
 import LoadingSpinner from "@/components/shared/loading-spinner";
+import toast from "react-hot-toast";
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isConfirmingEmail, setIsConfirmingEmail] = useState(false);
   const [emailConfirmed, setEmailConfirmed] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hasShownToast, setHasShownToast] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user, signIn, userRole } = useAuth();
+  const { user, signIn, userRole, loading: authLoading } = useAuth();
 
   useEffect(() => {
     // Check for confirmation error from URL parameters
@@ -31,9 +33,10 @@ export default function LoginPage() {
     // Handle email confirmation tokens in URL hash (when Supabase redirects here)
     const handleEmailConfirmation = async () => {
       const hash = window.location.hash;
-      if (hash && hash.includes('access_token')) {
-        setIsConfirmingEmail(true);
-        setError(null);
+             if (hash && hash.includes('access_token')) {
+         setIsConfirmingEmail(true);
+         setError(null);
+         setHasShownToast(false); // Reset toast flag for new confirmation
         
         const params = new URLSearchParams(hash.substring(1));
         const accessToken = params.get('access_token');
@@ -80,6 +83,19 @@ export default function LoginPage() {
               setEmailConfirmed(true);
               setIsConfirmingEmail(false);
               
+              // Show success toast only once
+              if (!hasShownToast) {
+                const tempUserRole = userRole || 'homeowner';
+                toast.success(
+                  `Welcome to BuildReady! Your ${tempUserRole} account has been successfully verified.`,
+                  {
+                    duration: 4000,
+                    position: 'top-center',
+                  }
+                );
+                setHasShownToast(true);
+              }
+              
               // Store the role temporarily for the success message
               sessionStorage.setItem('tempUserRole', userRole);
               
@@ -105,6 +121,11 @@ export default function LoginPage() {
     };
     
     handleEmailConfirmation();
+    
+    // Cleanup function to reset toast flag
+    return () => {
+      setHasShownToast(false);
+    };
   }, [searchParams, router, user]);
 
   // Auto-clear success state after 3 seconds as fallback
@@ -120,14 +141,41 @@ export default function LoginPage() {
     }
   }, [emailConfirmed]);
 
-  // Clean up sessionStorage when user is authenticated and redirected
-  useEffect(() => {
-    if (user && userRole) {
-      sessionStorage.removeItem('tempUserRole');
-      const roleDashboard = `/${userRole}/dashboard`;
-      router.push(roleDashboard);
-    }
-  }, [user, userRole, router]);
+     // Clean up sessionStorage when user is authenticated and redirected
+   // Only redirect after a delay to ensure session is stable
+   useEffect(() => {
+     if (user && userRole) {
+       console.log('User authenticated, preparing redirect:', { userId: user.id, userRole });
+       sessionStorage.removeItem('tempUserRole');
+       
+       // Add a longer delay to ensure session is fully established and stable
+       const redirectTimer = setTimeout(() => {
+         const roleDashboard = `/${userRole}/dashboard`;
+         console.log(`Redirecting to ${roleDashboard} after session stabilization`);
+         router.push(roleDashboard);
+       }, 1000); // 1 second delay to ensure session stability
+       
+       return () => clearTimeout(redirectTimer);
+     }
+   }, [user, userRole, router]);
+
+  // Show loading state while auth context is initializing
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-full max-w-lg space-y-6">
+          <div className="text-center">
+            <LoadingSpinner 
+              text="Initializing..."
+              subtitle="Please wait while we set up your session"
+              size="lg"
+              className="py-12"
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Show loading state while confirming email
   if (isConfirmingEmail) {
@@ -149,25 +197,35 @@ export default function LoginPage() {
 
   // Show success state briefly after email confirmation
   if (emailConfirmed) {
-    const tempUserRole = sessionStorage.getItem('tempUserRole') || 'homeowner';
-    
+    // Don't render anything special - the toast will handle the success message
+    // Just show the loading spinner for redirect
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="w-full max-w-lg space-y-6">
           <div className="text-center">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <h2 className="text-xl font-semibold text-gray-800 mb-2">Email Confirmed!</h2>
-            <p className="text-gray-600 mb-4">
-              Welcome to BuildReady! Your {tempUserRole} account has been successfully verified.
-            </p>
             <LoadingSpinner 
               text="Redirecting to dashboard..."
               subtitle="Setting up your account"
-              size="md"
+              size="lg"
+              className="py-12"
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show loading state while user is authenticated and waiting for redirect
+  if (user && userRole) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-full max-w-lg space-y-6">
+          <div className="text-center">
+            <LoadingSpinner 
+              text="Redirecting to dashboard..."
+              subtitle="Please wait while we redirect you"
+              size="lg"
+              className="py-12"
             />
           </div>
         </div>
@@ -205,38 +263,16 @@ export default function LoginPage() {
         } else {
           setError(error);
         }
-      } else if (signedInUser) {
-        console.log(
-          "Sign-in successful, redirecting to role-specific dashboard..."
-        );
-
-        if (signInUserRole) {
-          const roleDashboard = `/${signInUserRole}/dashboard`;
-          console.log(`Redirecting to ${roleDashboard}`);
-
-          try {
-            router.push(roleDashboard);
-
-            setTimeout(() => {
-              if (window.location.pathname !== roleDashboard) {
-                console.log("Router failed, using window.location fallback");
-                window.location.href = roleDashboard;
-              }
-            }, 1000);
-          } catch (error) {
-            console.error(
-              "Router error, using window.location fallback:",
-              error
-            );
-            window.location.href = roleDashboard;
-          }
-        } else {
-          console.log(
-            "User role not available, redirecting to generic dashboard"
-          );
-          router.push("/dashboard");
-        }
-      }
+             } else if (signedInUser) {
+         console.log(
+           "Sign-in successful, waiting for session to stabilize..."
+         );
+         
+         // Don't redirect here - let the useEffect handle the redirect
+         // after the session is fully established and stable
+         // The AuthContext will update the user and userRole states,
+         // which will trigger the redirect useEffect
+       }
     } catch (error) {
       console.error("Sign-in error:", error);
       setError("An unexpected error occurred. Please try again.");

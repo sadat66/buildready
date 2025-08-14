@@ -149,17 +149,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Fetch user profile data including role
         const { data: profileData, error: profileError } = await supabase
           .from('users')
-          .select('role, first_name, last_name')
+          .select('user_role, first_name, last_name')
           .eq('id', data.user.id)
           .single()
 
         if (profileError) {
           console.error('Error fetching user profile during sign-in:', profileError)
         } else if (profileData) {
-          setUserRole(profileData.role)
-          const extendedUser = { ...data.user, role: profileData.role, first_name: profileData.first_name, last_name: profileData.last_name }
+          setUserRole(profileData.user_role)
+          const extendedUser = { ...data.user, role: profileData.user_role, first_name: profileData.first_name, last_name: profileData.last_name }
           setUser(extendedUser)
-          return { user: extendedUser, userRole: profileData.role, error: null }
+          return { user: extendedUser, userRole: profileData.user_role, error: null }
         }
 
         return { user: initialUser, userRole: null, error: null }
@@ -178,7 +178,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .from('users')
         .upsert({
           id: userId,
-          role: role,
+          user_role: role,
           ...profileData,
           updated_at: new Date().toISOString()
         })

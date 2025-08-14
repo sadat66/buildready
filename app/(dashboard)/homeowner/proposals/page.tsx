@@ -78,11 +78,7 @@ export default function HomeownerProposalsPage() {
               ),
               users!proposals_contractor_id_fkey (
                 id,
-                full_name,
-                bio,
-                location,
-                rating,
-                review_count
+                full_name
               )
             `)
             .in('project_id', projectIdList)
@@ -397,18 +393,11 @@ export default function HomeownerProposalsPage() {
                   <div className="flex items-center gap-2">
                     <User className="h-4 w-4 text-gray-500" />
                     <span className="font-medium">{proposal.users?.full_name}</span>
-                    {proposal.users?.rating && (
-                      <span className="text-sm">⭐ {proposal.users.rating} ({proposal.users.review_count} reviews)</span>
-                    )}
+                    {/* Rating display removed - not available in current user schema */}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm">{proposal.users?.location || 'Location not specified'}</span>
-                  </div>
+                  {/* Location display removed - not available in current user schema */}
                 </div>
-                <div className="text-sm text-gray-600">
-                  {proposal.users?.bio && `${proposal.users.bio.substring(0, 50)}...`}
-                </div>
+                {/* Bio display removed - not available in current user schema */}
               </div>
 
               {/* Description */}
