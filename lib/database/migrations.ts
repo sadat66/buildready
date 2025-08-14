@@ -3,12 +3,19 @@
  * Built-in migration management without external dependencies
  */
 
+// Database client interface for migrations
+export interface DatabaseClient {
+  execute(sql: string): Promise<void>
+  query<T = unknown>(sql: string): Promise<T[]>
+  single<T = unknown>(sql: string): Promise<T | null>
+}
+
 export interface Migration {
   id: string
   name: string
   version: number
-  up: () => Promise<void>
-  down: () => Promise<void>
+  up: (db: DatabaseClient) => Promise<void>
+  down: (db: DatabaseClient) => Promise<void>
   appliedAt?: Date
 }
 
@@ -54,12 +61,12 @@ export class MigrationRegistry {
   /**
    * Apply all pending migrations
    */
-  async migrate(): Promise<void> {
+  async migrate(db: DatabaseClient): Promise<void> {
     const pending = await this.getPending()
     
     for (const migration of pending) {
       try {
-        await migration.up()
+        await migration.up(db)
         await this.markAsApplied(migration)
         console.log(`✅ Applied migration: ${migration.name}`)
       } catch (error) {
@@ -72,7 +79,7 @@ export class MigrationRegistry {
   /**
    * Rollback to specific version
    */
-  async rollback(targetVersion: number): Promise<void> {
+  async rollback(targetVersion: number, db: DatabaseClient): Promise<void> {
     const applied = await this.getAppliedMigrations()
     const toRollback = applied
       .filter(app => app.version > targetVersion)
@@ -82,7 +89,7 @@ export class MigrationRegistry {
       const migration = this.migrations.get(app.id)
       if (migration) {
         try {
-          await migration.down()
+          await migration.down(db)
           await this.markAsRolledBack(migration)
           console.log(`🔄 Rolled back migration: ${migration.name}`)
         } catch (error) {
@@ -114,6 +121,89 @@ export class MigrationRegistry {
  * Global migration registry instance
  */
 export const migrationRegistry = new MigrationRegistry()
+
+/**
+ * Supabase Database Client for Migrations
+ */
+export class SupabaseDatabaseClient implements DatabaseClient {
+  private supabase: any = null // eslint-disable-line @typescript-eslint/no-explicit-any
+
+  constructor() {
+    // Check if environment variables are available
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    
+    if (!supabaseUrl || !supabaseKey) {
+      console.warn('⚠️  Environment variables not loaded. Using mock database client.')
+      console.warn('   Please ensure your .env.local file contains:')
+      console.warn('   NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url')
+      console.warn('   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key')
+      console.warn('')
+      return
+    }
+
+    try {
+      // Import Supabase client dynamically to avoid SSR issues
+      import('@supabase/supabase-js').then(({ createClient }) => {
+        this.supabase = createClient(supabaseUrl, supabaseKey)
+      }).catch((error) => {
+        console.error('❌ Failed to create Supabase client:', error)
+        console.warn('⚠️  Using mock database client instead.')
+      })
+    } catch (error) {
+      console.error('❌ Failed to create Supabase client:', error)
+      console.warn('⚠️  Using mock database client instead.')
+    }
+  }
+
+  async execute(sql: string): Promise<void> {
+    if (!this.supabase) {
+      // Mock database client - just log the SQL
+      console.log(`📝 Mock Database - Execute SQL:`)
+      console.log(sql)
+      console.log('')
+      console.log('⚠️  This is a mock execution. Please run the SQL manually in your database.')
+      console.log('')
+      return
+    }
+
+    // Real database client
+    try {
+      const { error } = await this.supabase.rpc('exec_sql', { sql })
+      if (error) {
+        throw new Error(`SQL execution failed: ${error.message}`)
+      }
+    } catch (error) {
+      console.error('❌ SQL execution failed:', error)
+      console.log('⚠️  Falling back to mock execution. Please run the SQL manually:')
+      console.log(sql)
+      console.log('')
+    }
+  }
+
+  async query<T = unknown>(sql: string): Promise<T[]> {
+    if (!this.supabase) {
+      console.log(`📝 Mock Database - Query SQL: ${sql}`)
+      return []
+    }
+
+    try {
+      const { data, error } = await this.supabase.rpc('query_sql', { sql })
+      if (error) {
+        throw new Error(`SQL query failed: ${error.message}`)
+      }
+      return data || []
+    } catch (error) {
+      console.error('❌ SQL query failed:', error)
+      return []
+    }
+  }
+
+  async single<T = unknown>(sql: string): Promise<T | null> {
+    const results = await this.query<T>(sql)
+    return results.length > 0 ? results[0] : null
+  }
+}
 
 /**
  * Migration decorator for easy registration

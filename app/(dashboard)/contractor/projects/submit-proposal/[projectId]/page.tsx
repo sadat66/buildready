@@ -66,9 +66,7 @@ export default function SubmitProposalPage() {
           .select(`
             *,
             homeowner:users!projects_homeowner_id_fkey(
-              full_name,
-              rating,
-              review_count
+              full_name
             )
           `)
           .eq('id', projectId)

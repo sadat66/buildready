@@ -10,8 +10,10 @@ import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase";
 import toast from "react-hot-toast";
 
+import { ExtendedUser } from '@/contexts/AuthContext'
+
 interface HomeownerProfileProps {
-  user: any;
+  user: ExtendedUser;
 }
 
 export function HomeownerProfile({ user }: HomeownerProfileProps) {
@@ -250,7 +252,7 @@ export function HomeownerProfile({ user }: HomeownerProfileProps) {
               <div className="space-y-2 p-4 bg-slate-50 rounded-lg border border-slate-200">
                 <Label className="text-sm font-medium text-slate-700">Member Since</Label>
                 <p className="text-sm text-slate-900 font-semibold">
-                  {user?.created_at ? new Date(user.created_at).toLocaleDateString() : "N/A"}
+                  {user?.created_at ? new Date(user?.created_at as string).toLocaleDateString() : "N/A"}
                 </p>
               </div>
             </div>

@@ -19,6 +19,7 @@ interface RegistrationFormProps {
     first_name: string
     last_name: string
     user_role: 'homeowner' | 'contractor'
+    user_agreed_to_terms: boolean
   }) => Promise<void>
   isLoading?: boolean
   error?: string
@@ -54,14 +55,22 @@ export function RegistrationForm({ onSubmit, isLoading = false, error }: Registr
 
   const handleSubmit = async (data: RegistrationFormData) => {
     try {
-      // Transform data to match the expected format from the existing signin page
-      await onSubmit({
+      console.log('Form data received:', data)
+      console.log('Form validation state:', form.formState)
+      
+      // Transform data to include only essential fields
+      const transformedData = {
         email: data.email,
         password: data.password,
         first_name: data.first_name,
         last_name: data.last_name,
         user_role: data.user_role,
-      })
+        user_agreed_to_terms: data.user_agreed_to_terms,
+      }
+      
+      console.log('Transformed data:', transformedData)
+      
+      await onSubmit(transformedData)
     } catch (error) {
       console.error('Registration error:', error)
     }

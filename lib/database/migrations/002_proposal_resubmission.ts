@@ -7,40 +7,32 @@
  *   - Add partial unique index for pending proposals only
  */
 
-import { migrationRegistry } from '../migrations'
+import { Migration, DatabaseClient } from '../migrations'
 
-// Migration functions
-async function up(): Promise<void> {
-  console.log('🚀 Running proposal resubmission migration...')
-  
-  try {
-    // Migration logic would go here when implemented
-    console.log('✅ Proposal resubmission migration completed successfully')
-  } catch (error) {
-    console.error('❌ Migration failed:', error)
-    throw error
-  }
-}
-
-async function down(): Promise<void> {
-  console.log('🔄 Rolling back proposal resubmission migration...')
-  
-  try {
-    // Rollback logic would go here when implemented
-    console.log('✅ Proposal resubmission rollback completed successfully')
-  } catch (error) {
-    console.error('❌ Rollback failed:', error)
-    throw error
-  }
-}
-
-// Register the migration
-migrationRegistry.register({
+export const migration_002_proposal_resubmission: Migration = {
   id: '002_proposal_resubmission',
   name: 'Allow contractors to resubmit proposals after rejection',
   version: 2,
-  up,
-  down
-})
-
-export { up, down }
+  up: async (db: DatabaseClient) => {
+    console.log('🚀 Running proposal resubmission migration...')
+    
+    try {
+      // Migration logic would go here when implemented
+      console.log('✅ Proposal resubmission migration completed successfully')
+    } catch (error) {
+      console.error('❌ Migration failed:', error)
+      throw error
+    }
+  },
+  down: async (db: DatabaseClient) => {
+    console.log('🔄 Rolling back proposal resubmission migration...')
+    
+    try {
+      // Rollback logic would go here when implemented
+      console.log('✅ Proposal resubmission rollback completed successfully')
+    } catch (error) {
+      console.error('❌ Rollback failed:', error)
+      throw error
+    }
+  }
+}

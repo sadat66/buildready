@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { User, Phone, Mail, MapPin, FileText, Shield } from "lucide-react";
+import { ExtendedUser } from "@/contexts/AuthContext";
 
 interface PersonalInfoSectionProps {
   formData: {
@@ -12,7 +13,7 @@ interface PersonalInfoSectionProps {
     location: string;
     bio: string;
   };
-  user: any;
+  user: ExtendedUser;
   onInputChange: (field: string, value: string) => void;
 }
 

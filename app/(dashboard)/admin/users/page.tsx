@@ -13,7 +13,7 @@ export default function AdminUsersPage() {
       id: 1,
       name: 'John Smith',
       email: 'john@example.com',
-      role: 'homeowner',
+      user_role: 'homeowner',
       status: 'active',
       joinDate: '2024-01-01',
       lastLogin: '2024-01-15',
@@ -23,7 +23,7 @@ export default function AdminUsersPage() {
       id: 2,
       name: 'Sarah Johnson',
       email: 'sarah@example.com',
-      role: 'homeowner',
+      user_role: 'homeowner',
       status: 'active',
       joinDate: '2024-01-05',
       lastLogin: '2024-01-14',
@@ -33,7 +33,7 @@ export default function AdminUsersPage() {
       id: 3,
       name: 'Mike Wilson',
       email: 'mike@example.com',
-      role: 'contractor',
+      user_role: 'contractor',
       status: 'active',
       joinDate: '2023-12-15',
       lastLogin: '2024-01-15',
@@ -43,7 +43,7 @@ export default function AdminUsersPage() {
       id: 4,
       name: 'Lisa Brown',
       email: 'lisa@example.com',
-      role: 'contractor',
+      user_role: 'contractor',
       status: 'pending',
       joinDate: '2024-01-10',
       lastLogin: 'Never',
@@ -53,7 +53,7 @@ export default function AdminUsersPage() {
       id: 5,
       name: 'Admin User',
       email: 'admin@example.com',
-      role: 'admin',
+      user_role: 'admin',
       status: 'active',
       joinDate: '2023-01-01',
       lastLogin: '2024-01-15',
@@ -132,7 +132,7 @@ export default function AdminUsersPage() {
             <div className="flex items-center space-x-2">
               <Home className="h-5 w-5 text-blue-500" />
               <div>
-                <p className="text-2xl font-bold">{users.filter(u => u.role === 'homeowner').length}</p>
+                <p className="text-2xl font-bold">{users.filter(u => u.user_role === 'homeowner').length}</p>
                 <p className="text-sm text-gray-600">Homeowners</p>
               </div>
             </div>
@@ -143,7 +143,7 @@ export default function AdminUsersPage() {
             <div className="flex items-center space-x-2">
               <Wrench className="h-5 w-5 text-green-500" />
               <div>
-                <p className="text-2xl font-bold">{users.filter(u => u.role === 'contractor').length}</p>
+                <p className="text-2xl font-bold">{users.filter(u => u.user_role === 'contractor').length}</p>
                 <p className="text-sm text-gray-600">Contractors</p>
               </div>
             </div>
@@ -154,7 +154,7 @@ export default function AdminUsersPage() {
             <div className="flex items-center space-x-2">
               <Shield className="h-5 w-5 text-red-500" />
               <div>
-                <p className="text-2xl font-bold">{users.filter(u => u.role === 'admin').length}</p>
+                <p className="text-2xl font-bold">{users.filter(u => u.user_role === 'admin').length}</p>
                 <p className="text-sm text-gray-600">Admins</p>
               </div>
             </div>
@@ -207,7 +207,7 @@ export default function AdminUsersPage() {
                     <td className="p-2">
                       <div className="flex items-center space-x-3">
                         <div className="h-8 w-8 bg-gray-200 rounded-full flex items-center justify-center">
-                          {getRoleIcon(user.role)}
+                          {getRoleIcon(user.user_role)}
                         </div>
                         <div>
                           <p className="font-medium">{user.name}</p>
@@ -216,7 +216,7 @@ export default function AdminUsersPage() {
                       </div>
                     </td>
                     <td className="p-2">
-                      {getRoleBadge(user.role)}
+                      {getRoleBadge(user.user_role)}
                     </td>
                     <td className="p-2">
                       {getStatusBadge(user.status)}

@@ -50,7 +50,7 @@ export const registrationSchema = z.object({
     .min(1, 'Please confirm your password'),
   user_agreed_to_terms: z.boolean().refine(val => val === true, 'Please agree to the terms and conditions'),
 }).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match. Please try again",
+  message: "Passwords don't match. Please try again.",
   path: ["confirmPassword"],
 })
 

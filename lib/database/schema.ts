@@ -12,17 +12,51 @@ export const baseSchema = {
   updatedAt: z.date(),
 } as const
 
-// User schema
+// User schema - exactly matching the CREATE TABLE statement
 export const userSchema = z.object({
-  ...baseSchema,
+  id: z.string().uuid(),
   email: z.string().email(),
-  role: z.enum(['homeowner', 'contractor', 'admin']),
-  fullName: z.string().min(1),
-  phone: z.string().optional(),
-  location: z.string().optional(),
-  bio: z.string().optional(),
-  rating: z.number().min(0).max(5).default(0),
-  reviewCount: z.number().int().min(0).default(0),
+  user_role: z.enum(['homeowner', 'contractor', 'admin']),
+  full_name: z.string().min(1),
+  first_name: z.string().min(1),
+  last_name: z.string().min(1),
+  phone_number: z.string().optional(),
+  address: z.string().optional(),
+  profile_photo: z.string().optional(),
+  is_active: z.boolean().default(true),
+  is_verified_email: z.boolean().default(false),
+  is_verified_contractor: z.boolean().default(false),
+  is_verified_homeowner: z.boolean().default(false),
+  is_verified_phone: z.boolean().default(false),
+  user_agreed_to_terms: z.boolean().default(false),
+  last_login: z.date().optional(),
+  contractor_profile: z.string().uuid().optional(),
+  created_at: z.date(),
+  updated_at: z.date(),
+})
+
+// ContractorProfile schema - exactly matching the ContractorProfile schema image
+export const contractorProfileSchema = z.object({
+  ...baseSchema,
+  bio: z.string().optional(), // short biography or description of contractor's experience
+  business_name: z.string().min(1), // legal or trade business name of the contractor
+  contractor_contacts: z.array(z.string().uuid()).default([]), // list of linked internal contacts for the contractor
+  gst_hst_number: z.string().optional(), // CRA ID used for compliance verification
+  insurance_builders_risk: z.number().positive().optional(), // monetary amount of the builder's risk insurance
+  insurance_expiry: z.date().optional(), // expiry date of the insurance
+  insurance_general_liability: z.number().positive().optional(), // monetary amount of the general liability insurance
+  insurance_upload: z.string().url().optional(), // file representing proof of insurance
+  is_insurance_verified: z.boolean().default(false), // indicates whether the insurance status has been verified
+  legal_entity_type: z.enum(['Corporation', 'Partnership', 'Sole Proprietorship', 'LLC']).optional(), // corporate structure
+  licenses: z.array(z.string().url()).default([]), // list of uploaded license files
+  logo: z.string().url().optional(), // company's logo file
+  phone_number: z.string().optional(), // primary business phone number
+  portfolio: z.array(z.string().url()).default([]), // list of past project images or documents
+  service_location: z.string().optional(), // central service location
+  trade_category: z.array(z.string()).default([]), // list specifying primary and secondary trades
+  user_id: z.string().uuid(), // linked user account
+  wcb_number: z.string().optional(), // Workers' Compensation Board number
+  work_guarantee: z.number().int().positive().optional(), // work and materials guarantee in months
 })
 
 // Project schema
@@ -79,6 +113,7 @@ export const messageSchema = z.object({
 // Schema registry
 export const schemaRegistry = {
   users: userSchema,
+  contractor_profiles: contractorProfileSchema,
   projects: projectSchema,
   proposals: proposalSchema,
   reviews: reviewSchema,
@@ -87,6 +122,7 @@ export const schemaRegistry = {
 
 // Type exports
 export type User = z.infer<typeof userSchema>
+export type ContractorProfile = z.infer<typeof contractorProfileSchema>
 export type Project = z.infer<typeof projectSchema>
 export type Proposal = z.infer<typeof proposalSchema>
 export type Review = z.infer<typeof reviewSchema>
@@ -94,6 +130,7 @@ export type Message = z.infer<typeof messageSchema>
 
 // Schema validation helpers
 export const validateUser = (data: unknown): User => userSchema.parse(data)
+export const validateContractorProfile = (data: unknown): ContractorProfile => contractorProfileSchema.parse(data)
 export const validateProject = (data: unknown): Project => projectSchema.parse(data)
 export const validateProposal = (data: unknown): Proposal => proposalSchema.parse(data)
 export const validateReview = (data: unknown): Review => reviewSchema.parse(data)
@@ -101,11 +138,13 @@ export const validateMessage = (data: unknown): Message => messageSchema.parse(d
 
 // Partial schemas for updates
 export const userUpdateSchema = userSchema.partial().omit({ id: true, createdAt: true })
+export const contractorProfileUpdateSchema = contractorProfileSchema.partial().omit({ id: true, createdAt: true })
 export const projectUpdateSchema = projectSchema.partial().omit({ id: true, createdAt: true })
 export const proposalUpdateSchema = proposalSchema.partial().omit({ id: true, createdAt: true })
 
 // Type exports for updates
 export type UserUpdate = z.infer<typeof userUpdateSchema>
+export type ContractorProfileUpdate = z.infer<typeof contractorProfileUpdateSchema>
 export type ProjectUpdate = z.infer<typeof projectUpdateSchema>
 export type ProposalUpdate = z.infer<typeof proposalUpdateSchema>
 
@@ -113,8 +152,13 @@ export type ProposalUpdate = z.infer<typeof proposalUpdateSchema>
 export const schemaMetadata = {
   users: {
     tableName: 'users',
-    description: 'User profiles and authentication data',
-    indexes: ['email', 'role', 'rating'],
+    description: 'User profiles and authentication data with verification status',
+    indexes: ['email', 'user_role', 'is_verified_email', 'is_active'],
+  },
+  contractor_profiles: {
+    tableName: 'contractor_profiles',
+    description: 'Main business profile for contractors with company information, compliance data, and service areas',
+    indexes: ['user_id', 'business_name', 'is_insurance_verified', 'trade_category'],
   },
   projects: {
     tableName: 'projects',
