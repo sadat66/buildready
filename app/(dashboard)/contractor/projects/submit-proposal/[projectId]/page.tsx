@@ -15,7 +15,7 @@ import { Calendar, DollarSign, FileText, AlertTriangle, Upload, ArrowLeft } from
 import toast from 'react-hot-toast'
 
 export default function SubmitProposalPage() {
-  const { user, loading } = useAuth()
+  const { user, userRole, loading } = useAuth()
   const router = useRouter()
   const params = useParams()
   const projectId = params?.projectId as string
@@ -65,7 +65,7 @@ export default function SubmitProposalPage() {
           .from('projects')
           .select(`
             *,
-            homeowner:users!projects_homeowner_id_fkey(
+            homeowner:users!homeowner_id(
               full_name
             )
           `)
@@ -86,10 +86,10 @@ export default function SubmitProposalPage() {
       }
     }
     
-    if (!loading && user && user.user_metadata?.role === 'contractor') {
+    if (!loading && user && userRole === 'contractor') {
       fetchProject()
     }
-  }, [projectId, user, loading])
+  }, [projectId, user, userRole, loading])
 
   const handleInputChange = (field: string, value: string | boolean | number) => {
     setFormData(prev => {
@@ -163,7 +163,7 @@ export default function SubmitProposalPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!user || user.user_metadata?.role !== 'contractor') {
+    if (!user || userRole !== 'contractor') {
       setError('Only contractors can submit proposals')
       return
     }
@@ -236,7 +236,7 @@ export default function SubmitProposalPage() {
     )
   }
 
-  if (!user || user.user_metadata?.role !== 'contractor') {
+  if (!user || userRole !== 'contractor') {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-lg">Access denied. Only contractors can submit proposals.</div>

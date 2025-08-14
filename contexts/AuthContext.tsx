@@ -45,6 +45,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (data) {
+        console.log('Fetched user profile:', data)
         setUserRole(data.user_role)
         setUser(prev => prev ? { ...prev, role: data.user_role, first_name: data.first_name, last_name: data.last_name } : null)
       }

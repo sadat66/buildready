@@ -35,14 +35,17 @@ export default function ContractorProjectsViewPage() {
           .from('projects')
           .select(`
             *,
-            homeowner:users!projects_homeowner_id_fkey(
-              full_name
+            homeowner:users!homeowner_id(
+              full_name,
+              first_name,
+              last_name
             )
           `)
           .eq('status', 'open')
           .order('created_at', { ascending: false })
         
         if (fetchError) {
+          console.error('Supabase error:', fetchError)
           throw fetchError
         }
         
@@ -210,7 +213,16 @@ export default function ContractorProjectsViewPage() {
                 <div className="text-sm text-gray-600">
                   Posted by: <span className="font-medium">
                     {project.homeowner ? 
-                      `${project.homeowner.first_name} ${project.homeowner.last_name}`.trim() || 'Unknown' 
+                      (() => {
+                        const homeowner = project.homeowner as { first_name?: string; last_name?: string; full_name?: string }
+                        if (homeowner.first_name && homeowner.last_name) {
+                          return `${homeowner.first_name} ${homeowner.last_name}`.trim()
+                        } else if (homeowner.full_name) {
+                          return homeowner.full_name
+                        } else {
+                          return 'Unknown'
+                        }
+                      })()
                       : 'Unknown'
                     }
                   </span>
