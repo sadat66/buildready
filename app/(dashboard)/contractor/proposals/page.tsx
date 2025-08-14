@@ -7,7 +7,7 @@ import { createClient } from '@/lib/supabase'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { FileText, Clock, DollarSign, User, Eye, Building } from 'lucide-react'
+import { FileText, Clock, DollarSign, User, Building } from 'lucide-react'
 
 interface Proposal {
   id: string

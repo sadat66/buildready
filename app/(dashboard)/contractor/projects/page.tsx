@@ -214,7 +214,7 @@ export default function ContractorProjectsPage() {
                   Posted by: <span className="font-medium">
                     {project.homeowner ? 
                       (() => {
-                        const homeowner = project.homeowner as any
+                        const homeowner = project.homeowner as { first_name?: string; last_name?: string; full_name?: string }
                         if (homeowner.first_name && homeowner.last_name) {
                           return `${homeowner.first_name} ${homeowner.last_name}`.trim()
                         } else if (homeowner.full_name) {

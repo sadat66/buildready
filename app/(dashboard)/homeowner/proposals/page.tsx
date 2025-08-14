@@ -15,12 +15,12 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { MapPin, Calendar, DollarSign, Search, CheckCircle, XCircle, User, FileText, Clock, AlertTriangle } from 'lucide-react'
+import { Calendar, DollarSign, Search, CheckCircle, XCircle, User, FileText, Clock, AlertTriangle } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { Label } from '@/components/ui/label'
 
 export default function HomeownerProposalsPage() {
-  const { user, userRole, loading } = useAuth()
+  const { user, userRole } = useAuth()
   
   const [proposals, setProposals] = useState<Proposal[]>([])
   const [searchTerm, setSearchTerm] = useState('')
