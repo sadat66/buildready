@@ -20,7 +20,7 @@ import toast from 'react-hot-toast'
 import { Label } from '@/components/ui/label'
 
 export default function HomeownerProposalsPage() {
-  const { user } = useAuth()
+  const { user, userRole, loading } = useAuth()
   
   const [proposals, setProposals] = useState<Proposal[]>([])
   const [searchTerm, setSearchTerm] = useState('')
@@ -58,7 +58,7 @@ export default function HomeownerProposalsPage() {
         
         if (projectIdsError) throw projectIdsError
         
-                if (projectIds && projectIds.length > 0) {
+        if (projectIds && projectIds.length > 0) {
           const projectIdList = projectIds.map(p => p.id)
           console.log('Fetching proposals for projects:', projectIdList)
           
@@ -76,9 +76,11 @@ export default function HomeownerProposalsPage() {
                 status,
                 budget
               ),
-              users!proposals_contractor_id_fkey (
+              users!contractor_id (
                 id,
-                full_name
+                full_name,
+                first_name,
+                last_name
               )
             `)
             .in('project_id', projectIdList)
@@ -105,10 +107,10 @@ export default function HomeownerProposalsPage() {
       }
     }
     
-    if (user && user.user_metadata?.role === 'homeowner') {
+    if (user && userRole === 'homeowner') {
       fetchData()
     }
-  }, [user])
+  }, [user, userRole])
 
   const handleStatusUpdate = async (proposalId: string, status: 'accepted' | 'rejected', feedback?: string) => {
     if (!user) return
@@ -229,7 +231,7 @@ export default function HomeownerProposalsPage() {
     )
   }
 
-  if (!user || user.user_metadata?.role !== 'homeowner') {
+  if (!user || userRole !== 'homeowner') {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-lg">Access denied. Only homeowners can view project proposals.</div>
@@ -319,7 +321,18 @@ export default function HomeownerProposalsPage() {
                     </Badge>
                   </CardTitle>
                   <CardDescription className="text-sm mt-2">
-                    Proposal from <span className="font-medium">{proposal.users?.full_name}</span>
+                    Proposal from <span className="font-medium">
+                      {(() => {
+                        const contractor = proposal.users
+                        if (contractor?.first_name && contractor?.last_name) {
+                          return `${contractor.first_name} ${contractor.last_name}`.trim()
+                        } else if (contractor?.full_name) {
+                          return contractor.full_name
+                        } else {
+                          return 'Unknown Contractor'
+                        }
+                      })()}
+                    </span>
                   </CardDescription>
                 </div>
                 <div className="flex items-center gap-2">
@@ -392,12 +405,20 @@ export default function HomeownerProposalsPage() {
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2">
                     <User className="h-4 w-4 text-gray-500" />
-                    <span className="font-medium">{proposal.users?.full_name}</span>
-                    {/* Rating display removed - not available in current user schema */}
+                    <span className="font-medium">
+                      {(() => {
+                        const contractor = proposal.users
+                        if (contractor?.first_name && contractor?.last_name) {
+                          return `${contractor.first_name} ${contractor.last_name}`.trim()
+                        } else if (contractor?.full_name) {
+                          return contractor.full_name
+                        } else {
+                          return 'Unknown Contractor'
+                        }
+                      })()}
+                    </span>
                   </div>
-                  {/* Location display removed - not available in current user schema */}
                 </div>
-                {/* Bio display removed - not available in current user schema */}
               </div>
 
               {/* Description */}
@@ -467,9 +488,9 @@ export default function HomeownerProposalsPage() {
               {proposal.status === 'pending' && (
                 <div className="flex gap-2 pt-4 border-t">
                   <Button
-                    // onClick={() => handleStatusUpdate(proposal.id, 'accepted')}
+                    onClick={() => handleStatusUpdate(proposal.id, 'accepted')}
                     disabled={actionLoading === proposal.id}
-                    className="flex-1 bg-green-600 hover:bg-green-700 pointer-events-none opacity-50"
+                    className="flex-1 bg-green-600 hover:bg-green-700"
                   >
                     {actionLoading === proposal.id ? 'Processing...' : (
                       <>

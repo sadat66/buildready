@@ -43,15 +43,25 @@ export default function DashboardLayout({
       const pathSegments = pathname.split("/");
       const routeRole = pathSegments[1];
 
+      console.log('Access control check:', {
+        userRole,
+        routeRole,
+        pathname,
+        pathSegments
+      });
+
+      // Allow access to role-specific routes (not just dashboard)
+      // Users can access: /{their-role}/dashboard, /{their-role}/projects, /{their-role}/profile, etc.
       if (routeRole && routeRole !== "dashboard" && userRole !== routeRole) {
         console.log(
-          `Access denied: User role ${userRole} cannot access ${routeRole} dashboard`
+          `Access denied: User role ${userRole} cannot access ${routeRole} routes`
         );
         setAccessDenied(true);
         setTimeout(() => {
           router.push(`/${userRole}/dashboard`);
         }, 2000);
       } else {
+        console.log('Access granted');
         setAccessDenied(false);
       }
     }
