@@ -64,7 +64,7 @@ export default function Navbar({
           {isHomePage && user && (
             <Link
               href={`/${
-                user?.user_metadata?.role || user?.role || "homeowner"
+                user?.user_metadata?.role || user?.user_role || "homeowner"
               }/dashboard`}
               className="bg-orange-400 hover:bg-orange-500 text-white px-3 py-1.5 rounded-md text-sm font-medium transition-colors"
             >

@@ -18,8 +18,7 @@ export default function ProfilePage({ params }: ProfilePageProps) {
   const resolvedParams = use(params) as { role: string };
   const { role } = resolvedParams;
 
-  // Check if user is authenticated
-  if (!user) {
+   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
