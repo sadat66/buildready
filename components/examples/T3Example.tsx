@@ -43,13 +43,29 @@ export function T3Example() {
     if (!projectTitle.trim() || !projectDescription.trim()) return
 
     createProjectMutation.mutate({
-      title: projectTitle,
-      description: projectDescription,
-      category: 'General',
+      project_title: projectTitle,
+      statement_of_work: projectDescription,
+      category: ['General'],
       budget: 3000,
-      location: 'Example Location',
-      timeline: '2-4 weeks',
-      requirements: ['Example requirement'],
+      pid: 'EXAMPLE-001',
+      location: {
+        address: 'Example Location',
+        city: 'Example City',
+        province: 'Example Province',
+        postalCode: '12345',
+      },
+      project_type: 'residential',
+      visibility_settings: 'public',
+      start_date: new Date(),
+      end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+      expiry_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days from now
+      decision_date: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000), // 21 days from now
+      project_photos: [{
+        id: crypto.randomUUID(),
+        filename: 'example.jpg',
+        url: 'https://example.com/example.jpg',
+        uploadedAt: new Date()
+      }],
     })
   }
 

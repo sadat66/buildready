@@ -16,16 +16,16 @@ interface ProjectStatsProps {
 export default function ProjectStats({ projects }: ProjectStatsProps) {
   const stats = {
     total: projects.length,
-    open: projects.filter(p => p.status === 'open').length,
-    bidding: projects.filter(p => p.status === 'bidding').length,
-    awarded: projects.filter(p => p.status === 'awarded').length,
-    completed: projects.filter(p => p.status === 'completed').length,
-    cancelled: projects.filter(p => p.status === 'cancelled').length,
+    published: projects.filter(p => p.status === 'Published').length,
+    bidding: projects.filter(p => p.status === 'Bidding').length,
+    awarded: projects.filter(p => p.status === 'Awarded').length,
+    completed: projects.filter(p => p.status === 'Completed').length,
+    cancelled: projects.filter(p => p.status === 'Cancelled').length,
     totalBudget: projects.reduce((sum, p) => sum + (p.budget || 0), 0),
-    withLocation: projects.filter(p => p.location).length,
+    withLocation: projects.filter(p => p.location_address).length,
     upcomingDeadlines: projects.filter(p => {
-      if (!p.proposal_deadline) return false
-      const deadline = new Date(p.proposal_deadline)
+      if (!p.expiry_date) return false
+      const deadline = new Date(p.expiry_date)
       const now = new Date()
       const diffTime = deadline.getTime() - now.getTime()
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
@@ -74,7 +74,7 @@ export default function ProjectStats({ projects }: ProjectStatsProps) {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.open + stats.bidding + stats.awarded}</div>
+            <div className="text-2xl font-bold">{stats.published + stats.bidding + stats.awarded}</div>
             <p className="text-xs text-muted-foreground">
               Open + Bidding + Awarded
             </p>
@@ -109,7 +109,7 @@ export default function ProjectStats({ projects }: ProjectStatsProps) {
             <div className="flex items-center gap-3">
               <div className="w-3 h-3 bg-green-500 rounded-full"></div>
               <div>
-                <div className="font-medium">{stats.open}</div>
+                <div className="font-medium">{stats.published}</div>
                 <div className="text-sm text-muted-foreground">Open</div>
               </div>
             </div>

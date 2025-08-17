@@ -268,7 +268,7 @@ export default function SubmitProposalPage() {
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Submit Proposal</h1>
           <p className="text-gray-600 mt-2">
-            Submit your detailed proposal for: <span className="font-semibold">{project.title}</span>
+            Submit your detailed proposal for: <span className="font-semibold">{project.project_title}</span>
           </p>
         </div>
       </div>
@@ -285,11 +285,11 @@ export default function SubmitProposalPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label className="text-sm font-medium text-gray-600">Category</Label>
-              <p className="text-sm">{Array.isArray(project.category) ? project.category.join(', ') : (typeof project.category === 'string' ? project.category.replace('_', ' ') : 'Not specified')}</p>
+              <p className="text-sm">{Array.isArray(project.category) ? project.category.join(', ') : 'Not specified'}</p>
             </div>
             <div>
               <Label className="text-sm font-medium text-gray-600">Location</Label>
-              <p className="text-sm">{project.location}</p>
+              <p className="text-sm">{project.location_address || 'Not specified'}</p>
             </div>
             <div>
               <Label className="text-sm font-medium text-gray-600">Budget Range</Label>
@@ -297,12 +297,12 @@ export default function SubmitProposalPage() {
             </div>
             <div>
               <Label className="text-sm font-medium text-gray-600">Proposal Deadline</Label>
-              <p className="text-sm">{new Date(project.proposal_deadline).toLocaleDateString()}</p>
+              <p className="text-sm">{new Date(project.expiry_date).toLocaleDateString()}</p>
             </div>
           </div>
           <div className="mt-4">
             <Label className="text-sm font-medium text-gray-600">Description</Label>
-            <p className="text-sm text-gray-700 mt-1">{project.description}</p>
+            <p className="text-sm text-gray-700 mt-1">{project.statement_of_work}</p>
           </div>
         </CardContent>
       </Card>

@@ -3,7 +3,7 @@
 import { useAuth } from '@/contexts/AuthContext'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Calendar, Clock, TrendingUp, Home } from 'lucide-react'
+import { Clock, Home } from 'lucide-react'
 import RandomAvatar from '@/components/ui/random-avatar'
 
 interface UserGreetingProps {

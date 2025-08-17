@@ -3,14 +3,45 @@ import { createTRPCRouter, protectedProcedure, publicProcedureWithSupabase } fro
 import { TRPCError } from '@trpc/server'
 
 const projectSchema = z.object({
-  title: z.string().min(1, 'Title is required'),
-  description: z.string().min(10, 'Description must be at least 10 characters'),
-  category: z.string().min(1, 'Category is required'),
-  budget: z.number().positive('Budget must be positive'),
-  location: z.string().min(1, 'Location is required'),
-  timeline: z.string().min(1, 'Timeline is required'),
-  requirements: z.array(z.string()).optional(),
-  images: z.array(z.string()).optional(),
+  project_title: z.string().min(1, 'Project title is required'),
+  statement_of_work: z.string().min(1, 'Statement of work is required'),
+  budget: z.number().positive('Budget must be a positive number'),
+  category: z.array(z.string()).min(1, 'At least one category is required'),
+  pid: z.string().min(1, 'Project ID is required'),
+  location: z.object({
+    address: z.string().min(1, 'Address is required'),
+    latitude: z.number().min(-90).max(90).optional(),
+    longitude: z.number().min(-180).max(180).optional(),
+    city: z.string().min(1, 'City is required'),
+    province: z.string().min(1, 'Province is required'),
+    postalCode: z.string().min(1, 'Postal code is required'),
+  }),
+  project_type: z.enum(['residential', 'commercial', 'industrial']),
+  visibility_settings: z.enum(['public', 'private', 'invite_only']),
+  start_date: z.date(),
+  end_date: z.date(),
+  expiry_date: z.date(),
+  decision_date: z.date(),
+  permit_required: z.boolean().default(false),
+  project_photos: z.array(z.object({
+    id: z.string().uuid(),
+    filename: z.string().min(1),
+    url: z.string().url(),
+    size: z.number().positive().optional(),
+    mimeType: z.string().optional(),
+    uploadedAt: z.date().optional(),
+  })).min(1, 'At least one project photo is required'),
+  certificate_of_title: z.string().url().optional(),
+  substantial_completion: z.date().optional(),
+  is_verified_project: z.boolean().default(false),
+  files: z.array(z.object({
+    id: z.string().uuid(),
+    filename: z.string().min(1),
+    url: z.string().url(),
+    size: z.number().positive().optional(),
+    mimeType: z.string().optional(),
+    uploadedAt: z.date().optional(),
+  })).default([]),
 })
 
 export const projectsRouter = createTRPCRouter({
@@ -23,7 +54,7 @@ export const projectsRouter = createTRPCRouter({
         .insert({
           ...input,
           creator: ctx.user.id,
-          status: 'pending',
+          status: 'Published',
         })
         .select()
         .single()
@@ -46,7 +77,7 @@ export const projectsRouter = createTRPCRouter({
         location: z.string().optional(),
         minBudget: z.number().optional(),
         maxBudget: z.number().optional(),
-        status: z.enum(['open', 'bidding', 'awarded', 'completed', 'cancelled']).optional(),
+        status: z.enum(['Draft', 'Published', 'Bidding', 'Awarded', 'In Progress', 'Completed', 'Cancelled']).optional(),
         search: z.string().optional(),
         limit: z.number().min(1).max(50).default(10),
         offset: z.number().min(0).default(0),
@@ -162,7 +193,7 @@ export const projectsRouter = createTRPCRouter({
   getMy: protectedProcedure
     .input(
       z.object({
-        status: z.enum(['open', 'bidding', 'awarded', 'completed', 'cancelled']).optional(),
+        status: z.enum(['Draft', 'Published', 'Bidding', 'Awarded', 'In Progress', 'Completed', 'Cancelled']).optional(),
         limit: z.number().min(1).max(50).default(10),
         offset: z.number().min(0).default(0),
       })
@@ -209,7 +240,7 @@ export const projectsRouter = createTRPCRouter({
       z.object({
         id: z.string().uuid(),
         ...projectSchema.partial().shape,
-        status: z.enum(['open', 'bidding', 'awarded', 'completed', 'cancelled']).optional(),
+        status: z.enum(['Draft', 'Published', 'Bidding', 'Awarded', 'In Progress', 'Completed', 'Cancelled']).optional(),
       })
     )
     .mutation(async ({ input, ctx }) => {

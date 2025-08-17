@@ -39,10 +39,10 @@ export default function ProjectList({
     return projects.filter((project) => {
       const matchesSearch =
         project.project_title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        project.description
+        project.statement_of_work
           ?.toLowerCase()
           .includes(searchQuery.toLowerCase()) ||
-        project.location?.toLowerCase().includes(searchQuery.toLowerCase());
+        project.location_address?.toLowerCase().includes(searchQuery.toLowerCase());
 
       const matchesStatus =
         statusFilter === "all" || project.status === statusFilter;

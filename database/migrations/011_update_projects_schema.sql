@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS public.projects (
     
     -- Project classification
     project_type TEXT NOT NULL CHECK (project_type IN ('New Build', 'Renovation', 'Maintenance', 'Repair', 'Inspection')),
-    status TEXT NOT NULL DEFAULT 'Draft' CHECK (status IN ('Draft', 'Published', 'Bidding', 'Awarded', 'In Progress', 'Completed', 'Cancelled')),
+    status TEXT NOT NULL DEFAULT 'Published' CHECK (status IN ('Draft', 'Published', 'Bidding', 'Awarded', 'In Progress', 'Completed', 'Cancelled')),
     visibility_settings TEXT NOT NULL DEFAULT 'Public' CHECK (visibility_settings IN ('Public', 'Private', 'Invitation Only')),
     
     -- Timeline
@@ -85,6 +85,34 @@ COMMENT ON COLUMN public.projects.files IS 'JSON array of file reference objects
 -- Enable Row Level Security
 ALTER TABLE public.projects ENABLE ROW LEVEL SECURITY;
 
+-- Create RLS policies for projects table
+-- Policy 1: Users can view projects based on visibility settings
+CREATE POLICY "Users can view projects based on visibility" ON public.projects
+    FOR SELECT USING (
+        visibility_settings = 'Public' OR
+        creator = auth.uid() OR
+        (visibility_settings = 'Invitation Only' AND creator = auth.uid())
+    );
+
+-- Policy 2: Homeowners can create their own projects
+CREATE POLICY "Homeowners can create projects" ON public.projects
+    FOR INSERT WITH CHECK (
+        creator = auth.uid() AND
+        EXISTS (
+            SELECT 1 FROM public.users 
+            WHERE id = auth.uid() 
+            AND (user_metadata->>'role' = 'homeowner' OR user_role = 'homeowner')
+        )
+    );
+
+-- Policy 3: Project creators can update their own projects
+CREATE POLICY "Project creators can update their own projects" ON public.projects
+    FOR UPDATE USING (creator = auth.uid());
+
+-- Policy 4: Project creators can delete their own projects
+CREATE POLICY "Project creators can delete their own projects" ON public.projects
+    FOR DELETE USING (creator = auth.uid());
+
 -- Create function to update location geometry when coordinates change
 CREATE OR REPLACE FUNCTION update_project_location_geometry()
 RETURNS TRIGGER AS $$
@@ -133,11 +161,6 @@ $$ LANGUAGE plpgsql;
 -- Grant necessary permissions
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.projects TO authenticated;
 GRANT USAGE ON SCHEMA public TO authenticated;
-
--- Insert migration record
-INSERT INTO public.migration_status (id, version, name, applied_at, checksum, execution_time_ms)
-VALUES ('011_update_projects_schema', 11, 'Update projects table to match new schema', NOW(), 
-        encode(sha256('011_update_projects_schema'::bytea), 'hex'), 0);
 
 -- Note: After running this migration, you may want to migrate existing data from the backup table
 -- This would require additional SQL to transform the old data structure to the new one

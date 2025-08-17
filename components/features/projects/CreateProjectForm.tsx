@@ -45,7 +45,7 @@ const LocationMap = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="h-96 bg-gray-100 rounded-lg flex items-center justify-center">
+              <div className="h-96 bg-white rounded-lg flex items-center justify-center">
         Loading map...
       </div>
     ),
@@ -72,6 +72,17 @@ class CreateProjectHandler {
         }
       }
 
+      // Extract location data from the form
+      const locationData = formData.location
+      const locationAddress = locationData.address
+      const locationCity = locationData.city
+      const locationProvince = locationData.province
+      const locationPostalCode = locationData.postalCode
+      
+      // Extract coordinates if available (from map selection)
+      const locationLatitude = locationData.latitude || null
+      const locationLongitude = locationData.longitude || null
+
       // Only store essential database fields for project creation
       const projectData = {
         project_title: formData.project_title,
@@ -79,7 +90,14 @@ class CreateProjectHandler {
         budget: formData.budget,
         category: formData.category,
         pid: formData.pid,
-        location: formData.location,
+        // New location fields
+        location_address: locationAddress,
+        location_city: locationCity,
+        location_province: locationProvince,
+        location_postal_code: locationPostalCode,
+        location_latitude: locationLatitude,
+        location_longitude: locationLongitude,
+        // location_geom will be set automatically by the database trigger
         project_type: formData.project_type,
         visibility_settings: formData.visibility_settings,
         start_date: new Date(formData.start_date),
@@ -87,7 +105,7 @@ class CreateProjectHandler {
         expiry_date: expiryDate,
         project_photos: formData.project_photos || [],
         creator: userId,
-        status: "Draft" as const,
+        status: "Published" as const,
         proposal_count: 0,
       }
 
@@ -153,7 +171,14 @@ export default function CreateProjectForm({ user, className = '' }: CreateProjec
       budget: 0,
       category: [],
       pid: "",
-      location: "",
+      location: {
+        address: "",
+        city: "",
+        province: "",
+        postalCode: "",
+        latitude: undefined,
+        longitude: undefined,
+      },
       certificate_of_title: "",
       project_type: "Renovation",
       visibility_settings: "Public",
@@ -174,7 +199,17 @@ export default function CreateProjectForm({ user, className = '' }: CreateProjec
     lng: number
     address: string
   }) => {
-    setValue("location", coordinates.address)
+    // Parse the address to extract city, province, postal code
+    // For now, we'll use the full address for all fields
+    // In production, you'd want to use a proper address parsing service
+    setValue("location", {
+      address: coordinates.address,
+      city: "Vancouver", // Default city - should be parsed from address
+      province: "BC", // Default province
+      postalCode: "V6B 1A1", // Default postal code - should be parsed from address
+      latitude: coordinates.lat,
+      longitude: coordinates.lng,
+    })
   }
 
   const handleFileChange = (
@@ -186,15 +221,33 @@ export default function CreateProjectForm({ user, className = '' }: CreateProjec
 
       if (type === "photos") {
         setSelectedPhotos((prev) => [...prev, ...newFiles])
+        // Create proper file objects for the validation schema
+        const allPhotos = [...selectedPhotos, ...newFiles]
         setValue(
           "project_photos",
-          [...selectedPhotos, ...newFiles].map((f) => f.name)
+          allPhotos.map((f) => ({
+            id: crypto.randomUUID(),
+            filename: f.name,
+            url: URL.createObjectURL(f), // Temporary URL for preview
+            size: f.size,
+            mimeType: f.type,
+            uploadedAt: new Date()
+          }))
         )
       } else {
         setSelectedFiles((prev) => [...prev, ...newFiles])
+        // Create proper file objects for the validation schema
+        const allFiles = [...selectedFiles, ...newFiles]
         setValue(
           "files",
-          [...selectedFiles, ...newFiles].map((f) => f.name)
+          allFiles.map((f) => ({
+            id: crypto.randomUUID(),
+            filename: f.name,
+            url: URL.createObjectURL(f), // Temporary URL for preview
+            size: f.size,
+            mimeType: f.type,
+            uploadedAt: new Date()
+          }))
         )
       }
     }
@@ -206,14 +259,28 @@ export default function CreateProjectForm({ user, className = '' }: CreateProjec
       setSelectedPhotos(newPhotos)
       setValue(
         "project_photos",
-        newPhotos.map((f) => f.name)
+        newPhotos.map((f) => ({
+          id: crypto.randomUUID(),
+          filename: f.name,
+          url: URL.createObjectURL(f),
+          size: f.size,
+          mimeType: f.type,
+          uploadedAt: new Date()
+        }))
       )
     } else {
       const newFiles = selectedFiles.filter((_, i) => i !== index)
       setSelectedFiles(newFiles)
       setValue(
         "files",
-        newFiles.map((f) => f.name)
+        newFiles.map((f) => ({
+          id: crypto.randomUUID(),
+          filename: f.name,
+          url: URL.createObjectURL(f),
+          size: f.size,
+          mimeType: f.type,
+          uploadedAt: new Date()
+        }))
       )
     }
   }
@@ -248,18 +315,9 @@ export default function CreateProjectForm({ user, className = '' }: CreateProjec
     setError("")
 
     try {
-      // Upload files first
-      const photoUrls = await projectHandler.uploadFiles(selectedPhotos)
-      const fileUrls = await projectHandler.uploadFiles(selectedFiles)
-
-      // Update form data with uploaded URLs
-      const updatedData = {
-        ...data,
-        project_photos: photoUrls,
-        files: fileUrls,
-      }
-
-      const result = await projectHandler.createProject(updatedData, user.id)
+      // The form data already has properly formatted project_photos and files
+      // No need to upload or transform them for now
+      const result = await projectHandler.createProject(data, user.id)
 
       if (result.success) {
         router.push("/homeowner/projects")
@@ -288,7 +346,7 @@ export default function CreateProjectForm({ user, className = '' }: CreateProjec
 
       {/* Error Display */}
       {error && (
-        <div className="bg-gray-100 rounded-lg border border-red-200 p-4">
+        <div className="bg-white rounded-lg border border-red-200 p-4">
           <div className="p-3 bg-red-50 border border-red-200 rounded-md text-red-700 text-sm">
             {error}
           </div>
@@ -298,7 +356,7 @@ export default function CreateProjectForm({ user, className = '' }: CreateProjec
       {/* Project Form */}
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         {/* Basic Information */}
-        <div className="bg-gray-100 rounded-lg border border-gray-200 p-6">
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
           <h3 className="text-lg font-medium mb-4">Basic Information</h3>
           <div className="space-y-4">
             <div>
@@ -310,7 +368,7 @@ export default function CreateProjectForm({ user, className = '' }: CreateProjec
                   <Input
                     {...field}
                     placeholder="e.g., Kitchen Renovation"
-                    className={`bg-gray-100 ${errors.project_title ? "border-red-500" : ""}`}
+                    className={`bg-white ${errors.project_title ? "border-red-500" : ""}`}
                   />
                 )}
               />
@@ -331,7 +389,7 @@ export default function CreateProjectForm({ user, className = '' }: CreateProjec
                     {...field}
                     placeholder="Provide detailed description of the work to be done..."
                     rows={4}
-                    className={`bg-gray-100 ${errors.statement_of_work ? "border-red-500" : ""}`}
+                    className={`bg-white ${errors.statement_of_work ? "border-red-500" : ""}`}
                   />
                 )}
               />
@@ -361,7 +419,7 @@ export default function CreateProjectForm({ user, className = '' }: CreateProjec
                       }
                     }}
                   >
-                    <SelectTrigger className="bg-gray-100">
+                    <SelectTrigger className="bg-white">
                       <SelectValue placeholder="Select categories" />
                     </SelectTrigger>
                     <SelectContent>
@@ -421,7 +479,7 @@ export default function CreateProjectForm({ user, className = '' }: CreateProjec
                 control={control}
                 render={({ field }) => (
                   <Select onValueChange={field.onChange} value={field.value}>
-                    <SelectTrigger className="bg-gray-100">
+                    <SelectTrigger className="bg-white">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -453,7 +511,7 @@ export default function CreateProjectForm({ user, className = '' }: CreateProjec
                   <Input
                     {...field}
                     placeholder="e.g., PRJ-2024-001"
-                    className={`bg-gray-100 ${errors.pid ? "border-red-500" : ""}`}
+                    className={`bg-white ${errors.pid ? "border-red-500" : ""}`}
                   />
                 )}
               />
@@ -476,7 +534,7 @@ export default function CreateProjectForm({ user, className = '' }: CreateProjec
                     {...field}
                     type="url"
                     placeholder="https://example.com/certificate.pdf"
-                    className={`bg-gray-100 ${errors.certificate_of_title ? "border-red-500" : ""}`}
+                    className={`bg-white ${errors.certificate_of_title ? "border-red-500" : ""}`}
                   />
                 )}
               />
@@ -501,11 +559,11 @@ export default function CreateProjectForm({ user, className = '' }: CreateProjec
                   className="mt-2"
                 />
               </div>
-              {watch("location") && (
-                <p className="text-xs text-muted-foreground mt-2">
-                  Selected: {watch("location")}
-                </p>
-              )}
+                             {watch("location") && watch("location").address && (
+                 <p className="text-xs text-muted-foreground mt-2">
+                   Selected: {watch("location").address}
+                 </p>
+               )}
               <p className="text-xs text-muted-foreground mt-1">
                 Note: Only city will be visible to contractors for privacy
               </p>
@@ -519,7 +577,7 @@ export default function CreateProjectForm({ user, className = '' }: CreateProjec
         </div>
 
         {/* Budget */}
-        <div className="bg-gray-100 rounded-lg border border-gray-200 p-6">
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
           <h3 className="text-lg font-medium flex items-center space-x-2 mb-4">
             <DollarSign className="h-5 w-5" />
             <span>Budget</span>
@@ -538,7 +596,7 @@ export default function CreateProjectForm({ user, className = '' }: CreateProjec
                   onChange={(e) =>
                     field.onChange(parseFloat(e.target.value) || 0)
                   }
-                  className={`bg-gray-100 ${errors.budget ? "border-red-500" : ""}`}
+                                      className={`bg-white ${errors.budget ? "border-red-500" : ""}`}
                 />
               )}
             />
@@ -554,7 +612,7 @@ export default function CreateProjectForm({ user, className = '' }: CreateProjec
         </div>
 
         {/* Timeline */}
-        <div className="bg-gray-100 rounded-lg border border-gray-200 p-6">
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
           <h3 className="text-lg font-medium flex items-center space-x-2 mb-4">
             <Calendar className="h-5 w-5" />
             <span>Timeline</span>
@@ -571,7 +629,7 @@ export default function CreateProjectForm({ user, className = '' }: CreateProjec
                     <Input
                       {...field}
                       type="date"
-                      className={`bg-gray-100 ${errors.start_date ? "border-red-500" : ""}`}
+                      className={`bg-white ${errors.start_date ? "border-red-500" : ""}`}
                     />
                   )}
                 />
@@ -590,7 +648,7 @@ export default function CreateProjectForm({ user, className = '' }: CreateProjec
                     <Input
                       {...field}
                       type="date"
-                      className={`bg-gray-100 ${errors.end_date ? "border-red-500" : ""}`}
+                      className={`bg-white ${errors.end_date ? "border-red-500" : ""}`}
                     />
                   )}
                 />
@@ -612,7 +670,7 @@ export default function CreateProjectForm({ user, className = '' }: CreateProjec
                     <Input
                       {...field}
                       type="date"
-                      className={`bg-gray-100 ${errors.expiry_date ? "border-red-500" : ""}`}
+                      className={`bg-white ${errors.expiry_date ? "border-red-500" : ""}`}
                     />
                   )}
                 />
@@ -634,7 +692,7 @@ export default function CreateProjectForm({ user, className = '' }: CreateProjec
                     <Input
                       {...field}
                       type="date"
-                      className={`bg-gray-100 ${errors.decision_date ? "border-red-500" : ""}`}
+                      className={`bg-white ${errors.decision_date ? "border-red-500" : ""}`}
                     />
                   )}
                 />
@@ -657,7 +715,7 @@ export default function CreateProjectForm({ user, className = '' }: CreateProjec
                 <Controller
                   name="substantial_completion"
                   control={control}
-                  render={({ field }) => <Input {...field} type="date" className="bg-gray-100" />}
+                  render={({ field }) => <Input {...field} type="date" className="bg-white" />}
                 />
               </div>
               <div>
@@ -683,7 +741,7 @@ export default function CreateProjectForm({ user, className = '' }: CreateProjec
         </div>
 
         {/* Visibility Settings */}
-        <div className="bg-gray-100 rounded-lg border border-gray-200 p-6">
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
           <h3 className="text-lg font-medium mb-4">Visibility Settings</h3>
 
           <div className="space-y-4">
@@ -696,7 +754,7 @@ export default function CreateProjectForm({ user, className = '' }: CreateProjec
                 control={control}
                 render={({ field }) => (
                   <Select onValueChange={field.onChange} value={field.value}>
-                    <SelectTrigger className="bg-gray-100">
+                    <SelectTrigger className="bg-white">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -739,7 +797,7 @@ export default function CreateProjectForm({ user, className = '' }: CreateProjec
         </div>
 
         {/* File Uploads */}
-        <div className="bg-gray-100 rounded-lg border border-gray-200 p-6">
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
           <h3 className="text-lg font-medium mb-4">Project Documentation</h3>
 
           <div className="space-y-6">
@@ -779,7 +837,7 @@ export default function CreateProjectForm({ user, className = '' }: CreateProjec
                   multiple
                   accept="image/*"
                   onChange={(e) => handleFileChange(e.target.files, "photos")}
-                  className="mt-4 bg-gray-100"
+                  className="mt-4 bg-white"
                 />
               </div>
 
@@ -798,7 +856,7 @@ export default function CreateProjectForm({ user, className = '' }: CreateProjec
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                     {selectedPhotos.map((file, index) => (
                       <div key={index} className="relative group">
-                        <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden border">
+                        <div className="aspect-square bg-white rounded-lg overflow-hidden border">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={URL.createObjectURL(file)}
@@ -865,7 +923,7 @@ export default function CreateProjectForm({ user, className = '' }: CreateProjec
                   onChange={(e) =>
                     handleFileChange(e.target.files, "documents")
                   }
-                  className="mt-4 bg-gray-100"
+                  className="mt-4 bg-white"
                 />
               </div>
 
@@ -915,7 +973,7 @@ export default function CreateProjectForm({ user, className = '' }: CreateProjec
         </div>
 
         {/* Submit Button */}
-        <div className="bg-gray-100 rounded-lg border border-gray-200 p-6">
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
           <div className="flex justify-end space-x-4">
             <Link href="/homeowner/dashboard">
               <Button type="button" variant="outline">

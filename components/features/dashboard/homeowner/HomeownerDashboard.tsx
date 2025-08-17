@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase'
 import { Project } from '@/types/database'
-import { LoadingSpinner } from '@/components/shared'
+
 import UserGreeting from './UserGreeting'
 import QuickActions from './QuickActions'
 import ProjectStats from './ProjectStats'
@@ -19,7 +19,8 @@ export default function HomeownerDashboard({ userEmail }: HomeownerDashboardProp
   const [projects, setProjects] = useState<Project[]>([])
   const [proposalsCount, setProposalsCount] = useState(0)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+  const [error, setError] = useState('') // Keep for future use
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -28,14 +29,46 @@ export default function HomeownerDashboard({ userEmail }: HomeownerDashboardProp
         const currentUser = user || (await supabase.auth.getUser()).data.user
         
         if (!currentUser) {
+          console.log('No authenticated user found, skipping data fetch')
           setLoading(false)
           return
         }
         
-        // Fetch projects
+        console.log('Fetching dashboard data for user:', currentUser.id)
+        
+        // Fetch projects with all schema fields including permit_required
         const { data: projectsData, error: projectsError } = await supabase
           .from('projects')
-          .select('*')
+          .select(`
+            id,
+            project_title,
+            statement_of_work,
+            budget,
+            category,
+            pid,
+            location_address,
+            location_city,
+            location_province,
+            location_postal_code,
+            location_latitude,
+            location_longitude,
+            certificate_of_title,
+            project_type,
+            status,
+            visibility_settings,
+            start_date,
+            end_date,
+            expiry_date,
+            substantial_completion,
+            permit_required,
+            is_verified_project,
+            project_photos,
+            files,
+            creator,
+            proposal_count,
+            created_at,
+            updated_at
+          `)
           .eq('creator', currentUser.id)
           .order('created_at', { ascending: false })
         
@@ -72,7 +105,11 @@ export default function HomeownerDashboard({ userEmail }: HomeownerDashboardProp
         }
         
       } catch (error) {
-        console.error('Error fetching dashboard data:', error)
+        // Only log errors if we have a user (avoid logging auth-related errors)
+        if (user) {
+          console.error('Error fetching dashboard data:', error)
+          console.error('Error details:', JSON.stringify(error, null, 2))
+        }
         // Don't set error state - render dashboard with empty data instead
         // setError('Failed to load dashboard data')
       } finally {
@@ -98,27 +135,17 @@ export default function HomeownerDashboard({ userEmail }: HomeownerDashboardProp
             {/* Enhanced Loading Spinner */}
             <div className="relative">
               <div className="w-24 h-24 bg-gradient-to-br from-orange-400 via-orange-500 to-red-500 rounded-3xl flex items-center justify-center shadow-2xl transform rotate-3 animate-pulse">
-                <div className="w-16 h-16 border-4 border-white/30 border-t-white rounded-full animate-spin"></div>
+                <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-inner">
+                  <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-red-500 rounded-xl animate-spin"></div>
+                </div>
               </div>
-              {/* Decorative ring */}
-              <div className="absolute -inset-4 bg-gradient-to-r from-orange-300 to-amber-300 rounded-3xl opacity-20 blur-sm animate-pulse"></div>
+              {/* Floating elements */}
+              <div className="absolute -top-2 -right-2 w-6 h-6 bg-amber-300 rounded-full animate-bounce"></div>
+              <div className="absolute -bottom-2 -left-2 w-4 h-4 bg-red-300 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
             </div>
-            
-            {/* Loading Text */}
-            <div className="space-y-3">
-              <h2 className="text-3xl font-bold bg-gradient-to-r from-orange-600 via-orange-700 to-red-700 bg-clip-text text-transparent">
-                Loading Dashboard
-              </h2>
-              <p className="text-orange-600/80 text-lg font-medium">
-                Preparing your home improvement overview...
-              </p>
-            </div>
-            
-            {/* Animated Dots */}
-            <div className="flex justify-center space-x-2">
-              <div className="w-3 h-3 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-              <div className="w-3 h-3 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-              <div className="w-3 h-3 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+            <div className="space-y-4">
+              <h2 className="text-2xl font-bold text-orange-800">Loading Your Dashboard</h2>
+              <p className="text-orange-600">Preparing your construction project overview...</p>
             </div>
           </div>
         </div>
@@ -126,42 +153,44 @@ export default function HomeownerDashboard({ userEmail }: HomeownerDashboardProp
     )
   }
 
-  // Removed error state rendering - dashboard will always render with available data
-
-  // Calculate stats
-  const stats = {
-    total: projects.length,
-    open: projects.filter(p => p.status === 'open').length,
-    bidding: projects.filter(p => p.status === 'bidding').length,
-    awarded: projects.filter(p => p.status === 'awarded').length,
-    completed: projects.filter(p => p.status === 'completed').length,
-    cancelled: projects.filter(p => p.status === 'cancelled').length,
-    totalBudget: projects.reduce((sum, p) => sum + (p.budget || 0), 0),
-    proposalCount: proposalsCount // Using proposalsCount directly instead of calculating deadlines
-  }
-
-  const projectStats = {
-    total: stats.total,
-    totalBudget: stats.totalBudget,
-    activeProjects: stats.open + stats.bidding + stats.awarded,
-    upcomingDeadlines: stats.proposalCount
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-orange-100 relative">
-      {/* Single consolidated background layer - no z-index conflicts */}
+      {/* Single consolidated background layer */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-orange-200/20 to-transparent rounded-full transform -translate-x-48 -translate-y-48"></div>
         <div className="absolute top-1/3 right-0 w-80 h-80 bg-gradient-to-bl from-amber-200/20 to-transparent rounded-full transform translate-x-40"></div>
         <div className="absolute bottom-0 left-1/3 w-64 h-64 bg-gradient-to-tr from-red-200/20 to-transparent rounded-full transform translate-y-32"></div>
       </div>
       
-      {/* Main content with proper layering */}
-      <div className="relative space-y-8 p-8">
-        <UserGreeting userEmail={userEmail} />
-        <QuickActions proposalsCount={proposalsCount} />
-        <ProjectStats stats={projectStats} />
-        <RecentProjects projects={projects} />
+      <div className="relative container mx-auto px-4 py-8">
+        {/* Error Display */}
+        {error && (
+          <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
+            <p className="text-red-700">{error}</p>
+          </div>
+        )}
+
+        {/* Dashboard Content */}
+        <div className="space-y-8">
+          {/* User Greeting */}
+          <UserGreeting userEmail={userEmail} />
+
+          {/* Quick Actions */}
+          <QuickActions proposalsCount={proposalsCount} />
+
+          {/* Project Statistics */}
+          <ProjectStats 
+            stats={{
+              total: projects.length,
+              totalBudget: projects.reduce((sum, p) => sum + (p.budget || 0), 0),
+              activeProjects: projects.filter(p => ['Published', 'Bidding', 'In Progress'].includes(p.status)).length,
+              upcomingDeadlines: proposalsCount
+            }}
+          />
+
+          {/* Recent Projects */}
+          <RecentProjects projects={projects.slice(0, 5)} />
+        </div>
       </div>
     </div>
   )

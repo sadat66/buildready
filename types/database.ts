@@ -51,23 +51,31 @@ export interface Project {
   id: string
   creator: string
   project_title: string
-  description: string
+  statement_of_work: string
   budget: number
-  location: string
-  latitude?: number
-  longitude?: number
-  category: string | string[]
-  project_type?: 'New Build' | 'Renovation' | 'Maintenance' | 'Repair' | 'Inspection'
-  status: 'open' | 'bidding' | 'awarded' | 'completed' | 'cancelled'
-  deadline?: string
-  proposal_deadline: string
-  preferred_start_date: string
-  preferred_end_date: string
-  decision_date: string
+  category: string[]
+  pid: string
+  location_address: string
+  location_city: string
+  location_province: string
+  location_postal_code: string
+  location_latitude: number | null
+  location_longitude: number | null
+  location_geom?: any // PostGIS geometry
+  project_type: 'New Build' | 'Renovation' | 'Maintenance' | 'Repair' | 'Inspection'
+  status: 'Draft' | 'Published' | 'Bidding' | 'Awarded' | 'In Progress' | 'Completed' | 'Cancelled'
+  visibility_settings: 'Public' | 'Private' | 'Invitation Only'
+  start_date: string
+  end_date: string
+  expiry_date: string
+  substantial_completion?: string | null
+  decision_date?: string | null
   permit_required: boolean
-  site_photos: string[]
-  project_files: string[]
-  is_closed: boolean
+  is_verified_project: boolean
+  certificate_of_title?: string | null
+  project_photos: any[] // Array of file reference objects
+  files: any[] // Array of file reference objects
+  proposal_count: number
   created_at: string
   updated_at: string
   homeowner?: User
