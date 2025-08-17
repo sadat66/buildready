@@ -49,6 +49,8 @@ export const projectsRouter = createTRPCRouter({
   create: protectedProcedure
     .input(projectSchema)
     .mutation(async ({ input, ctx }) => {
+
+      console.log('input', input)
       const { data, error } = await ctx.supabase
         .from('projects')
         .insert({

@@ -61,6 +61,7 @@ class CreateProjectHandler {
     userId: string
   ): Promise<{ success: boolean; error?: string }> {
     try {
+      console.log('formData', formData)
       // Validate that decision_date comes after expiry_date
       const expiryDate = new Date(formData.expiry_date)
       const decisionDate = new Date(formData.decision_date)
@@ -91,12 +92,14 @@ class CreateProjectHandler {
         category: formData.category,
         pid: formData.pid,
         // New location fields
+       location:{
         location_address: locationAddress,
         location_city: locationCity,
         location_province: locationProvince,
         location_postal_code: locationPostalCode,
         location_latitude: locationLatitude,
         location_longitude: locationLongitude,
+       },
         // location_geom will be set automatically by the database trigger
         project_type: formData.project_type,
         visibility_settings: formData.visibility_settings,
@@ -109,9 +112,13 @@ class CreateProjectHandler {
         proposal_count: 0,
       }
 
-      const { error } = await this.supabase
+      console.log('projectData', projectData)
+
+      const { error, data } = await this.supabase
         .from("projects")
         .insert(projectData)
+
+      console.log('data', data)
 
       if (error) {
         console.error("Database error:", error)
@@ -310,6 +317,8 @@ export default function CreateProjectForm({ user, className = '' }: CreateProjec
       setError("Only homeowners can create projects")
       return
     }
+
+    // console.log('data', data)
 
     setLoading(true)
     setError("")
