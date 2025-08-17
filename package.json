@@ -9,11 +9,11 @@
     "lint": "next lint",
     "lint:fix": "next lint --fix",
     "type-check": "tsc --noEmit",
-    "db:migrate": "node lib/database/migrate.ts",
-    "db:rollback": "node lib/database/rollback.ts",
-    "db:seed": "node lib/database/seed.ts",
-    "db:reset": "node lib/database/reset.ts",
-    "db:status": "node lib/database/status.ts"
+    "db:migrate": "tsx lib/database/migrate.ts migrate",
+    "db:rollback": "tsx lib/database/migrate.ts rollback",
+    "db:seed": "tsx lib/database/seed.ts",
+    "db:reset": "tsx lib/database/reset.ts",
+    "db:status": "tsx lib/database/migrate.ts status"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.1",
@@ -62,11 +62,13 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "autoprefixer": "^10.4.21",
+    "dotenv": "^17.2.1",
     "eslint": "^9",
     "eslint-config-next": "15.4.5",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-unused-imports": "^4.1.4",
     "tailwindcss": "^4",
+    "tsx": "^4.20.4",
     "tw-animate-css": "^1.3.6",
     "typescript": "^5"
   }

@@ -5,6 +5,9 @@
  * Command-line tool for managing database migrations
  */
 
+// Load environment variables from .env.local
+import 'dotenv/config'
+
 import { migrationRegistry, SupabaseDatabaseClient } from './migrations'
 // Import all migrations to ensure they're registered
 import './migrations'
@@ -15,6 +18,7 @@ import { migration_004_add_email_verification_field } from './migrations/004_add
 import { migration_005_complete_user_schema } from './migrations/005_complete_user_schema'
 import { migration_006_create_contractor_profiles } from './migrations/006_create_contractor_profiles'
 import { migration_010_add_rls_policies } from './migrations/010_add_rls_policies'
+import { migration_011_update_projects_schema } from './migrations/011_update_projects_schema'
 
 // Explicitly register migrations to ensure they're loaded
 migrationRegistry.register(migration_002_proposal_resubmission)
@@ -22,6 +26,7 @@ migrationRegistry.register(migration_004_add_email_verification_field)
 migrationRegistry.register(migration_005_complete_user_schema)
 migrationRegistry.register(migration_006_create_contractor_profiles)
 migrationRegistry.register(migration_010_add_rls_policies)
+migrationRegistry.register(migration_011_update_projects_schema)
 
 // CLI argument parsing
 const args = process.argv.slice(2)

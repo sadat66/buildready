@@ -1,38 +1,92 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
+import { useForm, Controller, Resolver } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
+
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ArrowLeft, MapPin, Calendar, DollarSign, FileText, Camera, Paperclip, X, Upload } from 'lucide-react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 import dynamic from 'next/dynamic'
+import { Breadcrumbs, LoadingSpinner } from '@/components/shared'
+import { TradeCategory } from '@/lib/database/schemas/projects'
+import { createProjectFormInputSchema, CreateProjectFormInputData } from '@/lib/validation/projects'
 
+// Force client-side rendering to avoid React 19 SSR issues
 const LocationMap = dynamic(() => import('@/components/features/projects').then(mod => ({ default: mod.LocationMap })), {
   ssr: false,
   loading: () => <div className="h-96 bg-gray-100 rounded-lg flex items-center justify-center">Loading map...</div>
 })
 
-const tradeCategories = [
-  'kitchen',
-  'bathroom',
-  'deck',
-  'roofing',
-  'flooring',
-  'painting',
-  'electrical',
-  'plumbing',
-  'hvac',
-  'landscaping',
-  'general_construction',
-  'other'
-]
+// Business logic handler
+class CreateProjectHandler {
+  private supabase = createClient()
+
+  async createProject(formData: CreateProjectFormInputData, userId: string): Promise<{ success: boolean; error?: string }> {
+    try {
+      // Validate that decision_date comes after expiry_date
+      const expiryDate = new Date(formData.expiry_date)
+      const decisionDate = new Date(formData.decision_date)
+      
+      if (decisionDate <= expiryDate) {
+        return { success: false, error: 'Decision date must be after proposal expiry date' }
+      }
+
+      // Only store database fields (exclude form-only fields)
+      const projectData = {
+        project_title: formData.project_title,
+        statement_of_work: formData.statement_of_work,
+        budget: formData.budget,
+        category: formData.category,
+        pid: formData.pid,
+        location: formData.location,
+        certificate_of_title: formData.certificate_of_title || null,
+        project_type: formData.project_type,
+        visibility_settings: formData.visibility_settings,
+        start_date: new Date(formData.start_date),
+        end_date: new Date(formData.end_date),
+        expiry_date: expiryDate,
+        substantial_completion: formData.substantial_completion ? new Date(formData.substantial_completion) : undefined,
+        is_verified_project: formData.is_verified_project,
+        project_photos: formData.project_photos,
+        files: formData.files,
+        creator: userId,
+        status: 'Draft' as const,
+        proposal_count: 0,
+        is_closed: false, // Initialize as per workflow requirements
+      }
+
+      const { error } = await this.supabase
+        .from('projects')
+        .insert(projectData)
+
+      if (error) {
+        console.error('Database error:', error)
+        return { success: false, error: 'Failed to create project. Please try again.' }
+      }
+
+      return { success: true }
+    } catch (error) {
+      console.error('Unexpected error:', error)
+      return { success: false, error: 'An unexpected error occurred. Please try again.' }
+    }
+  }
+
+  async uploadFiles(files: File[]): Promise<string[]> {
+    // This is a placeholder implementation
+    // In a real app, you'd upload to Supabase Storage or similar
+    return files.map(file => `placeholder_url_${file.name}`)
+  }
+}
 
 export default function CreateProjectPage() {
   const { user } = useAuth()
@@ -40,121 +94,72 @@ export default function CreateProjectPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [dragActive, setDragActive] = useState(false)
-  
-  // Form state
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    category: '',
+  const [selectedPhotos, setSelectedPhotos] = useState<File[]>([])
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([])
+
+  const projectHandler = new CreateProjectHandler()
+
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+    setValue,
+    watch,
+  } = useForm<CreateProjectFormInputData>({
+    resolver: zodResolver(createProjectFormInputSchema) as Resolver<CreateProjectFormInputData>,
+    defaultValues: {
+      project_title: '',
+      statement_of_work: '',
+      budget: 0,
+      category: [],
+      pid: '',
     location: '',
-    latitude: null as number | null,
-    longitude: null as number | null,
-    budget: '',
-    proposal_deadline: '',
-    preferred_start_date: '',
-    preferred_end_date: '',
+      certificate_of_title: '',
+      project_type: 'Renovation',
+      visibility_settings: 'Public',
+      start_date: '',
+      end_date: '',
+      expiry_date: '',
     decision_date: '',
+      substantial_completion: '',
     permit_required: false,
-    site_photos: [] as File[],
-    project_files: [] as File[]
+      is_verified_project: false,
+      project_photos: [],
+      files: [],
+    }
   })
 
-  // Validation state
-  const [validationErrors, setValidationErrors] = useState<{[key: string]: boolean}>({})
-  const [hasSubmitted, setHasSubmitted] = useState(false)
-
-  const handleInputChange = (field: string, value: string | boolean) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
-    
-    // Clear validation error when user starts typing
-    if (hasSubmitted && validationErrors[field]) {
-      setValidationErrors(prev => ({ ...prev, [field]: false }))
-    }
-  }
-
   const handleLocationSelect = (coordinates: { lat: number; lng: number; address: string }) => {
-    setFormData(prev => ({
-      ...prev,
-      location: coordinates.address,
-      latitude: coordinates.lat,
-      longitude: coordinates.lng
-    }))
-    
-    // Clear location validation error when location is selected
-    if (hasSubmitted && validationErrors['location']) {
-      setValidationErrors(prev => ({ ...prev, location: false }))
-    }
+    setValue('location', coordinates.address)
   }
 
-  const getInputClassName = (field: string) => {
-    const baseClass = "mt-1"
-    if (hasSubmitted && validationErrors[field]) {
-      return `${baseClass} border-red-500 focus:border-red-500 focus:ring-red-500`
-    }
-    return baseClass
-  }
-
-  const showFieldError = (field: string) => {
-    return hasSubmitted && validationErrors[field]
-  }
-
-  const handleFileChange = (field: 'site_photos' | 'project_files', files: FileList | null) => {
+  const handleFileChange = (files: FileList | null, type: 'photos' | 'documents') => {
     if (files) {
       const newFiles = Array.from(files)
       
-      // Validate file types and sizes
-      const validFiles = newFiles.filter(file => {
-        if (field === 'site_photos') {
-          if (!file.type.startsWith('image/')) {
-            setError('Please select only image files for site photos')
-            return false
-          }
-          if (file.size > 5 * 1024 * 1024) { // 5MB limit
-            setError('Photo files must be smaller than 5MB')
-            return false
-          }
+      if (type === 'photos') {
+        setSelectedPhotos(prev => [...prev, ...newFiles])
+        setValue('project_photos', [...selectedPhotos, ...newFiles].map(f => f.name))
         } else {
-          if (file.size > 10 * 1024 * 1024) { // 10MB limit
-            setError('Project files must be smaller than 10MB')
-            return false
-          }
-        }
-        return true
-      })
-      
-      if (validFiles.length > 0) {
-        setError('')
-        
-        // Clear validation error when files are added
-        if (hasSubmitted && validationErrors[field]) {
-          setValidationErrors(prev => ({ ...prev, [field]: false }))
-        }
-        
-        setFormData(prev => ({ 
-          ...prev, 
-          [field]: field === 'site_photos' 
-            ? [...prev[field], ...validFiles] 
-            : validFiles 
-        }))
+        setSelectedFiles(prev => [...prev, ...newFiles])
+        setValue('files', [...selectedFiles, ...newFiles].map(f => f.name))
       }
     }
   }
 
-  const removePhoto = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      site_photos: prev.site_photos.filter((_, i) => i !== index)
-    }))
+  const removeFile = (index: number, type: 'photos' | 'documents') => {
+    if (type === 'photos') {
+      const newPhotos = selectedPhotos.filter((_, i) => i !== index)
+      setSelectedPhotos(newPhotos)
+      setValue('project_photos', newPhotos.map(f => f.name))
+    } else {
+      const newFiles = selectedFiles.filter((_, i) => i !== index)
+      setSelectedFiles(newFiles)
+      setValue('files', newFiles.map(f => f.name))
+    }
   }
 
-  const removeProjectFile = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      project_files: prev.project_files.filter((_, i) => i !== index)
-    }))
-  }
-
-  const handleDrag = useCallback((e: React.DragEvent) => {
+  const handleDrag = (e: React.DragEvent) => {
     e.preventDefault()
     e.stopPropagation()
     if (e.type === "dragenter" || e.type === "dragover") {
@@ -162,71 +167,21 @@ export default function CreateProjectPage() {
     } else if (e.type === "dragleave") {
       setDragActive(false)
     }
-  }, [])
+  }
 
-  const handleDrop = useCallback((e: React.DragEvent, field: 'site_photos' | 'project_files') => {
+  const handleDrop = (e: React.DragEvent, type: 'photos' | 'documents') => {
     e.preventDefault()
     e.stopPropagation()
     setDragActive(false)
     
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFileChange(field, e.dataTransfer.files)
+      handleFileChange(e.dataTransfer.files, type)
     }
-  }, [])
-
-  const validateForm = () => {
-    const required = [
-      'title', 'description', 'category', 'location', 
-      'budget', 'proposal_deadline',
-      'preferred_start_date', 'preferred_end_date', 'decision_date'
-    ]
-    
-    const newValidationErrors: {[key: string]: boolean} = {}
-    
-    for (const field of required) {
-      if (!formData[field as keyof typeof formData]) {
-        newValidationErrors[field] = true
-      }
-    }
-    
-    // Check location coordinates
-    if (!formData.latitude || !formData.longitude) {
-      newValidationErrors['location'] = true
-    }
-    
-    // Check site photos
-    if (formData.site_photos.length === 0) {
-      newValidationErrors['site_photos'] = true
-    }
-    
-    // Check budget
-    if (parseFloat(formData.budget) <= 0) {
-      newValidationErrors['budget'] = true
-    }
-    
-    setValidationErrors(newValidationErrors)
-    
-    // Set general error message
-    if (Object.keys(newValidationErrors).length > 0) {
-      const firstError = Object.keys(newValidationErrors)[0]
-      setError(`${firstError.replace('_', ' ')} is required`)
-      return false
-    }
-    
-    return true
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
+  const onSubmit = async (data: CreateProjectFormInputData) => {
     if (!user || (user.user_metadata?.role || 'homeowner') !== 'homeowner') {
       setError('Only homeowners can create projects')
-      return
-    }
-    
-    setHasSubmitted(true)
-    
-    if (!validateForm()) {
       return
     }
     
@@ -234,42 +189,24 @@ export default function CreateProjectPage() {
     setError('')
     
     try {
-      const supabase = createClient()
-      
-      // For now, we'll store file names as placeholders
-      // In a real implementation, you'd upload files to storage first
-      const sitePhotoUrls = formData.site_photos.map(file => file.name)
-      const projectFileUrls = formData.project_files.map(file => file.name)
-      
-      const { error: insertError } = await supabase
-        .from('projects')
-        .insert({
-          homeowner_id: user.id,
-          title: formData.title,
-          description: formData.description,
-          category: formData.category,
-          location: formData.location,
-          latitude: formData.latitude,
-          longitude: formData.longitude,
-          budget: parseFloat(formData.budget),
-          proposal_deadline: formData.proposal_deadline,
-          preferred_start_date: formData.preferred_start_date,
-          preferred_end_date: formData.preferred_end_date,
-          decision_date: formData.decision_date,
-          permit_required: formData.permit_required,
-          site_photos: sitePhotoUrls,
-          project_files: projectFileUrls,
-          is_closed: false,
-          status: 'open'
-        })
-        .select()
-        .single()
-      
-      if (insertError) {
-        throw insertError
+      // Upload files first
+      const photoUrls = await projectHandler.uploadFiles(selectedPhotos)
+      const fileUrls = await projectHandler.uploadFiles(selectedFiles)
+
+      // Update form data with uploaded URLs
+      const updatedData = {
+        ...data,
+        project_photos: photoUrls,
+        files: fileUrls,
       }
-      
+
+      const result = await projectHandler.createProject(updatedData, user.id)
+
+      if (result.success) {
       router.push('/homeowner/projects')
+      } else {
+        setError(result.error || 'Failed to create project')
+      }
     } catch (error) {
       console.error('Error creating project:', error)
       setError('Failed to create project. Please try again.')
@@ -278,8 +215,20 @@ export default function CreateProjectPage() {
     }
   }
 
+  if (!user) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <LoadingSpinner />
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
+      <Breadcrumbs />
+
       {/* Header */}
       <div className="flex items-center space-x-4">
         <Link href="/homeowner/dashboard">
@@ -312,7 +261,7 @@ export default function CreateProjectPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             {error && (
               <div className="p-3 bg-red-50 border border-red-200 rounded-md text-red-700 text-sm">
                 {error}
@@ -324,61 +273,154 @@ export default function CreateProjectPage() {
               <h3 className="text-lg font-medium">Basic Information</h3>
               
               <div>
-                <Label htmlFor="title">Project Title *</Label>
+                <Label htmlFor="project_title">Project Title *</Label>
+                <Controller
+                  name="project_title"
+                  control={control}
+                  render={({ field }) => (
                 <Input
-                  id="title"
-                  value={formData.title}
-                  onChange={(e) => handleInputChange('title', e.target.value)}
+                      {...field}
                   placeholder="e.g., Kitchen Renovation"
-                  className={getInputClassName('title')}
+                      className={errors.project_title ? 'border-red-500' : ''}
+                    />
+                  )}
                 />
-                {showFieldError('title') && (
-                  <p className="text-red-500 text-sm mt-1">Project title is required</p>
+                {errors.project_title && (
+                  <p className="text-red-500 text-sm mt-1">{errors.project_title.message}</p>
                 )}
               </div>
               
               <div>
-                <Label htmlFor="description">Description of Work *</Label>
+                <Label htmlFor="statement_of_work">Statement of Work *</Label>
+                <Controller
+                  name="statement_of_work"
+                  control={control}
+                  render={({ field }) => (
                 <Textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) => handleInputChange('description', e.target.value)}
+                      {...field}
                   placeholder="Provide detailed description of the work to be done..."
                   rows={4}
-                  className={getInputClassName('description')}
+                      className={errors.statement_of_work ? 'border-red-500' : ''}
+                    />
+                  )}
                 />
-                {showFieldError('description') && (
-                  <p className="text-red-500 text-sm mt-1">Description is required</p>
+                {errors.statement_of_work && (
+                  <p className="text-red-500 text-sm mt-1">{errors.statement_of_work.message}</p>
                 )}
               </div>
               
               <div>
-                <Label htmlFor="category">Trade Category *</Label>
-                <select
-                  id="category"
-                  value={formData.category}
-                  onChange={(e) => handleInputChange('category', e.target.value)}
-                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
-                    hasSubmitted && validationErrors['category']
-                      ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
-                      : 'border-gray-300 focus:ring-blue-500'
-                  } ${getInputClassName('category')}`}
-                >
-                  <option value="">Select a category</option>
-                  {tradeCategories.map(category => (
-                    <option key={category} value={category}>
-                      {category.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                    </option>
-                  ))}
-                </select>
-                {showFieldError('category') && (
-                  <p className="text-red-500 text-sm mt-1">Trade category is required</p>
+                <Label htmlFor="category">Trade Categories *</Label>
+                <Controller
+                  name="category"
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      onValueChange={(value) => {
+                        const currentCategories = field.value || []
+                        if (!currentCategories.includes(value as TradeCategory)) {
+                          field.onChange([...currentCategories, value as TradeCategory])
+                        }
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select categories" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {(['Electrical', 'Framing', 'HVAC', 'Plumbing', 'Roofing', 'Masonry'] as const).map(cat => (
+                          <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+                {watch('category') && watch('category').length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {watch('category').map((cat, index) => (
+                      <div key={index} className="flex items-center gap-2 bg-blue-100 text-blue-800 px-2 py-1 rounded-md text-sm">
+                        {cat}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newCategories = watch('category').filter((_, i) => i !== index)
+                            setValue('category', newCategories)
+                          }}
+                          className="text-blue-600 hover:text-blue-800"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {errors.category && (
+                  <p className="text-red-500 text-sm mt-1">{errors.category.message}</p>
+                )}
+              </div>
+
+              <div>
+                <Label htmlFor="project_type">Project Type *</Label>
+                <Controller
+                  name="project_type"
+                  control={control}
+                  render={({ field }) => (
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {(['New Build', 'Renovation', 'Maintenance', 'Repair', 'Inspection'] as const).map(type => (
+                          <SelectItem key={type} value={type}>{type}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              </div>
+
+                             <div>
+                 <Label htmlFor="pid">Project ID *</Label>
+                 <Controller
+                   name="pid"
+                   control={control}
+                   render={({ field }) => (
+                     <Input
+                       {...field}
+                       placeholder="e.g., PRJ-2024-001"
+                       className={errors.pid ? 'border-red-500' : ''}
+                     />
+                   )}
+                 />
+                 {errors.pid && (
+                   <p className="text-red-500 text-sm mt-1">{errors.pid.message}</p>
+                 )}
+               </div>
+               
+               <div>
+                 <Label htmlFor="certificate_of_title">Certificate of Title (Optional)</Label>
+                 <Controller
+                   name="certificate_of_title"
+                   control={control}
+                   render={({ field }) => (
+                     <Input
+                       {...field}
+                       type="url"
+                       placeholder="https://example.com/certificate.pdf"
+                       className={errors.certificate_of_title ? 'border-red-500' : ''}
+                     />
+                   )}
+                 />
+                 <p className="text-xs text-gray-500 mt-1">
+                   Link to property title certificate or ownership document
+                 </p>
+                 {errors.certificate_of_title && (
+                   <p className="text-red-500 text-sm mt-1">{errors.certificate_of_title.message}</p>
                 )}
               </div>
               
                              <div>
-                 <Label className={`flex items-center space-x-2 ${hasSubmitted && validationErrors['location'] ? 'text-red-600' : ''}`}>
-                   <MapPin className={`h-4 w-4 ${hasSubmitted && validationErrors['location'] ? 'text-red-600' : ''}`} />
+                <Label className="flex items-center space-x-2">
+                  <MapPin className="h-4 w-4" />
                    <span>Project Location *</span>
                  </Label>
                  <div className="mt-2">
@@ -387,16 +429,16 @@ export default function CreateProjectPage() {
                      className="mt-2"
                    />
                  </div>
-                 {formData.location && (
+                {watch('location') && (
                    <p className="text-xs text-gray-500 mt-2">
-                     Selected: {formData.location}
+                    Selected: {watch('location')}
                    </p>
                  )}
                  <p className="text-xs text-gray-500 mt-1">
                    Note: Only city will be visible to contractors for privacy
                  </p>
-                 {showFieldError('location') && (
-                   <p className="text-red-500 text-sm mt-1">Please search for and select a location on the map</p>
+                {errors.location && (
+                  <p className="text-red-500 text-sm mt-1">{errors.location.message}</p>
                  )}
                </div>
             </div>
@@ -410,19 +452,24 @@ export default function CreateProjectPage() {
               
               <div>
                 <Label htmlFor="budget">Project Budget *</Label>
+                <Controller
+                  name="budget"
+                  control={control}
+                  render={({ field }) => (
                 <Input
-                  id="budget"
+                      {...field}
                   type="number"
-                  value={formData.budget}
-                  onChange={(e) => handleInputChange('budget', e.target.value)}
                   placeholder="15000"
-                  className={getInputClassName('budget')}
+                      onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                      className={errors.budget ? 'border-red-500' : ''}
+                    />
+                  )}
                 />
                 <p className="text-xs text-gray-500 mt-1">
                   Enter your total budget for this project
                 </p>
-                {showFieldError('budget') && (
-                  <p className="text-red-500 text-sm mt-1">Valid budget amount is required</p>
+                {errors.budget && (
+                  <p className="text-red-500 text-sm mt-1">{errors.budget.message}</p>
                 )}
               </div>
             </div>
@@ -436,75 +483,161 @@ export default function CreateProjectPage() {
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="proposal_deadline">Proposal Deadline *</Label>
-                  <Input
-                    id="proposal_deadline"
-                    type="date"
-                    value={formData.proposal_deadline}
-                    onChange={(e) => handleInputChange('proposal_deadline', e.target.value)}
-                    className={getInputClassName('proposal_deadline')}
+                  <Label htmlFor="start_date">Start Date *</Label>
+                  <Controller
+                    name="start_date"
+                    control={control}
+                    render={({ field }) => (
+                      <Input
+                        {...field}
+                        type="date"
+                        className={errors.start_date ? 'border-red-500' : ''}
+                      />
+                    )}
                   />
-                  {showFieldError('proposal_deadline') && (
-                    <p className="text-red-500 text-sm mt-1">Proposal deadline is required</p>
+                  {errors.start_date && (
+                    <p className="text-red-500 text-sm mt-1">{errors.start_date.message}</p>
+                  )}
+                </div>
+                <div>
+                  <div>
+                    <Label htmlFor="end_date">End Date *</Label>
+                    <Controller
+                      name="end_date"
+                      control={control}
+                      render={({ field }) => (
+                        <Input
+                          {...field}
+                          type="date"
+                          className={errors.end_date ? 'border-red-500' : ''}
+                        />
+                      )}
+                    />
+                    {errors.end_date && (
+                      <p className="text-red-500 text-sm mt-1">{errors.end_date.message}</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+              
+                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                 <div>
+                   <Label htmlFor="expiry_date">Proposal Deadline *</Label>
+                   <Controller
+                     name="expiry_date"
+                     control={control}
+                     render={({ field }) => (
+                  <Input
+                         {...field}
+                    type="date"
+                         className={errors.expiry_date ? 'border-red-500' : ''}
+                       />
+                     )}
+                   />
+                   <p className="text-xs text-gray-500 mt-1">
+                     Date when contractors can no longer submit proposals
+                   </p>
+                   {errors.expiry_date && (
+                     <p className="text-red-500 text-sm mt-1">{errors.expiry_date.message}</p>
                   )}
                 </div>
                 <div>
                   <Label htmlFor="decision_date">Decision Date *</Label>
+                   <Controller
+                     name="decision_date"
+                     control={control}
+                     render={({ field }) => (
                   <Input
-                    id="decision_date"
+                         {...field}
                     type="date"
-                    value={formData.decision_date}
-                    onChange={(e) => handleInputChange('decision_date', e.target.value)}
-                    className={getInputClassName('decision_date')}
-                  />
-                  {showFieldError('decision_date') && (
-                    <p className="text-red-500 text-sm mt-1">Decision date is required</p>
+                         className={errors.decision_date ? 'border-red-500' : ''}
+                       />
+                     )}
+                   />
+                   <p className="text-xs text-gray-500 mt-1">
+                     Date when you must choose the winning contractor
+                   </p>
+                   {errors.decision_date && (
+                     <p className="text-red-500 text-sm mt-1">{errors.decision_date.message}</p>
                   )}
                 </div>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="preferred_start_date">Preferred Start Date *</Label>
+                   <Label htmlFor="substantial_completion">Substantial Completion Date (Optional)</Label>
+                   <Controller
+                     name="substantial_completion"
+                     control={control}
+                     render={({ field }) => (
                   <Input
-                    id="preferred_start_date"
+                         {...field}
                     type="date"
-                    value={formData.preferred_start_date}
-                    onChange={(e) => handleInputChange('preferred_start_date', e.target.value)}
-                    className={getInputClassName('preferred_start_date')}
                   />
-                  {showFieldError('preferred_start_date') && (
-                    <p className="text-red-500 text-sm mt-1">Preferred start date is required</p>
                   )}
+                   />
                 </div>
                 <div>
-                  <Label htmlFor="preferred_end_date">Preferred End Date *</Label>
-                  <Input
-                    id="preferred_end_date"
-                    type="date"
-                    value={formData.preferred_end_date}
-                    onChange={(e) => handleInputChange('preferred_end_date', e.target.value)}
-                    className={getInputClassName('preferred_end_date')}
-                  />
-                  {showFieldError('preferred_end_date') && (
-                    <p className="text-red-500 text-sm mt-1">Preferred end date is required</p>
-                  )}
+                   <Label htmlFor="permit_required">Permit Required</Label>
+                   <div className="flex items-center space-x-2 mt-2">
+                     <Controller
+                       name="permit_required"
+                       control={control}
+                       render={({ field }) => (
+                         <Switch
+                           checked={field.value}
+                           onCheckedChange={field.onChange}
+                         />
+                       )}
+                     />
+                     <span className="text-sm text-gray-600">Project requires building permits</span>
+                   </div>
                 </div>
               </div>
             </div>
             
-            {/* Permits */}
+                         {/* Visibility Settings */}
             <div className="space-y-4">
-              <h3 className="text-lg font-medium">Permits</h3>
-              
-              <div className="flex items-center space-x-3">
+               <h3 className="text-lg font-medium">Visibility Settings</h3>
+               
+               <div>
+                 <Label htmlFor="visibility_settings">Project Visibility *</Label>
+                 <Controller
+                   name="visibility_settings"
+                   control={control}
+                   render={({ field }) => (
+                     <Select onValueChange={field.onChange} value={field.value}>
+                       <SelectTrigger>
+                         <SelectValue />
+                       </SelectTrigger>
+                       <SelectContent>
+                         {(['Public', 'Private', 'Invitation Only'] as const).map(setting => (
+                           <SelectItem key={setting} value={setting}>{setting}</SelectItem>
+                         ))}
+                       </SelectContent>
+                     </Select>
+                   )}
+                 />
+               </div>
+               
+               <div className="flex items-center space-x-2">
+                 <Controller
+                   name="is_verified_project"
+                   control={control}
+                   render={({ field }) => (
                 <Switch
-                  id="permit_required"
-                  checked={formData.permit_required}
-                  onCheckedChange={(checked) => handleInputChange('permit_required', checked)}
-                />
-                <Label htmlFor="permit_required">Permits required for this project</Label>
+                       checked={field.value}
+                       onCheckedChange={field.onChange}
+                     />
+                   )}
+                 />
+                 <Label htmlFor="is_verified_project" className="text-sm font-medium">
+                   Verified Project
+                 </Label>
               </div>
+               <p className="text-xs text-gray-500">
+                 Mark this project as verified by a professional inspector or engineer
+               </p>
             </div>
             
             {/* File Uploads */}
@@ -512,9 +645,9 @@ export default function CreateProjectPage() {
               <h3 className="text-lg font-medium">Project Documentation</h3>
               
               <div>
-                <Label htmlFor="site_photos" className="flex items-center space-x-2">
+                <Label htmlFor="project_photos" className="flex items-center space-x-2">
                   <Camera className="h-4 w-4" />
-                  <span>Site Photos * (Required)</span>
+                  <span>Project Photos * (Required)</span>
                 </Label>
                 
                 {/* Drag & Drop Area */}
@@ -522,14 +655,14 @@ export default function CreateProjectPage() {
                   className={`mt-2 border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
                     dragActive 
                       ? 'border-blue-500 bg-blue-50' 
-                      : hasSubmitted && validationErrors['site_photos']
+                      : errors.project_photos
                       ? 'border-red-500 bg-red-50'
                       : 'border-gray-300 hover:border-gray-400'
                   }`}
                   onDragEnter={handleDrag}
                   onDragLeave={handleDrag}
                   onDragOver={handleDrag}
-                  onDrop={(e) => handleDrop(e, 'site_photos')}
+                  onDrop={(e) => handleDrop(e, 'photos')}
                 >
                   <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
                   <p className="text-sm text-gray-600 mb-2">
@@ -539,27 +672,27 @@ export default function CreateProjectPage() {
                     Supports JPG, PNG, GIF up to 5MB each
                   </p>
                   <Input
-                    id="site_photos"
+                    id="project_photos"
                     type="file"
                     multiple
                     accept="image/*"
-                    onChange={(e) => handleFileChange('site_photos', e.target.files)}
+                    onChange={(e) => handleFileChange(e.target.files, 'photos')}
                     className="mt-4"
                   />
                 </div>
                 
-                {showFieldError('site_photos') && (
-                  <p className="text-red-500 text-sm mt-2">At least one site photo is required</p>
+                {errors.project_photos && (
+                  <p className="text-red-500 text-sm mt-2">{errors.project_photos.message}</p>
                 )}
                 
                 {/* Photo Previews */}
-                {formData.site_photos.length > 0 && (
+                {selectedPhotos.length > 0 && (
                   <div className="mt-4">
                     <p className="text-sm font-medium text-gray-700 mb-3">
-                      Selected Photos ({formData.site_photos.length})
+                      Selected Photos ({selectedPhotos.length})
                     </p>
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                      {formData.site_photos.map((file, index) => (
+                      {selectedPhotos.map((file, index) => (
                         <div key={index} className="relative group">
                           <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden border">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -574,7 +707,7 @@ export default function CreateProjectPage() {
                                 variant="destructive"
                                 size="sm"
                                 className="opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                                onClick={() => removePhoto(index)}
+                                onClick={() => removeFile(index, 'photos')}
                               >
                                 <X className="h-4 w-4" />
                               </Button>
@@ -595,7 +728,7 @@ export default function CreateProjectPage() {
               </div>
               
               <div>
-                <Label htmlFor="project_files" className="flex items-center space-x-2">
+                <Label htmlFor="files" className="flex items-center space-x-2">
                   <Paperclip className="h-4 w-4" />
                   <span>Project Files (Optional)</span>
                 </Label>
@@ -610,7 +743,7 @@ export default function CreateProjectPage() {
                   onDragEnter={handleDrag}
                   onDragLeave={handleDrag}
                   onDragOver={handleDrag}
-                  onDrop={(e) => handleDrop(e, 'project_files')}
+                  onDrop={(e) => handleDrop(e, 'documents')}
                 >
                   <Paperclip className="mx-auto h-12 w-12 text-gray-400 mb-4" />
                   <p className="text-sm text-gray-600 mb-2">
@@ -620,23 +753,23 @@ export default function CreateProjectPage() {
                     Supports PDF, DOC, DWG, images up to 10MB each
                   </p>
                   <Input
-                    id="project_files"
+                    id="files"
                     type="file"
                     multiple
                     accept=".pdf,.doc,.docx,.dwg,.jpg,.jpeg,.png"
-                    onChange={(e) => handleFileChange('project_files', e.target.files)}
+                    onChange={(e) => handleFileChange(e.target.files, 'documents')}
                     className="mt-4"
                   />
                 </div>
                 
                 {/* Project Files List */}
-                {formData.project_files.length > 0 && (
+                {selectedFiles.length > 0 && (
                   <div className="mt-4">
                     <p className="text-sm font-medium text-gray-700 mb-3">
-                      Selected Files ({formData.project_files.length})
+                      Selected Files ({selectedFiles.length})
                     </p>
                     <div className="space-y-2">
-                      {formData.project_files.map((file, index) => (
+                      {selectedFiles.map((file, index) => (
                         <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                           <div className="flex items-center space-x-3">
                             <FileText className="h-5 w-5 text-gray-400" />
@@ -651,7 +784,7 @@ export default function CreateProjectPage() {
                             type="button"
                             variant="ghost"
                             size="sm"
-                            onClick={() => removeProjectFile(index)}
+                            onClick={() => removeFile(index, 'documents')}
                             className="text-red-500 hover:text-red-700 hover:bg-red-50"
                           >
                             <X className="h-4 w-4" />

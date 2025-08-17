@@ -127,6 +127,7 @@ export const migrationRegistry = new MigrationRegistry()
  */
 export class SupabaseDatabaseClient implements DatabaseClient {
   private supabase: any = null // eslint-disable-line @typescript-eslint/no-explicit-any
+  private clientReady: Promise<void>
 
   constructor() {
     // Check if environment variables are available
@@ -139,24 +140,27 @@ export class SupabaseDatabaseClient implements DatabaseClient {
       console.warn('   NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url')
       console.warn('   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key')
       console.warn('')
+      this.clientReady = Promise.resolve()
       return
     }
 
-    try {
-      // Import Supabase client dynamically to avoid SSR issues
-      import('@supabase/supabase-js').then(({ createClient }) => {
+    // Create a promise that resolves when the client is ready
+    this.clientReady = import('@supabase/supabase-js')
+      .then(({ createClient }) => {
         this.supabase = createClient(supabaseUrl, supabaseKey)
-      }).catch((error) => {
+        console.log('✅ Supabase client created successfully')
+      })
+      .catch((error) => {
         console.error('❌ Failed to create Supabase client:', error)
         console.warn('⚠️  Using mock database client instead.')
+        this.supabase = null
       })
-    } catch (error) {
-      console.error('❌ Failed to create Supabase client:', error)
-      console.warn('⚠️  Using mock database client instead.')
-    }
   }
 
   async execute(sql: string): Promise<void> {
+    // Wait for client to be ready
+    await this.clientReady
+    
     if (!this.supabase) {
       // Mock database client - just log the SQL
       console.log(`📝 Mock Database - Execute SQL:`)
@@ -169,19 +173,44 @@ export class SupabaseDatabaseClient implements DatabaseClient {
 
     // Real database client
     try {
-      const { error } = await this.supabase.rpc('exec_sql', { sql })
-      if (error) {
-        throw new Error(`SQL execution failed: ${error.message}`)
+      console.log(`🚀 Executing SQL on Supabase:`)
+      console.log(sql)
+      console.log('')
+      
+      // Use direct SQL execution instead of RPC
+      const { error } = await this.supabase.from('_exec_sql').select('*').limit(0)
+      if (error && error.message.includes('relation "_exec_sql" does not exist')) {
+        // Fallback: Execute SQL directly using the SQL editor approach
+        console.log('⚠️  Direct SQL execution not available. Please run this SQL manually in Supabase SQL Editor:')
+        console.log('')
+        console.log('```sql')
+        console.log(sql)
+        console.log('```')
+        console.log('')
+        return
       }
+      
+      // If we get here, try the RPC approach
+      const { error: rpcError } = await this.supabase.rpc('exec_sql', { sql })
+      if (rpcError) {
+        throw new Error(`SQL execution failed: ${rpcError.message}`)
+      }
+      console.log('✅ SQL executed successfully')
     } catch (error) {
       console.error('❌ SQL execution failed:', error)
-      console.log('⚠️  Falling back to mock execution. Please run the SQL manually:')
+      console.log('⚠️  Please run this SQL manually in Supabase SQL Editor:')
+      console.log('')
+      console.log('```sql')
       console.log(sql)
+      console.log('```')
       console.log('')
     }
   }
 
   async query<T = unknown>(sql: string): Promise<T[]> {
+    // Wait for client to be ready
+    await this.clientReady
+    
     if (!this.supabase) {
       console.log(`📝 Mock Database - Query SQL: ${sql}`)
       return []
