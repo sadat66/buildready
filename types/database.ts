@@ -70,7 +70,6 @@ export interface Project {
   expiry_date: string
   substantial_completion?: string | null
   decision_date?: string | null
-  permit_required: boolean
   is_verified_project: boolean
   certificate_of_title?: string | null
   project_photos: any[] // Array of file reference objects

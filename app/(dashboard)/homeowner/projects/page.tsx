@@ -56,7 +56,6 @@ export default function HomeownerProjectsPage() {
           end_date,
           expiry_date,
           substantial_completion,
-          permit_required,
           is_verified_project,
           certificate_of_title,
           project_photos,
