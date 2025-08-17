@@ -2,9 +2,9 @@
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { CalendarDays, DollarSign, MapPin, Plus, Eye, ArrowRight, Clock, Users, Star, TrendingUp } from "lucide-react"
+import { CalendarDays, DollarSign, MapPin, Plus, Eye, Edit, ArrowRight, Clock, Users, Star, TrendingUp, Building2, Sparkles, BarChart3, Activity, CheckCircle, XCircle } from "lucide-react"
 import Link from "next/link"
 import { Project } from '@/types/database'
 
@@ -71,24 +71,86 @@ export default function RecentProjects({ projects }: RecentProjectsProps) {
   const recentProjects = projects.slice(0, 5)
 
   return (
-    <div className="space-y-6">
-      {/* Header Section */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
-            Recent Projects
-          </h2>
-          <p className="text-orange-700/70 mt-1">
-            Your latest {recentProjects.length} project activities
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-red-500 rounded-xl flex items-center justify-center shadow-lg">
-            <CalendarDays className="h-6 w-6 text-white" />
+    <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-orange-50 via-amber-50 to-orange-100 border border-orange-200/60 shadow-2xl">
+      {/* Consolidated background decoration - single layer */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-bl from-orange-200/30 to-amber-200/20 rounded-full transform translate-x-40 -translate-y-40"></div>
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-amber-200/20 to-orange-200/30 rounded-full transform -translate-x-32 translate-y-32"></div>
+      </div>
+      
+      <div className="relative p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6">
+        {/* Enhanced Header Section */}
+        <div className="space-y-4 sm:space-y-6">
+          {/* Main Header */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-6">
+            <div className="space-y-2 w-full sm:w-auto">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-orange-400 to-red-500 rounded-lg sm:rounded-xl flex items-center justify-center shadow-lg">
+                  <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+                </div>
+                <div className="text-center sm:text-left">
+                  <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
+                    Recent Projects
+                  </h2>
+                  <p className="text-orange-700/70 text-sm sm:text-lg mt-1">
+                    Track your latest project activities and progress
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <Link href="/homeowner/projects" className="w-full sm:w-auto">
+              <Button className="w-full sm:w-auto bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base">
+                <Eye className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                View All Projects
+              </Button>
+            </Link>
           </div>
-          <Badge className="bg-gradient-to-r from-orange-500 to-red-500 text-white border-0">
-            {projects.length} total
-          </Badge>
+          
+          {/* Statistics Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+            <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200/50 shadow-md hover:shadow-lg transition-all duration-200">
+              <CardContent className="p-3 sm:p-4">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-lg flex items-center justify-center">
+                    <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-xs sm:text-sm font-medium text-blue-700">Total Projects</p>
+                    <p className="text-xl sm:text-2xl font-bold text-blue-900">{projects.length}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200/50 shadow-md hover:shadow-lg transition-all duration-200">
+              <CardContent className="p-3 sm:p-4">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-green-400 to-emerald-500 rounded-lg flex items-center justify-center">
+                    <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-xs sm:text-sm font-medium text-green-700">Accepted Proposals</p>
+                    <p className="text-xl sm:text-2xl font-bold text-green-900">{projects.filter(p => p.status === 'awarded').length}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card className="bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200/50 shadow-md hover:shadow-lg transition-all duration-200 sm:col-span-2 lg:col-span-1">
+              <CardContent className="p-3 sm:p-4">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-purple-400 to-pink-500 rounded-lg flex items-center justify-center">
+                    <XCircle className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-xs sm:text-sm font-medium text-purple-700">Rejected Proposals</p>
+                    <p className="text-xl sm:text-2xl font-bold text-purple-900">{projects.filter(p => p.status === 'cancelled').length}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
 
@@ -118,159 +180,165 @@ export default function RecentProjects({ projects }: RecentProjectsProps) {
               const StatusIcon = getStatusIcon(project.status)
               
               return (
-                <div key={project.id} className="bg-white/80 backdrop-blur-sm rounded-xl border border-orange-200/50 p-6 shadow-lg hover:shadow-xl transition-all duration-200">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-orange-900 mb-2 hover:text-orange-700 transition-colors">
-                        {project.title}
-                      </h3>
-                      <p className="text-orange-600/70 text-sm leading-relaxed mb-3 line-clamp-2">
-                        {project.description}
-                      </p>
+                <Card key={project.id} className="group bg-gradient-to-br from-white to-orange-50/30 border-orange-200/50 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02] overflow-hidden">
+                  <CardContent className="p-6">
+                    {/* Header with project type */}
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Building2 className="h-4 w-4 text-orange-500" />
+                          <span className="text-xs font-medium text-orange-600 bg-orange-100 px-2 py-1 rounded-full">
+                            {project.project_type || 'General'}
+                          </span>
+                        </div>
+                        <h3 className="text-lg font-bold text-orange-900 mb-2 group-hover:text-orange-700 transition-colors line-clamp-1">
+                          {project.project_title}
+                        </h3>
+                        <p className="text-orange-600/70 text-sm leading-relaxed mb-3 line-clamp-2">
+                          {project.description}
+                        </p>
+                      </div>
+                      <div className="ml-4">
+                        <Badge className={`${getStatusBadgeStyle(project.status)} font-medium px-3 py-1 text-xs border shadow-sm`}>
+                          <StatusIcon className="h-3 w-3 mr-1" />
+                          {project.status?.replace('_', ' ') || 'Unknown'}
+                        </Badge>
+                      </div>
                     </div>
-                    <div className="ml-4">
-                      <Badge className={`${getStatusBadgeStyle(project.status)} font-medium px-3 py-1 text-xs border shadow-sm`}>
-                        <StatusIcon className="h-3 w-3 mr-1" />
-                        {project.status?.replace('_', ' ') || 'Unknown'}
-                      </Badge>
+                    
+                    {/* Project details grid */}
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                      <div className="flex items-center gap-2 text-orange-700 bg-orange-50/50 p-2 rounded-lg">
+                        <MapPin className="h-4 w-4 text-orange-500" />
+                        <span className="text-sm font-medium truncate">{project.location || 'Not specified'}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-orange-700 bg-orange-50/50 p-2 rounded-lg">
+                        <DollarSign className="h-4 w-4 text-orange-500" />
+                        <span className="text-sm font-medium truncate">{project.budget ? formatCurrency(project.budget) : 'Not specified'}</span>
+                      </div>
                     </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-4 mb-4">
-                    <div className="flex items-center gap-2 text-orange-700">
-                      <MapPin className="h-4 w-4 text-orange-500" />
-                      <span className="text-sm font-medium">{project.location || 'Not specified'}</span>
+                    
+                    {/* Footer */}
+                    <div className="flex items-center justify-between pt-4 border-t border-orange-100">
+                      <div className="flex items-center gap-2 text-orange-600/80">
+                        <CalendarDays className="h-4 w-4 text-orange-500" />
+                        <span className="text-sm font-medium">{getDaysAgo(project.created_at)}</span>
+                      </div>
+                      <div className="flex gap-2">
+                        <Link href={`/homeowner/projects/edit/${project.id}`}>
+                          <Button 
+                            variant="outline"
+                            size="sm"
+                            className="border-orange-200 text-orange-600 hover:bg-orange-50 transition-all duration-200"
+                          >
+                            Edit
+                          </Button>
+                        </Link>
+                        <Link href={`/homeowner/projects/view/${project.id}`}>
+                          <Button 
+                            size="sm"
+                            className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white shadow-md hover:shadow-lg transition-all duration-200 group"
+                          >
+                            <Eye className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
+                            View
+                          </Button>
+                        </Link>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2 text-orange-700">
-                      <DollarSign className="h-4 w-4 text-orange-500" />
-                      <span className="text-sm font-medium">{project.budget ? formatCurrency(project.budget) : 'Not specified'}</span>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-orange-600/80">
-                      <CalendarDays className="h-4 w-4 text-orange-500" />
-                      <span className="text-sm">{getDaysAgo(project.created_at)}</span>
-                    </div>
-                    <Link href={`/homeowner/projects/view/${project.id}`}>
-                      <Button 
-                        size="sm"
-                        className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white shadow-md hover:shadow-lg transition-all duration-200"
-                      >
-                        <Eye className="h-4 w-4 mr-2" />
-                        View Details
-                      </Button>
-                    </Link>
-                  </div>
-                </div>
+                  </CardContent>
+                </Card>
               )
             })}
           </div>
 
           {/* Enhanced Table for Desktop */}
-          <div className="rounded-xl overflow-hidden border border-orange-200/50 shadow-lg bg-white/80 backdrop-blur-sm">
-            <Table>
-              <TableHeader>
-                                 <TableRow className="bg-gradient-to-r from-orange-100/80 to-amber-100/80 border-orange-200/50 hover:bg-gradient-to-r hover:from-orange-100 hover:to-amber-100">
-                   <TableHead className="font-semibold text-orange-800 py-4 w-32">Project Details</TableHead>
-                   <TableHead className="font-semibold text-orange-800 w-32">Status</TableHead>
-                   <TableHead className="font-semibold text-orange-800 w-40">Location</TableHead>
-                   <TableHead className="font-semibold text-orange-800 w-32">Budget</TableHead>
-                   <TableHead className="font-semibold text-orange-800 w-36">Created</TableHead>
-                   <TableHead className="font-semibold text-orange-800 text-right w-40">Actions</TableHead>
-                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {recentProjects.map((project, index) => {
-                  const StatusIcon = getStatusIcon(project.status)
-                  
-                  return (
-                    <TableRow 
-                      key={project.id} 
-                      className={`border-orange-100/50 hover:bg-gradient-to-r hover:from-orange-50/50 hover:to-amber-50/50 transition-all duration-200 ${
-                        index % 2 === 0 ? 'bg-white/60' : 'bg-orange-25/30'
-                      }`}
-                    >
-                      <TableCell className="py-4">
-                        <div className="space-y-2">
-                          <div className="font-semibold text-orange-900 hover:text-orange-700 transition-colors cursor-pointer">
-                            {project.project_title}
+          <div className="hidden lg:block">
+            <Card className="bg-gradient-to-br from-white to-orange-50/30 border border-orange-200/50 shadow-xl overflow-hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-gradient-to-r from-orange-100 to-red-100 border-orange-200/50 hover:from-orange-150 hover:to-red-150 transition-all">
+                    <TableHead className="text-orange-900 font-bold text-sm">Project Name</TableHead>
+                    <TableHead className="text-orange-900 font-bold text-sm">Type</TableHead>
+                    <TableHead className="text-orange-900 font-bold text-sm">Status</TableHead>
+                    <TableHead className="text-orange-900 font-bold text-sm">Location</TableHead>
+                    <TableHead className="text-orange-900 font-bold text-sm">Budget</TableHead>
+                    <TableHead className="text-orange-900 font-bold text-sm">Created</TableHead>
+                    <TableHead className="text-orange-900 font-bold text-sm text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {recentProjects.map((project, index) => {
+                    const StatusIcon = getStatusIcon(project.status)
+                    
+                    return (
+                      <TableRow key={project.id} className="group hover:bg-gradient-to-r hover:from-orange-50/80 hover:to-red-50/50 transition-all duration-200 border-orange-100/50">
+                        <TableCell className="font-medium text-orange-900">
+                          <div className="flex flex-col space-y-1">
+                            <span className="font-bold text-base group-hover:text-orange-700 transition-colors">{project.project_title}</span>
+                            <span className="text-sm text-orange-600/70 line-clamp-1 leading-relaxed">{project.description}</span>
                           </div>
-                          <div className="text-sm text-orange-600/70 line-clamp-2 max-w-xs">
-                            {project.description}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2 bg-orange-50/50 px-3 py-2 rounded-full w-fit">
+                            <Building2 className="h-4 w-4 text-orange-500" />
+                            <span className="text-sm font-medium text-orange-700">{project.project_type || 'General'}</span>
                           </div>
-                          <div className="flex items-center gap-2 text-xs text-orange-500">
-                            <Users className="h-3 w-3" />
-                            <span>Project ID: {project.id}</span>
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={`${getStatusBadgeStyle(project.status)} font-semibold px-3 py-2 text-xs border shadow-md hover:shadow-lg transition-all`}>
+                            <StatusIcon className="h-3 w-3 mr-1" />
+                            {project.status?.replace('_', ' ') || 'Unknown'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-orange-700">
+                          <div className="flex items-center gap-2 bg-orange-50/30 px-3 py-2 rounded-lg w-fit">
+                            <MapPin className="h-4 w-4 text-orange-500" />
+                            <span className="text-sm font-medium">{project.location || 'Not specified'}</span>
                           </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={`${getStatusBadgeStyle(project.status)} font-medium px-3 py-1 text-xs border shadow-sm flex items-center gap-1 w-fit`}>
-                          <StatusIcon className="h-3 w-3" />
-                          {project.status?.replace('_', ' ') || 'Unknown'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2 text-orange-700">
-                          <MapPin className="h-4 w-4 text-orange-500" />
-                          <span className="text-sm font-medium">{project.location || 'Not specified'}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2 text-orange-700">
-                          <DollarSign className="h-4 w-4 text-orange-500" />
-                          <span className="font-medium">{project.budget ? formatCurrency(project.budget) : 'Not specified'}</span>
-                        </div>
-                      </TableCell>
-                                             <TableCell>
-                         <div className="flex items-center gap-2">
-                           <CalendarDays className="h-4 w-4 text-orange-500" />
-                           <span className="text-sm font-medium">{formatDate(project.created_at)}</span>
-                         </div>
-                       </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <Link href={`/homeowner/projects/view/${project.id}`}>
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              className="text-orange-600 hover:text-orange-700 hover:bg-orange-100/50 transition-all duration-200 group"
-                            >
-                              <Eye className="h-4 w-4 mr-1 group-hover:scale-110 transition-transform" />
-                              View
-                            </Button>
-                          </Link>
-                          <Link href={`/homeowner/projects/edit/${project.id}`}>
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              className="border-orange-200 text-orange-600 hover:bg-orange-50 transition-all duration-200"
-                            >
-                              Edit
-                            </Button>
-                          </Link>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  )
-                })}
-              </TableBody>
-            </Table>
+                        </TableCell>
+                        <TableCell className="text-orange-700">
+                          <div className="flex items-center gap-2 bg-green-50/50 px-3 py-2 rounded-lg w-fit">
+                            <DollarSign className="h-4 w-4 text-green-600" />
+                            <span className="text-sm font-bold text-green-700">{project.budget ? formatCurrency(project.budget) : 'Not specified'}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-orange-600/80">
+                          <div className="flex items-center gap-2 bg-blue-50/50 px-3 py-2 rounded-lg w-fit">
+                            <CalendarDays className="h-4 w-4 text-blue-500" />
+                            <span className="text-sm font-medium text-blue-700">{getDaysAgo(project.created_at)}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-3">
+                            <Link href={`/homeowner/projects/view/${project.id}`}>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                className="border-orange-200 text-orange-600 hover:bg-orange-50 hover:border-orange-300 transition-all duration-200 shadow-sm hover:shadow-md group"
+                              >
+                                <Eye className="h-4 w-4 mr-1 group-hover:scale-110 transition-transform" />
+                                View
+                              </Button>
+                            </Link>
+                            <Link href={`/homeowner/projects/edit/${project.id}`}>
+                              <Button 
+                                 size="sm"
+                                 className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white shadow-md hover:shadow-lg transition-all duration-200 group"
+                               >
+                                 <Edit className="h-4 w-4 mr-1 group-hover:scale-110 transition-transform" />
+                                 Edit
+                               </Button>
+                            </Link>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })}
+                </TableBody>
+              </Table>
+            </Card>
           </div>
           
-                     {/* Enhanced View All Projects Button */}
-           <div className="flex justify-end pt-4">
-             <Link href="/homeowner/projects">
-               <Button 
-                 className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 px-6 py-2 text-sm font-semibold rounded-lg"
-               >
-                 <Eye className="mr-2 h-4 w-4" />
-                 View All
-                 <ArrowRight className="ml-2 h-4 w-4" />
-               </Button>
-             </Link>
-           </div>
         </div>
       )}
     </div>

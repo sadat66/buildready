@@ -85,15 +85,15 @@ export default function HomeownerDashboard({ userEmail }: HomeownerDashboardProp
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-orange-100">
-        {/* Background decorative elements */}
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-orange-100 relative">
+        {/* Single consolidated background layer */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-orange-200/20 to-transparent rounded-full transform -translate-x-48 -translate-y-48"></div>
           <div className="absolute top-1/3 right-0 w-80 h-80 bg-gradient-to-bl from-amber-200/20 to-transparent rounded-full transform translate-x-40"></div>
           <div className="absolute bottom-0 left-1/3 w-64 h-64 bg-gradient-to-tr from-red-200/20 to-transparent rounded-full transform translate-y-32"></div>
         </div>
         
-        <div className="relative z-10 flex items-center justify-center min-h-screen">
+        <div className="relative flex items-center justify-center min-h-screen">
           <div className="text-center space-y-8">
             {/* Enhanced Loading Spinner */}
             <div className="relative">
@@ -148,21 +148,20 @@ export default function HomeownerDashboard({ userEmail }: HomeownerDashboardProp
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-orange-100">
-      {/* Background decorative elements */}
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-orange-100 relative">
+      {/* Single consolidated background layer - no z-index conflicts */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-orange-200/20 to-transparent rounded-full transform -translate-x-48 -translate-y-48"></div>
         <div className="absolute top-1/3 right-0 w-80 h-80 bg-gradient-to-bl from-amber-200/20 to-transparent rounded-full transform translate-x-40"></div>
         <div className="absolute bottom-0 left-1/3 w-64 h-64 bg-gradient-to-tr from-red-200/20 to-transparent rounded-full transform translate-y-32"></div>
       </div>
       
-      <div className="relative z-10 space-y-8 p-8">
+      {/* Main content with proper layering */}
+      <div className="relative space-y-8 p-8">
         <UserGreeting userEmail={userEmail} />
         <QuickActions proposalsCount={proposalsCount} />
         <ProjectStats stats={projectStats} />
         <RecentProjects projects={projects} />
-        
-
       </div>
     </div>
   )

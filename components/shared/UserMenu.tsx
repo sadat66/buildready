@@ -9,14 +9,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from '@/components/ui/avatar'
 import { useAuth } from '@/contexts/AuthContext'
 import Link from 'next/link'
 import { capitalizeWords } from '@/lib/helpers'
+import RandomAvatar from '@/components/ui/random-avatar'
 
 export default function UserMenu() {
   const { user, signOut } = useAuth()
@@ -30,33 +26,17 @@ export default function UserMenu() {
     return null
   }
 
-  // Get user initials for avatar fallback
-  const getUserInitials = () => {
-    if (user?.user_metadata?.full_name) {
-      const names = user.user_metadata.full_name.split(' ')
-      if (names.length >= 2) {
-        return `${names[0][0]}${names[1][0]}`.toUpperCase()
-      }
-      return names[0][0].toUpperCase()
-    }
-    if (user?.email) {
-      return user.email[0].toUpperCase()
-    }
-    return 'U'
-  }
+
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <div className="relative group">
-          <Avatar className="h-12 w-12 cursor-pointer ring-2 ring-orange-200 hover:ring-orange-400 transition-all duration-300 hover:scale-110 shadow-lg hover:shadow-xl">
-            <AvatarImage src={user?.user_metadata?.avatar_url || "https://github.com/shadcn.png"} />
-            <AvatarFallback className="bg-gradient-to-br from-orange-400 to-red-500 text-white font-bold text-lg shadow-inner">
-              {getUserInitials()}
-            </AvatarFallback>
-          </Avatar>
-          {/* Online status indicator */}
-          <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full border-2 border-white shadow-sm"></div>
+          <RandomAvatar 
+            name={user?.full_name || user?.user_metadata?.full_name || user?.email || "User"}
+            size={48}
+            className="cursor-pointer ring-2 ring-orange-200 hover:ring-orange-400 transition-all duration-300 hover:scale-110 shadow-lg hover:shadow-xl"
+          />
         </div>
       </DropdownMenuTrigger>
       
@@ -67,31 +47,20 @@ export default function UserMenu() {
           <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-orange-200/30 to-transparent rounded-full transform translate-x-6 -translate-y-6"></div>
           <div className="absolute bottom-0 left-0 w-16 h-16 bg-gradient-to-tr from-amber-200/20 to-transparent rounded-full transform -translate-x-4 translate-y-4"></div>
           
-          {/* Role Badge - Enhanced */}
-          <div className="absolute top-2 right-2">
-            <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-gradient-to-r from-orange-500 to-red-500 text-white capitalize shadow-lg">
-              {user?.user_metadata?.role || user?.user_role || "User"}
-            </span>
-          </div>
-          
           {/* User Info - Enhanced */}
-          <div className="relative z-10 flex flex-col space-y-2 pr-12">
+          <div className="relative z-10 flex flex-col space-y-3">
             <div className="flex items-center space-x-2">
               <div className="w-2 h-2 bg-gradient-to-r from-orange-400 to-red-400 rounded-full shadow-sm"></div>
               <p className="text-lg font-bold leading-tight text-gray-800 truncate">
-                {capitalizeWords(user?.user_metadata?.full_name) || "User"}
+                {capitalizeWords(user?.full_name || user?.user_metadata?.full_name) || "User"}
               </p>
             </div>
+            {/* Role Badge - Moved under name */}
             <div className="flex items-center space-x-2">
               <div className="w-1.5 h-1.5 bg-orange-300 rounded-full"></div>
-              <p className="text-sm leading-tight text-gray-600 truncate">
-                {user?.email}
-              </p>
-            </div>
-            {/* Status indicator */}
-            <div className="flex items-center space-x-2 mt-1">
-              <div className="w-1 h-1 bg-green-400 rounded-full animate-pulse"></div>
-              <p className="text-xs text-green-600 font-medium">Online</p>
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-orange-500 to-red-500 text-white capitalize shadow-sm">
+                {user?.user_role || user?.user_metadata?.role || "User"}
+              </span>
             </div>
           </div>
         </DropdownMenuLabel>
