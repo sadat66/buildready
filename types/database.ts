@@ -57,6 +57,7 @@ export interface Project {
   latitude?: number
   longitude?: number
   category: string | string[]
+  project_type?: 'New Build' | 'Renovation' | 'Maintenance' | 'Repair' | 'Inspection'
   status: 'open' | 'bidding' | 'awarded' | 'completed' | 'cancelled'
   deadline?: string
   proposal_deadline: string
