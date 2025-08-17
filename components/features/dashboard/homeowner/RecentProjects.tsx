@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { CalendarDays, DollarSign, MapPin, Plus, Eye, Edit, ArrowRight, Clock, Users, Star, TrendingUp, Building2, Sparkles, BarChart3, Activity, CheckCircle, XCircle } from "lucide-react"
+import { CalendarDays, DollarSign, MapPin, Plus, Eye, Edit, Clock, Star, TrendingUp, Building2, Sparkles, BarChart3, CheckCircle, XCircle } from "lucide-react"
 import Link from "next/link"
 import { Project } from '@/types/database'
 
@@ -14,24 +14,26 @@ interface RecentProjectsProps {
 
 function getStatusBadgeStyle(status: string) {
   const badgeStyles = {
-    'open': 'bg-gradient-to-r from-emerald-100 to-green-100 text-emerald-800 border-emerald-200',
-    'bidding': 'bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800 border-blue-200',
-    'in_progress': 'bg-gradient-to-r from-amber-100 to-orange-100 text-amber-800 border-amber-200',
-    'completed': 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border-green-200',
-    'cancelled': 'bg-gradient-to-r from-red-100 to-rose-100 text-red-800 border-red-200',
-    'awarded': 'bg-gradient-to-r from-purple-100 to-pink-100 text-purple-800 border-purple-200'
+    'Draft': 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border-gray-300',
+    'Published': 'bg-gradient-to-r from-emerald-100 to-green-100 text-emerald-800 border-emerald-200',
+    'Bidding': 'bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800 border-blue-200',
+    'Awarded': 'bg-gradient-to-r from-purple-100 to-pink-100 text-purple-800 border-pink-200',
+    'In Progress': 'bg-gradient-to-r from-amber-100 to-orange-100 text-amber-800 border-amber-200',
+    'Completed': 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border-emerald-200',
+    'Cancelled': 'bg-gradient-to-r from-red-100 to-rose-100 text-red-800 border-rose-200'
   }
   return badgeStyles[status as keyof typeof badgeStyles] || 'bg-gray-100 text-gray-800 border-gray-200'
 }
 
 function getStatusIcon(status: string) {
   const icons = {
-    'open': Clock,
-    'bidding': TrendingUp,
-    'in_progress': TrendingUp,
-    'completed': Star,
-    'cancelled': Clock, // Using Clock instead of emoji
-    'awarded': Star     // Using Star instead of emoji
+    'Draft': Clock,
+    'Published': Clock,
+    'Bidding': TrendingUp,
+    'Awarded': Star,
+    'In Progress': TrendingUp,
+    'Completed': Star,
+    'Cancelled': XCircle
   }
   return icons[status as keyof typeof icons] || Clock
 }
@@ -45,13 +47,7 @@ function formatCurrency(amount: number) {
   }).format(amount)
 }
 
-function formatDate(dateString: string) {
-  return new Date(dateString).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric'
-  })
-}
+
 
 function getDaysAgo(dateString: string) {
   const date = new Date(dateString)
@@ -131,7 +127,7 @@ export default function RecentProjects({ projects }: RecentProjectsProps) {
                   </div>
                   <div>
                     <p className="text-xs sm:text-sm font-medium text-green-700">Accepted Proposals</p>
-                    <p className="text-xl sm:text-2xl font-bold text-green-900">{projects.filter(p => p.status === 'awarded').length}</p>
+                                         <p className="text-xl sm:text-2xl font-bold text-green-900">{projects.filter(p => p.status === 'Awarded').length}</p>
                   </div>
                 </div>
               </CardContent>
@@ -145,7 +141,7 @@ export default function RecentProjects({ projects }: RecentProjectsProps) {
                   </div>
                   <div>
                     <p className="text-xs sm:text-sm font-medium text-purple-700">Rejected Proposals</p>
-                    <p className="text-xl sm:text-2xl font-bold text-purple-900">{projects.filter(p => p.status === 'cancelled').length}</p>
+                                         <p className="text-xl sm:text-2xl font-bold text-purple-900">{projects.filter(p => p.status === 'Cancelled').length}</p>
                   </div>
                 </div>
               </CardContent>
@@ -163,7 +159,7 @@ export default function RecentProjects({ projects }: RecentProjectsProps) {
           <h3 className="text-2xl font-bold text-orange-800 mb-3">No projects yet</h3>
           <p className="text-orange-600/80 mb-8 max-w-md mx-auto text-lg leading-relaxed">
             Start your first project and connect with skilled contractors in your area. 
-            It's time to bring your home improvement dreams to life!
+            It&apos;s time to bring your home improvement dreams to life!
           </p>
           <Link href="/homeowner/projects/create">
             <Button className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 px-8 py-3 text-lg">
@@ -176,7 +172,7 @@ export default function RecentProjects({ projects }: RecentProjectsProps) {
         <div className="space-y-6">
           {/* Enhanced Project Cards for Mobile */}
           <div className="block lg:hidden space-y-4">
-            {recentProjects.map((project, index) => {
+            {recentProjects.map((project) => {
               const StatusIcon = getStatusIcon(project.status)
               
               return (
@@ -194,9 +190,9 @@ export default function RecentProjects({ projects }: RecentProjectsProps) {
                         <h3 className="text-lg font-bold text-orange-900 mb-2 group-hover:text-orange-700 transition-colors line-clamp-1">
                           {project.project_title}
                         </h3>
-                        <p className="text-orange-600/70 text-sm leading-relaxed mb-3 line-clamp-2">
-                          {project.description}
-                        </p>
+                                                 <p className="text-orange-600/70 text-sm leading-relaxed mb-3 line-clamp-2">
+                           {project.statement_of_work}
+                         </p>
                       </div>
                       <div className="ml-4">
                         <Badge className={`${getStatusBadgeStyle(project.status)} font-medium px-3 py-1 text-xs border shadow-sm`}>
@@ -210,7 +206,7 @@ export default function RecentProjects({ projects }: RecentProjectsProps) {
                     <div className="grid grid-cols-2 gap-4 mb-4">
                       <div className="flex items-center gap-2 text-orange-700 bg-orange-50/50 p-2 rounded-lg">
                         <MapPin className="h-4 w-4 text-orange-500" />
-                        <span className="text-sm font-medium truncate">{project.location || 'Not specified'}</span>
+                                                 <span className="text-sm font-medium truncate">{project.location_address || 'Not specified'}</span>
                       </div>
                       <div className="flex items-center gap-2 text-orange-700 bg-orange-50/50 p-2 rounded-lg">
                         <DollarSign className="h-4 w-4 text-orange-500" />
@@ -267,7 +263,7 @@ export default function RecentProjects({ projects }: RecentProjectsProps) {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {recentProjects.map((project, index) => {
+                  {recentProjects.map((project) => {
                     const StatusIcon = getStatusIcon(project.status)
                     
                     return (
@@ -275,7 +271,7 @@ export default function RecentProjects({ projects }: RecentProjectsProps) {
                         <TableCell className="font-medium text-orange-900">
                           <div className="flex flex-col space-y-1">
                             <span className="font-bold text-base group-hover:text-orange-700 transition-colors">{project.project_title}</span>
-                            <span className="text-sm text-orange-600/70 line-clamp-1 leading-relaxed">{project.description}</span>
+                            <span className="text-sm text-orange-600/70 line-clamp-1 leading-relaxed">{project.statement_of_work}</span>
                           </div>
                         </TableCell>
                         <TableCell>
@@ -293,7 +289,7 @@ export default function RecentProjects({ projects }: RecentProjectsProps) {
                         <TableCell className="text-orange-700">
                           <div className="flex items-center gap-2 bg-orange-50/30 px-3 py-2 rounded-lg w-fit">
                             <MapPin className="h-4 w-4 text-orange-500" />
-                            <span className="text-sm font-medium">{project.location || 'Not specified'}</span>
+                                                         <span className="text-sm font-medium">{project.location_address || 'Not specified'}</span>
                           </div>
                         </TableCell>
                         <TableCell className="text-orange-700">

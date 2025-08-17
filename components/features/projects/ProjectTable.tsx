@@ -43,18 +43,18 @@ export default function ProjectTable({ projects, onProjectClick }: ProjectTableP
           <div className="space-y-1">
             <div className="font-medium">{row.original.project_title}</div>
             <div className="text-sm text-muted-foreground line-clamp-2">
-              {row.original.description}
+              {row.original.statement_of_work}
             </div>
           </div>
         ),
         size: 300,
       }),
-      columnHelper.accessor('location', {
+      columnHelper.accessor('location_address', {
         header: 'Location',
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
             <MapPin className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm">{row.original.location || 'Not specified'}</span>
+            <span className="text-sm">{row.original.location_address || 'Not specified'}</span>
           </div>
         ),
         size: 200,
@@ -80,7 +80,7 @@ export default function ProjectTable({ projects, onProjectClick }: ProjectTableP
         ),
         size: 150,
       }),
-      columnHelper.accessor('proposal_deadline', {
+      columnHelper.accessor('expiry_date', {
         header: ({ column }) => (
           <Button
             variant="ghost"
@@ -95,8 +95,8 @@ export default function ProjectTable({ projects, onProjectClick }: ProjectTableP
           <div className="flex items-center gap-2">
             <Calendar className="h-4 w-4 text-muted-foreground" />
             <span className="text-sm">
-              {row.original.proposal_deadline 
-                ? new Date(row.original.proposal_deadline).toLocaleDateString()
+              {row.original.expiry_date 
+                ? new Date(row.original.expiry_date).toLocaleDateString()
                 : 'Not specified'
               }
             </span>
@@ -109,13 +109,13 @@ export default function ProjectTable({ projects, onProjectClick }: ProjectTableP
         cell: ({ row }) => {
           const status = row.original.status
           const statusConfig = {
-            open: { label: 'Open', variant: 'default' as const, color: 'bg-green-100 text-green-800' },
-            in_progress: { label: 'In Progress', variant: 'secondary' as const, color: 'bg-blue-100 text-blue-800' },
-            completed: { label: 'Completed', variant: 'outline' as const, color: 'bg-gray-100 text-gray-800' },
-            cancelled: { label: 'Cancelled', variant: 'destructive' as const, color: 'bg-red-100 text-red-800' },
+            Published: { label: 'Published', variant: 'default' as const, color: 'bg-green-100 text-green-800' },
+            'In Progress': { label: 'In Progress', variant: 'secondary' as const, color: 'bg-blue-100 text-blue-800' },
+            Completed: { label: 'Completed', variant: 'outline' as const, color: 'bg-gray-100 text-gray-800' },
+            Cancelled: { label: 'Cancelled', variant: 'destructive' as const, color: 'bg-red-100 text-red-800' },
           }
           
-          const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.open
+          const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.Published
           
           return (
             <Badge variant={config.variant} className={config.color}>

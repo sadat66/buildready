@@ -76,7 +76,7 @@ export const migration_011_update_projects_schema: Migration = {
       ADD COLUMN IF NOT EXISTS location TEXT,
       ADD COLUMN IF NOT EXISTS certificate_of_title TEXT,
       ADD COLUMN IF NOT EXISTS project_type project_type,
-      ADD COLUMN IF NOT EXISTS status project_status DEFAULT 'Draft',
+      ADD COLUMN IF NOT EXISTS status project_status DEFAULT 'Published',
       ADD COLUMN IF NOT EXISTS visibility_settings visibility_settings DEFAULT 'Public',
       ADD COLUMN IF NOT EXISTS start_date DATE,
       ADD COLUMN IF NOT EXISTS end_date DATE,

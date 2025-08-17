@@ -13,11 +13,11 @@ export const migration_002_proposal_resubmission: Migration = {
   id: '002_proposal_resubmission',
   name: 'Allow contractors to resubmit proposals after rejection',
   version: 2,
-  up: async (db: DatabaseClient) => {
+  up: async (_db: DatabaseClient) => {
     // Migration logic here
     console.log('Running migration: 002_proposal_resubmission')
   },
-  down: async (db: DatabaseClient) => {
+  down: async (_db: DatabaseClient) => {
     // Rollback logic here
     console.log('Rolling back migration: 002_proposal_resubmission')
   }

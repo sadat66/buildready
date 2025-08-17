@@ -19,7 +19,7 @@ export const projectSchema = z.object({
   location: validationPatterns.geospatialLocation, // Updated to handle geospatial data
   certificate_of_title: validationPatterns.optionalUrl,
   project_type: projectTypeEnum,
-  status: projectStatusEnum.default('Draft'),
+  status: projectStatusEnum.default('Published'),
   visibility_settings: visibilitySettingsEnum.default('Public'),
   start_date: z.date(),
   end_date: z.date(),
@@ -37,7 +37,6 @@ export type ProjectType = z.infer<typeof projectTypeEnum>
 export type ProjectStatus = z.infer<typeof projectStatusEnum>
 export type VisibilitySettings = z.infer<typeof visibilitySettingsEnum>
 export type TradeCategory = z.infer<typeof tradeCategoryEnum>
-export type GeospatialLocation = z.infer<typeof validationPatterns.geospatialLocation>
-export type FileReference = z.infer<typeof validationPatterns.fileReference>
+
 
 export const validateProject = (data: unknown): Project => projectSchema.parse(data)

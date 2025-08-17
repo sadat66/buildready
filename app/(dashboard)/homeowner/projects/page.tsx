@@ -36,7 +36,36 @@ export default function HomeownerProjectsPage() {
       
       try {
         const supabase = createClient()
-        let query = supabase.from('projects').select('*')
+        let query = supabase.from('projects').select(`
+          id,
+          project_title,
+          statement_of_work,
+          budget,
+          category,
+          pid,
+          location_address,
+          location_city,
+          location_province,
+          location_postal_code,
+          location_latitude,
+          location_longitude,
+          project_type,
+          status,
+          visibility_settings,
+          start_date,
+          end_date,
+          expiry_date,
+          substantial_completion,
+          permit_required,
+          is_verified_project,
+          certificate_of_title,
+          project_photos,
+          files,
+          creator,
+          proposal_count,
+          created_at,
+          updated_at
+        `)
         
         // Get user role from metadata
         const userRole = user.user_metadata?.role || 'homeowner'
@@ -46,7 +75,7 @@ export default function HomeownerProjectsPage() {
         if (userRole === 'homeowner') {
           query = query.eq('creator', user.id)
         } else if (userRole === 'contractor') {
-          query = query.eq('status', 'open')
+          query = query.eq('status', 'Published')
         }
         
         const { data, error: fetchError } = await query.order('created_at', { ascending: false })
@@ -99,13 +128,16 @@ export default function HomeownerProjectsPage() {
 
   return (
     <div className="space-y-6">
-      <Breadcrumbs />
+      <div>
+        <Breadcrumbs
+          items={[
+            { label: 'Dashboard', href: '/homeowner/dashboard' },
+            { label: 'Projects', href: '/homeowner/projects' }
+          ]}
+        />
+      </div>
 
-      {/* Enhanced Projects Page Component */}
-      <ProjectsPage 
-        projects={projects}
-        userRole={user?.user_metadata?.role || 'homeowner'}
-      />
+      <ProjectsPage projects={projects} userRole={user?.user_metadata?.role || 'homeowner'} />
     </div>
   )
 }

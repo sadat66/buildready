@@ -56,7 +56,7 @@ export default function ProjectCard({ projects, onProjectClick }: ProjectCardPro
                     {project.project_title}
                   </CardTitle>
                   <CardDescription className="line-clamp-2 text-sm">
-                    {project.description || 'No description available'}
+                    {project.statement_of_work || 'No description available'}
                   </CardDescription>
                 </div>
                 <Badge variant={statusConfig.variant} className={statusConfig.color}>
@@ -67,10 +67,10 @@ export default function ProjectCard({ projects, onProjectClick }: ProjectCardPro
             
             <CardContent className="space-y-4">
               {/* Location */}
-              {project.location && (
+              {project.location_address && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <MapPin className="h-4 w-4 flex-shrink-0" />
-                  <span className="line-clamp-1">{project.location}</span>
+                  <span className="line-clamp-1">{project.location_address}</span>
                 </div>
               )}
               
@@ -81,10 +81,10 @@ export default function ProjectCard({ projects, onProjectClick }: ProjectCardPro
               </div>
               
               {/* Deadline */}
-              {project.proposal_deadline && (
+              {project.expiry_date && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Calendar className="h-4 w-4 flex-shrink-0" />
-                  <span>Due: {formatDate(project.proposal_deadline)}</span>
+                  <span>Due: {formatDate(project.expiry_date)}</span>
                 </div>
               )}
               

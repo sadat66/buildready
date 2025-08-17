@@ -2,9 +2,7 @@ import { z } from 'zod'
 import { 
   projectTypeEnum, 
   visibilitySettingsEnum, 
-  tradeCategoryEnum,
-  GeospatialLocation,
-  FileReference
+  tradeCategoryEnum
 } from '@/lib/database/schemas/projects'
 
 // Create Project Form Schema - Essential fields only for initial project creation

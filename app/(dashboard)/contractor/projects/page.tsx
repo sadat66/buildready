@@ -89,9 +89,9 @@ export default function ContractorProjectsPage() {
 
   const filteredProjects = projects.filter(project => {
     const matchesSearch = project.project_title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        project.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        project.location?.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesCategory = categoryFilter === 'all' || project.category === categoryFilter
+        project.statement_of_work?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        project.location_address?.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesCategory = categoryFilter === 'all' || project.category?.includes(categoryFilter)
     return matchesSearch && matchesCategory
   })
 
@@ -183,11 +183,11 @@ export default function ContractorProjectsPage() {
                 <div className="flex-1">
                   <CardTitle className="text-xl">{project.project_title}</CardTitle>
                   <CardDescription className="text-sm mt-2">
-                    {project.description}
+                    {project.statement_of_work}
                   </CardDescription>
                 </div>
                 <Badge variant="outline" className="ml-2 capitalize">
-                  {Array.isArray(project.category) ? project.category.join(', ') : (typeof project.category === 'string' ? project.category.replace('_', ' ') : 'Not specified')}
+                  {Array.isArray(project.category) ? project.category.join(', ') : 'Not specified'}
                 </Badge>
               </div>
             </CardHeader>
@@ -196,7 +196,7 @@ export default function ContractorProjectsPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                 <div className="flex items-center gap-2">
                   <MapPin className="h-4 w-4 text-gray-500" />
-                  <span>{project.location}</span>
+                  <span>{project.location_address || 'Not specified'}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <DollarSign className="h-4 w-4 text-gray-500" />
@@ -204,7 +204,7 @@ export default function ContractorProjectsPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4 text-gray-500" />
-                  <span>Deadline: {formatDate(project.proposal_deadline)}</span>
+                  <span>Deadline: {formatDate(project.expiry_date)}</span>
                 </div>
               </div>
 

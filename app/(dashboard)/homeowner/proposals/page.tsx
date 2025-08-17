@@ -190,7 +190,7 @@ export default function HomeownerProposalsPage() {
   }
 
   const filteredProposals = proposals.filter(proposal => {
-    const matchesSearch = proposal.projects?.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch = proposal.projects?.project_title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          proposal.users?.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          proposal.description?.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesStatus = statusFilter === 'all' || proposal.status === statusFilter
@@ -315,9 +315,9 @@ export default function HomeownerProposalsPage() {
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <CardTitle className="text-xl flex items-center gap-2">
-                    {proposal.projects?.title}
+                    {proposal.projects?.project_title}
                     <Badge variant="outline" className="capitalize">
-                      {proposal.projects?.category?.replace('_', ' ')}
+                      {Array.isArray(proposal.projects?.category) ? proposal.projects.category.join(', ') : 'Not specified'}
                     </Badge>
                   </CardTitle>
                   <CardDescription className="text-sm mt-2">

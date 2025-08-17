@@ -1,6 +1,9 @@
 -- Fix RLS Policies for BuildReady Platform - Updated for new schema
 -- Run this script in your Supabase SQL Editor to fix the RLS policies
 -- This addresses the schema change from homeowner_id to creator field
+-- 
+-- IMPORTANT: Run this AFTER running the 011_update_projects_schema.sql migration
+-- This script will clean up and recreate all RLS policies to ensure consistency
 
 -- First, let's check if RLS is enabled and what policies exist
 SELECT schemaname, tablename, rowsecurity 
@@ -32,6 +35,33 @@ DROP POLICY IF EXISTS "Users can insert reviews for involved projects" ON public
 DROP POLICY IF EXISTS "Users can view involved messages" ON public.messages;
 DROP POLICY IF EXISTS "Users can send messages" ON public.messages;
 
+-- Create a helper function to check if a user is a homeowner
+CREATE OR REPLACE FUNCTION is_homeowner(user_id UUID)
+RETURNS BOOLEAN AS $$
+BEGIN
+    -- Try different possible column names for user role
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'users' AND column_name = 'user_metadata') THEN
+        RETURN EXISTS (
+            SELECT 1 FROM public.users 
+            WHERE id = user_id AND user_metadata->>'role' = 'homeowner'
+        );
+    ELSIF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'users' AND column_name = 'user_role') THEN
+        RETURN EXISTS (
+            SELECT 1 FROM public.users 
+            WHERE id = user_id AND user_role = 'homeowner'
+        );
+    ELSIF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'users' AND column_name = 'role') THEN
+        RETURN EXISTS (
+            SELECT 1 FROM public.users 
+            WHERE id = user_id AND role = 'homeowner'
+        );
+    ELSE
+        -- If we can't determine role, allow the operation (fallback)
+        RETURN true;
+    END IF;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
 -- Create RLS policies for Users table
 CREATE POLICY "Users can view own profile" ON public.users
     FOR SELECT USING (auth.uid() = id);
@@ -51,9 +81,11 @@ CREATE POLICY "Anyone can view published projects" ON public.projects
 CREATE POLICY "Creators can view own projects" ON public.projects
     FOR SELECT USING (auth.uid() = creator);
 
--- Allow project creators to insert their own projects
+-- Allow project creators to insert their own projects (with homeowner role check)
 CREATE POLICY "Creators can insert own projects" ON public.projects
-    FOR INSERT WITH CHECK (auth.uid() = creator);
+    FOR INSERT WITH CHECK (
+        auth.uid() = creator AND is_homeowner(auth.uid())
+    );
 
 -- Allow project creators to update their own projects
 CREATE POLICY "Creators can update own projects" ON public.projects
