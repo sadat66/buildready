@@ -131,7 +131,7 @@ export default function RecentProjects({ projects }: RecentProjectsProps) {
                     <div className="ml-4">
                       <Badge className={`${getStatusBadgeStyle(project.status)} font-medium px-3 py-1 text-xs border shadow-sm`}>
                         <StatusIcon className="h-3 w-3 mr-1" />
-                        {project.status.replace('_', ' ')}
+                        {project.status?.replace('_', ' ') || 'Unknown'}
                       </Badge>
                     </div>
                   </div>
@@ -194,7 +194,7 @@ export default function RecentProjects({ projects }: RecentProjectsProps) {
                       <TableCell className="py-4">
                         <div className="space-y-2">
                           <div className="font-semibold text-orange-900 hover:text-orange-700 transition-colors cursor-pointer">
-                            {project.title}
+                            {project.project_title}
                           </div>
                           <div className="text-sm text-orange-600/70 line-clamp-2 max-w-xs">
                             {project.description}
@@ -208,7 +208,7 @@ export default function RecentProjects({ projects }: RecentProjectsProps) {
                       <TableCell>
                         <Badge className={`${getStatusBadgeStyle(project.status)} font-medium px-3 py-1 text-xs border shadow-sm flex items-center gap-1 w-fit`}>
                           <StatusIcon className="h-3 w-3" />
-                          {project.status.replace('_', ' ')}
+                          {project.status?.replace('_', ' ') || 'Unknown'}
                         </Badge>
                       </TableCell>
                       <TableCell>

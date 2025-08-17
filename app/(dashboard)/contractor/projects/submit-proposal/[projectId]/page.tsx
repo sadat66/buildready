@@ -65,7 +65,7 @@ export default function SubmitProposalPage() {
           .from('projects')
           .select(`
             *,
-            homeowner:users!homeowner_id(
+            homeowner:users!creator(
               full_name
             )
           `)
@@ -285,7 +285,7 @@ export default function SubmitProposalPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label className="text-sm font-medium text-gray-600">Category</Label>
-              <p className="text-sm">{project.category.replace('_', ' ')}</p>
+              <p className="text-sm">{Array.isArray(project.category) ? project.category.join(', ') : (typeof project.category === 'string' ? project.category.replace('_', ' ') : 'Not specified')}</p>
             </div>
             <div>
               <Label className="text-sm font-medium text-gray-600">Location</Label>

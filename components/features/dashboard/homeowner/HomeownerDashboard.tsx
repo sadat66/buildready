@@ -36,7 +36,7 @@ export default function HomeownerDashboard({ userEmail }: HomeownerDashboardProp
         const { data: projectsData, error: projectsError } = await supabase
           .from('projects')
           .select('*')
-          .eq('homeowner_id', currentUser.id)
+          .eq('creator', currentUser.id)
           .order('created_at', { ascending: false })
         
         if (projectsError) {

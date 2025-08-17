@@ -75,7 +75,7 @@ export default function EditProjectPage() {
           .from('projects')
           .select('*')
           .eq('id', id)
-          .eq('homeowner_id', user.id)
+          .eq('creator', user.id)
           .single()
         
         if (fetchError) {
@@ -84,9 +84,9 @@ export default function EditProjectPage() {
         
         if (data) {
           setFormData({
-            title: data.title || '',
+            title: data.project_title || '',
             description: data.description || '',
-            category: data.category || '',
+            category: Array.isArray(data.category) ? data.category.join(', ') : (data.category || ''),
             location: data.location || '',
             latitude: data.latitude || null,
             longitude: data.longitude || null,
@@ -189,7 +189,7 @@ export default function EditProjectPage() {
           updated_at: new Date().toISOString()
         })
         .eq('id', id)
-        .eq('homeowner_id', user.id)
+        .eq('creator', user.id)
       
       if (updateError) {
         throw updateError

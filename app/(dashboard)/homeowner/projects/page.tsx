@@ -44,7 +44,7 @@ export default function HomeownerProjectsPage() {
         // If homeowner, show only their projects
         // If contractor, show all open projects
         if (userRole === 'homeowner') {
-          query = query.eq('homeowner_id', user.id)
+          query = query.eq('creator', user.id)
         } else if (userRole === 'contractor') {
           query = query.eq('status', 'open')
         }

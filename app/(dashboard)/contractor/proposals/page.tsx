@@ -25,7 +25,7 @@ interface Proposal {
     budget: number
     location: string
     category: string
-    homeowner_id: string
+    creator: string
     homeowner?: {
       full_name: string
       first_name: string
@@ -60,8 +60,8 @@ export default function ContractorProposalsPage() {
               budget,
               location,
               category,
-              homeowner_id,
-              homeowner:users!homeowner_id(
+              creator,
+              homeowner:users!creator(
                 full_name,
                 first_name,
                 last_name

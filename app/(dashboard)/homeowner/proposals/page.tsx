@@ -45,7 +45,7 @@ export default function HomeownerProposalsPage() {
         const { data: projectsData, error: projectsError } = await supabase
           .from('projects')
           .select('id, title')
-          .eq('homeowner_id', user.id)
+          .eq('creator', user.id)
         
         if (projectsError) throw projectsError
         setProjects(projectsData || [])
@@ -54,7 +54,7 @@ export default function HomeownerProposalsPage() {
         const { data: projectIds, error: projectIdsError } = await supabase
           .from('projects')
           .select('id')
-          .eq('homeowner_id', user.id)
+          .eq('creator', user.id)
         
         if (projectIdsError) throw projectIdsError
         
