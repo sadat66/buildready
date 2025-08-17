@@ -35,7 +35,7 @@ export default function ContractorProjectsPage() {
           .from('projects')
           .select(`
             *,
-            homeowner:users!homeowner_id(
+            homeowner:users!creator(
               full_name,
               first_name,
               last_name
@@ -88,9 +88,9 @@ export default function ContractorProjectsPage() {
   }
 
   const filteredProjects = projects.filter(project => {
-    const matchesSearch = project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         project.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         project.location.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesSearch = project.project_title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        project.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        project.location?.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesCategory = categoryFilter === 'all' || project.category === categoryFilter
     return matchesSearch && matchesCategory
   })
@@ -181,13 +181,13 @@ export default function ContractorProjectsPage() {
             <CardHeader>
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <CardTitle className="text-xl">{project.title}</CardTitle>
+                  <CardTitle className="text-xl">{project.project_title}</CardTitle>
                   <CardDescription className="text-sm mt-2">
                     {project.description}
                   </CardDescription>
                 </div>
                 <Badge variant="outline" className="ml-2 capitalize">
-                  {project.category.replace('_', ' ')}
+                  {Array.isArray(project.category) ? project.category.join(', ') : (typeof project.category === 'string' ? project.category.replace('_', ' ') : 'Not specified')}
                 </Badge>
               </div>
             </CardHeader>

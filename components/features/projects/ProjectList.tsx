@@ -38,7 +38,7 @@ export default function ProjectList({
   const filteredProjects = useMemo(() => {
     return projects.filter((project) => {
       const matchesSearch =
-        project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        project.project_title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         project.description
           ?.toLowerCase()
           .includes(searchQuery.toLowerCase()) ||

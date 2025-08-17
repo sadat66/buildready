@@ -28,7 +28,7 @@ export default function ProjectTable({ projects, onProjectClick }: ProjectTableP
 
   const columns = useMemo(
     () => [
-      columnHelper.accessor('title', {
+      columnHelper.accessor('project_title', {
         header: ({ column }) => (
           <Button
             variant="ghost"
@@ -41,7 +41,7 @@ export default function ProjectTable({ projects, onProjectClick }: ProjectTableP
         ),
         cell: ({ row }) => (
           <div className="space-y-1">
-            <div className="font-medium">{row.original.title}</div>
+            <div className="font-medium">{row.original.project_title}</div>
             <div className="text-sm text-muted-foreground line-clamp-2">
               {row.original.description}
             </div>

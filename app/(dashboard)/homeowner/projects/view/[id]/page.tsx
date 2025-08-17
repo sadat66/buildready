@@ -42,7 +42,7 @@ export default function ProjectViewPage() {
           .from('projects')
           .select('*')
           .eq('id', id)
-          .eq('homeowner_id', user.id)
+          .eq('creator', user.id)
           .single()
         
         if (fetchError) {
@@ -104,7 +104,7 @@ export default function ProjectViewPage() {
         .from('projects')
         .delete()
         .eq('id', project.id)
-        .eq('homeowner_id', user.id)
+        .eq('creator', user.id)
       
       if (deleteError) {
         throw deleteError
@@ -189,7 +189,7 @@ export default function ProjectViewPage() {
         <CardHeader>
           <div className="flex items-start justify-between">
             <div className="space-y-2">
-              <CardTitle className="text-3xl">{project.title}</CardTitle>
+              <CardTitle className="text-3xl">{project.project_title}</CardTitle>
               <CardDescription className="text-lg">
                 {project.description}
               </CardDescription>
@@ -216,7 +216,7 @@ export default function ProjectViewPage() {
               <FileText className="h-5 w-5 text-gray-500" />
               <div>
                 <p className="text-sm font-medium text-gray-900">Category</p>
-                <p className="text-sm text-gray-600 capitalize">{project.category.replace('_', ' ')}</p>
+                <p className="text-sm text-gray-600 capitalize">{Array.isArray(project.category) ? project.category.join(', ') : (typeof project.category === 'string' ? project.category.replace('_', ' ') : 'Not specified')}</p>
               </div>
             </div>
           </div>

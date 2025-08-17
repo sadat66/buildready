@@ -41,7 +41,7 @@ class CreateProjectHandler {
         return { success: false, error: 'Decision date must be after proposal expiry date' }
       }
 
-      // Only store database fields (exclude form-only fields)
+      // Only store essential database fields for project creation
       const projectData = {
         project_title: formData.project_title,
         statement_of_work: formData.statement_of_work,
@@ -49,20 +49,21 @@ class CreateProjectHandler {
         category: formData.category,
         pid: formData.pid,
         location: formData.location,
-        certificate_of_title: formData.certificate_of_title || null,
         project_type: formData.project_type,
         visibility_settings: formData.visibility_settings,
         start_date: new Date(formData.start_date),
         end_date: new Date(formData.end_date),
         expiry_date: expiryDate,
-        substantial_completion: formData.substantial_completion ? new Date(formData.substantial_completion) : undefined,
-        is_verified_project: formData.is_verified_project,
-        project_photos: formData.project_photos,
-        files: formData.files,
+        project_photos: formData.project_photos || [],
         creator: userId,
         status: 'Draft' as const,
         proposal_count: 0,
-        is_closed: false, // Initialize as per workflow requirements
+        // Removed unnecessary fields for initial creation:
+        // - is_closed: defaults to false in database
+        // - certificate_of_title: optional, can be added later
+        // - substantial_completion: not needed for draft projects
+        // - is_verified_project: defaults to false in database
+        // - files: can be added later if needed
       }
 
       const { error } = await this.supabase
@@ -71,7 +72,9 @@ class CreateProjectHandler {
 
       if (error) {
         console.error('Database error:', error)
-        return { success: false, error: 'Failed to create project. Please try again.' }
+        console.error('Error details:', JSON.stringify(error, null, 2))
+        console.error('Project data being inserted:', JSON.stringify(projectData, null, 2))
+        return { success: false, error: `Failed to create project: ${error.message || 'Unknown database error'}` }
       }
 
       return { success: true }

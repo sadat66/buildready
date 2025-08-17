@@ -53,7 +53,7 @@ export default function ProjectCard({ projects, onProjectClick }: ProjectCardPro
               <div className="flex items-start justify-between">
                 <div className="space-y-1 flex-1">
                   <CardTitle className="text-lg leading-tight group-hover:text-primary transition-colors">
-                    {project.title}
+                    {project.project_title}
                   </CardTitle>
                   <CardDescription className="line-clamp-2 text-sm">
                     {project.description || 'No description available'}
@@ -95,10 +95,10 @@ export default function ProjectCard({ projects, onProjectClick }: ProjectCardPro
               </div>
               
               {/* Owner */}
-              {project.homeowner_id && (
+              {project.creator && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <User className="h-4 w-4 flex-shrink-0" />
-                  <span>Owner ID: {project.homeowner_id}</span>
+                  <span>Creator ID: {project.creator}</span>
                 </div>
               )}
             </CardContent>

@@ -49,14 +49,14 @@ export interface ContractorProfile {
 
 export interface Project {
   id: string
-  homeowner_id: string
-  title: string
+  creator: string
+  project_title: string
   description: string
   budget: number
   location: string
   latitude?: number
   longitude?: number
-  category: string
+  category: string | string[]
   status: 'open' | 'bidding' | 'awarded' | 'completed' | 'cancelled'
   deadline?: string
   proposal_deadline: string

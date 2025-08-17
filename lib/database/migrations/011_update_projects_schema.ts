@@ -86,7 +86,8 @@ export const migration_011_update_projects_schema: Migration = {
       ADD COLUMN IF NOT EXISTS project_photos TEXT[] DEFAULT '{}',
       ADD COLUMN IF NOT EXISTS files TEXT[] DEFAULT '{}',
       ADD COLUMN IF NOT EXISTS creator UUID REFERENCES users(id),
-      ADD COLUMN IF NOT EXISTS proposal_count INTEGER DEFAULT 0;
+      ADD COLUMN IF NOT EXISTS proposal_count INTEGER DEFAULT 0,
+      ADD COLUMN IF NOT EXISTS is_closed BOOLEAN DEFAULT false;
     `)
 
     // Create indexes for better performance
@@ -125,7 +126,8 @@ export const migration_011_update_projects_schema: Migration = {
       DROP COLUMN IF EXISTS project_photos,
       DROP COLUMN IF EXISTS files,
       DROP COLUMN IF EXISTS creator,
-      DROP COLUMN IF EXISTS proposal_count;
+      DROP COLUMN IF EXISTS proposal_count,
+      DROP COLUMN IF EXISTS is_closed;
     `)
 
     // Remove enums
