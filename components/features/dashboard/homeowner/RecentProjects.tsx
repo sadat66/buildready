@@ -171,14 +171,14 @@ export default function RecentProjects({ projects }: RecentProjectsProps) {
           <div className="rounded-xl overflow-hidden border border-orange-200/50 shadow-lg bg-white/80 backdrop-blur-sm">
             <Table>
               <TableHeader>
-                <TableRow className="bg-gradient-to-r from-orange-100/80 to-amber-100/80 border-orange-200/50 hover:bg-gradient-to-r hover:from-orange-100 hover:to-amber-100">
-                  <TableHead className="font-semibold text-orange-800 py-4">Project Details</TableHead>
-                  <TableHead className="font-semibold text-orange-800">Status</TableHead>
-                  <TableHead className="font-semibold text-orange-800">Location</TableHead>
-                  <TableHead className="font-semibold text-orange-800">Budget</TableHead>
-                  <TableHead className="font-semibold text-orange-800">Created</TableHead>
-                  <TableHead className="font-semibold text-orange-800 text-right">Actions</TableHead>
-                </TableRow>
+                                 <TableRow className="bg-gradient-to-r from-orange-100/80 to-amber-100/80 border-orange-200/50 hover:bg-gradient-to-r hover:from-orange-100 hover:to-amber-100">
+                   <TableHead className="font-semibold text-orange-800 py-4 w-32">Project Details</TableHead>
+                   <TableHead className="font-semibold text-orange-800 w-32">Status</TableHead>
+                   <TableHead className="font-semibold text-orange-800 w-40">Location</TableHead>
+                   <TableHead className="font-semibold text-orange-800 w-32">Budget</TableHead>
+                   <TableHead className="font-semibold text-orange-800 w-36">Created</TableHead>
+                   <TableHead className="font-semibold text-orange-800 text-right w-40">Actions</TableHead>
+                 </TableRow>
               </TableHeader>
               <TableBody>
                 {recentProjects.map((project, index) => {
@@ -223,17 +223,12 @@ export default function RecentProjects({ projects }: RecentProjectsProps) {
                           <span className="font-medium">{project.budget ? formatCurrency(project.budget) : 'Not specified'}</span>
                         </div>
                       </TableCell>
-                      <TableCell>
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2 text-orange-600/80">
-                            <CalendarDays className="h-4 w-4 text-orange-500" />
-                            <span className="text-sm font-medium">{formatDate(project.created_at)}</span>
-                          </div>
-                          <div className="text-xs text-orange-500/70">
-                            {getDaysAgo(project.created_at)}
-                          </div>
-                        </div>
-                      </TableCell>
+                                             <TableCell>
+                         <div className="flex items-center gap-2">
+                           <CalendarDays className="h-4 w-4 text-orange-500" />
+                           <span className="text-sm font-medium">{formatDate(project.created_at)}</span>
+                         </div>
+                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-2">
                           <Link href={`/homeowner/projects/view/${project.id}`}>
@@ -264,18 +259,18 @@ export default function RecentProjects({ projects }: RecentProjectsProps) {
             </Table>
           </div>
           
-          {/* Enhanced View All Projects Button */}
-          <div className="flex justify-center pt-4">
-            <Link href="/homeowner/projects">
-              <Button 
-                className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 px-10 py-3 text-lg font-semibold"
-              >
-                <Eye className="mr-3 h-5 w-5" />
-                View All Projects
-                <ArrowRight className="ml-3 h-5 w-5" />
-              </Button>
-            </Link>
-          </div>
+                     {/* Enhanced View All Projects Button */}
+           <div className="flex justify-end pt-4">
+             <Link href="/homeowner/projects">
+               <Button 
+                 className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 px-6 py-2 text-sm font-semibold rounded-lg"
+               >
+                 <Eye className="mr-2 h-4 w-4" />
+                 View All
+                 <ArrowRight className="ml-2 h-4 w-4" />
+               </Button>
+             </Link>
+           </div>
         </div>
       )}
     </div>

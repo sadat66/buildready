@@ -1,6 +1,6 @@
 'use client'
 
-import { Home, DollarSign, TrendingUp, Clock } from 'lucide-react'
+import { Home, DollarSign, TrendingUp, FileText } from 'lucide-react'
 
 interface ProjectStatsProps {
   stats: {
@@ -41,10 +41,10 @@ export default function ProjectStats({ stats }: ProjectStatsProps) {
       iconBg: 'bg-orange-600'
     },
     {
-      icon: Clock,
-      label: 'Upcoming Deadlines',
+      icon: FileText,
+      label: 'Proposal Count',
       value: stats.upcomingDeadlines,
-      description: 'Due within 30 days',
+      description: 'Total proposals received',
       gradient: 'from-red-400 to-orange-500',
       bgGradient: 'from-red-50 to-orange-50',
       iconBg: 'bg-red-500'
