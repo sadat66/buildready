@@ -36,7 +36,7 @@ export default function HomeownerDashboard({ userEmail }: HomeownerDashboardProp
         
         console.log('Fetching dashboard data for user:', currentUser.id)
         
-        // Fetch projects with all schema fields including permit_required
+        // Fetch projects with all schema fields
         const { data: projectsData, error: projectsError } = await supabase
           .from('projects')
           .select(`
@@ -60,7 +60,6 @@ export default function HomeownerDashboard({ userEmail }: HomeownerDashboardProp
             end_date,
             expiry_date,
             substantial_completion,
-            permit_required,
             is_verified_project,
             project_photos,
             files,
