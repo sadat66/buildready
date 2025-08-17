@@ -73,7 +73,8 @@ export default function HomeownerDashboard({ userEmail }: HomeownerDashboardProp
         
       } catch (error) {
         console.error('Error fetching dashboard data:', error)
-        setError('Failed to load dashboard data')
+        // Don't set error state - render dashboard with empty data instead
+        // setError('Failed to load dashboard data')
       } finally {
         setLoading(false)
       }
@@ -125,25 +126,7 @@ export default function HomeownerDashboard({ userEmail }: HomeownerDashboardProp
     )
   }
 
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-orange-100">
-        <div className="space-y-6 p-8">
-          <div className="rounded-2xl bg-gradient-to-br from-red-50 to-orange-50 border border-red-200 shadow-lg">
-            <div className="p-8">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-gradient-to-r from-red-400 to-orange-500 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl">
-                  <span className="text-white font-bold text-xl">!</span>
-                </div>
-                <h3 className="text-xl font-bold text-red-700 mb-2">Oops! Something went wrong</h3>
-                <p className="text-red-600">{error}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
+  // Removed error state rendering - dashboard will always render with available data
 
   // Calculate stats
   const stats = {
