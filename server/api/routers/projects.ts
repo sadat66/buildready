@@ -22,7 +22,7 @@ export const projectsRouter = createTRPCRouter({
         .from('projects')
         .insert({
           ...input,
-          homeowner_id: ctx.user.id,
+          creator: ctx.user.id,
           status: 'pending',
         })
         .select()
@@ -59,7 +59,7 @@ export const projectsRouter = createTRPCRouter({
         .from('projects')
         .select(`
           *,
-          profiles!projects_homeowner_id_fkey (
+          profiles!projects_creator_fkey (
             id,
             full_name,
             location
@@ -122,7 +122,7 @@ export const projectsRouter = createTRPCRouter({
         .from('projects')
         .select(`
           *,
-          profiles!projects_homeowner_id_fkey (
+          profiles!projects_creator_fkey (
             id,
             full_name,
             location,
@@ -183,7 +183,7 @@ export const projectsRouter = createTRPCRouter({
             )
           )
         `)
-        .eq('homeowner_id', ctx.user.id)
+        .eq('creator', ctx.user.id)
 
       if (input.status) {
         query = query.eq('status', input.status)
@@ -218,7 +218,7 @@ export const projectsRouter = createTRPCRouter({
       // Check if user owns the project
       const { data: existingProject, error: fetchError } = await ctx.supabase
         .from('projects')
-        .select('homeowner_id')
+        .select('creator')
         .eq('id', id)
         .single()
 
@@ -229,7 +229,7 @@ export const projectsRouter = createTRPCRouter({
         })
       }
 
-      if (existingProject.homeowner_id !== ctx.user.id) {
+      if (existingProject.creator !== ctx.user.id) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'You can only update your own projects',
@@ -263,7 +263,7 @@ export const projectsRouter = createTRPCRouter({
       // Check if user owns the project
       const { data: existingProject, error: fetchError } = await ctx.supabase
         .from('projects')
-        .select('homeowner_id')
+        .select('creator')
         .eq('id', input.id)
         .single()
 
@@ -274,7 +274,7 @@ export const projectsRouter = createTRPCRouter({
         })
       }
 
-      if (existingProject.homeowner_id !== ctx.user.id) {
+      if (existingProject.creator !== ctx.user.id) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'You can only delete your own projects',

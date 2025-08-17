@@ -143,7 +143,7 @@ export const usersRouter = createTRPCRouter({
     const { data: projectStats, error: projectError } = await ctx.supabase
       .from('projects')
       .select('status')
-      .eq('homeowner_id', userId)
+      .eq('creator', userId)
 
     if (projectError) {
       throw new TRPCError({

@@ -78,72 +78,74 @@ export default function RecentProjects({ projects }: RecentProjectsProps) {
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-amber-200/20 to-orange-200/30 rounded-full transform -translate-x-32 translate-y-32"></div>
       </div>
       
-      <div className="relative p-8 space-y-6">
+      <div className="relative p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6">
         {/* Enhanced Header Section */}
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* Main Header */}
-          <div className="flex items-center justify-between">
-            <div className="space-y-2">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-red-500 rounded-xl flex items-center justify-center shadow-lg">
-                  <Sparkles className="h-5 w-5 text-white" />
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-6">
+            <div className="space-y-2 w-full sm:w-auto">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-orange-400 to-red-500 rounded-lg sm:rounded-xl flex items-center justify-center shadow-lg">
+                  <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                 </div>
-                <h2 className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
-                  Recent Projects
-                </h2>
+                <div className="text-center sm:text-left">
+                  <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
+                    Recent Projects
+                  </h2>
+                  <p className="text-orange-700/70 text-sm sm:text-lg mt-1">
+                    Track your latest project activities and progress
+                  </p>
+                </div>
               </div>
-              <p className="text-orange-700/70 text-lg">
-                Track your latest project activities and progress
-              </p>
             </div>
             
-            <Link href="/homeowner/projects">
-              <Button className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 px-6 py-3">
-                <Eye className="mr-2 h-5 w-5" />
+            <Link href="/homeowner/projects" className="w-full sm:w-auto">
+              <Button className="w-full sm:w-auto bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base">
+                <Eye className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
                 View All Projects
               </Button>
             </Link>
           </div>
           
           {/* Statistics Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200/50 shadow-md hover:shadow-lg transition-all duration-200">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-lg flex items-center justify-center">
-                    <BarChart3 className="h-5 w-5 text-white" />
+              <CardContent className="p-3 sm:p-4">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-lg flex items-center justify-center">
+                    <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-blue-700">Total Projects</p>
-                    <p className="text-2xl font-bold text-blue-900">{projects.length}</p>
+                    <p className="text-xs sm:text-sm font-medium text-blue-700">Total Projects</p>
+                    <p className="text-xl sm:text-2xl font-bold text-blue-900">{projects.length}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
             
             <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200/50 shadow-md hover:shadow-lg transition-all duration-200">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-emerald-500 rounded-lg flex items-center justify-center">
-                    <CheckCircle className="h-5 w-5 text-white" />
+              <CardContent className="p-3 sm:p-4">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-green-400 to-emerald-500 rounded-lg flex items-center justify-center">
+                    <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-green-700">Accepted Proposals</p>
-                    <p className="text-2xl font-bold text-green-900">{projects.filter(p => p.status === 'awarded').length}</p>
+                    <p className="text-xs sm:text-sm font-medium text-green-700">Accepted Proposals</p>
+                    <p className="text-xl sm:text-2xl font-bold text-green-900">{projects.filter(p => p.status === 'awarded').length}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
             
-            <Card className="bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200/50 shadow-md hover:shadow-lg transition-all duration-200">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-purple-400 to-pink-500 rounded-lg flex items-center justify-center">
-                    <XCircle className="h-5 w-5 text-white" />
+            <Card className="bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200/50 shadow-md hover:shadow-lg transition-all duration-200 sm:col-span-2 lg:col-span-1">
+              <CardContent className="p-3 sm:p-4">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-purple-400 to-pink-500 rounded-lg flex items-center justify-center">
+                    <XCircle className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-purple-700">Rejected Proposals</p>
-                    <p className="text-2xl font-bold text-purple-900">{projects.filter(p => p.status === 'cancelled').length}</p>
+                    <p className="text-xs sm:text-sm font-medium text-purple-700">Rejected Proposals</p>
+                    <p className="text-xl sm:text-2xl font-bold text-purple-900">{projects.filter(p => p.status === 'cancelled').length}</p>
                   </div>
                 </div>
               </CardContent>

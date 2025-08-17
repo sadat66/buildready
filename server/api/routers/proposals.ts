@@ -40,7 +40,7 @@ export const proposalsRouter = createTRPCRouter({
       // Check if project exists and is not completed/cancelled
       const { data: project, error: projectError } = await ctx.supabase
         .from('projects')
-        .select('id, status, homeowner_id')
+        .select('id, status, creator')
         .eq('id', input.project_id)
         .single()
 
@@ -58,7 +58,7 @@ export const proposalsRouter = createTRPCRouter({
         })
       }
 
-      if (project.homeowner_id === ctx.user.id) {
+      if (project.creator === ctx.user.id) {
         throw new TRPCError({
           code: 'BAD_REQUEST',
           message: 'You cannot submit a proposal for your own project',
@@ -102,8 +102,8 @@ export const proposalsRouter = createTRPCRouter({
           projects (
             id,
             title,
-            homeowner_id,
-            profiles!projects_homeowner_id_fkey (
+            creator,
+            profiles!projects_creator_fkey (
               id,
               full_name
             )
@@ -185,8 +185,8 @@ export const proposalsRouter = createTRPCRouter({
             location,
             status,
             budget,
-            homeowner_id,
-            profiles!projects_homeowner_id_fkey (
+            creator,
+            profiles!projects_creator_fkey (
               id,
               full_name,
               location
@@ -236,7 +236,7 @@ export const proposalsRouter = createTRPCRouter({
             location,
             status,
             budget,
-            homeowner_id
+            creator
           ),
           profiles!proposals_contractor_id_fkey (
             id,
@@ -250,7 +250,7 @@ export const proposalsRouter = createTRPCRouter({
             insurance_verified
           )
         `)
-        .eq('projects.homeowner_id', ctx.user.id)
+        .eq('projects.creator', ctx.user.id)
 
       if (input.projectId) {
         query = query.eq('project_id', input.projectId)
@@ -290,8 +290,8 @@ export const proposalsRouter = createTRPCRouter({
             location,
             status,
             budget,
-            homeowner_id,
-            profiles!projects_homeowner_id_fkey (
+            creator,
+            profiles!projects_creator_fkey (
               id,
               full_name,
               location
@@ -321,7 +321,7 @@ export const proposalsRouter = createTRPCRouter({
 
       // Check if user has access to this proposal
       const isContractor = data.contractor_id === ctx.user.id
-      const isHomeowner = data.projects?.homeowner_id === ctx.user.id
+      const isHomeowner = data.projects?.creator === ctx.user.id
 
       if (!isContractor && !isHomeowner) {
         throw new TRPCError({
