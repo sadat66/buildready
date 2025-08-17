@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { User, Search, Plus, Edit, Trash2, Shield, Home, Wrench } from 'lucide-react'
 
 export default function AdminUsersPage() {
@@ -189,22 +190,22 @@ export default function AdminUsersPage() {
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left p-2">User</th>
-                  <th className="text-left p-2">Role</th>
-                  <th className="text-left p-2">Status</th>
-                  <th className="text-left p-2">Projects</th>
-                  <th className="text-left p-2">Join Date</th>
-                  <th className="text-left p-2">Last Login</th>
-                  <th className="text-left p-2">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-gray-50">
+                  <TableHead>User</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Projects</TableHead>
+                  <TableHead>Join Date</TableHead>
+                  <TableHead>Last Login</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {users.map((user) => (
-                  <tr key={user.id} className="border-b hover:bg-gray-50">
-                    <td className="p-2">
+                  <TableRow key={user.id} className="hover:bg-gray-50">
+                    <TableCell>
                       <div className="flex items-center space-x-3">
                         <div className="h-8 w-8 bg-gray-200 rounded-full flex items-center justify-center">
                           {getRoleIcon(user.user_role)}
@@ -214,23 +215,23 @@ export default function AdminUsersPage() {
                           <p className="text-sm text-gray-600">{user.email}</p>
                         </div>
                       </div>
-                    </td>
-                    <td className="p-2">
+                    </TableCell>
+                    <TableCell>
                       {getRoleBadge(user.user_role)}
-                    </td>
-                    <td className="p-2">
+                    </TableCell>
+                    <TableCell>
                       {getStatusBadge(user.status)}
-                    </td>
-                    <td className="p-2">
+                    </TableCell>
+                    <TableCell>
                       <span className="font-medium">{user.projects}</span>
-                    </td>
-                    <td className="p-2 text-sm text-gray-600">
+                    </TableCell>
+                    <TableCell className="text-sm text-gray-600">
                       {user.joinDate}
-                    </td>
-                    <td className="p-2 text-sm text-gray-600">
+                    </TableCell>
+                    <TableCell className="text-sm text-gray-600">
                       {user.lastLogin}
-                    </td>
-                    <td className="p-2">
+                    </TableCell>
+                    <TableCell>
                       <div className="flex space-x-2">
                         <Button variant="outline" size="sm">
                           <Edit className="h-3 w-3" />
@@ -239,11 +240,11 @@ export default function AdminUsersPage() {
                           <Trash2 className="h-3 w-3" />
                         </Button>
                       </div>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         </CardContent>
       </Card>

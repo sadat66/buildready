@@ -257,13 +257,13 @@ export default function RecentProjects({ projects }: RecentProjectsProps) {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-gradient-to-r from-orange-100 to-red-100 border-orange-200/50 hover:from-orange-150 hover:to-red-150 transition-all">
-                    <TableHead className="text-orange-900 font-bold text-sm py-4">Project Name</TableHead>
-                    <TableHead className="text-orange-900 font-bold text-sm py-4">Type</TableHead>
-                    <TableHead className="text-orange-900 font-bold text-sm py-4">Status</TableHead>
-                    <TableHead className="text-orange-900 font-bold text-sm py-4">Location</TableHead>
-                    <TableHead className="text-orange-900 font-bold text-sm py-4">Budget</TableHead>
-                    <TableHead className="text-orange-900 font-bold text-sm py-4">Created</TableHead>
-                    <TableHead className="text-orange-900 font-bold text-sm py-4 text-right">Actions</TableHead>
+                    <TableHead className="text-orange-900 font-bold text-sm">Project Name</TableHead>
+                    <TableHead className="text-orange-900 font-bold text-sm">Type</TableHead>
+                    <TableHead className="text-orange-900 font-bold text-sm">Status</TableHead>
+                    <TableHead className="text-orange-900 font-bold text-sm">Location</TableHead>
+                    <TableHead className="text-orange-900 font-bold text-sm">Budget</TableHead>
+                    <TableHead className="text-orange-900 font-bold text-sm">Created</TableHead>
+                    <TableHead className="text-orange-900 font-bold text-sm text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -272,43 +272,43 @@ export default function RecentProjects({ projects }: RecentProjectsProps) {
                     
                     return (
                       <TableRow key={project.id} className="group hover:bg-gradient-to-r hover:from-orange-50/80 hover:to-red-50/50 transition-all duration-200 border-orange-100/50">
-                        <TableCell className="font-medium text-orange-900 py-3">
+                        <TableCell className="font-medium text-orange-900">
                           <div className="flex flex-col space-y-1">
                             <span className="font-bold text-base group-hover:text-orange-700 transition-colors">{project.project_title}</span>
                             <span className="text-sm text-orange-600/70 line-clamp-1 leading-relaxed">{project.description}</span>
                           </div>
                         </TableCell>
-                        <TableCell className="py-3">
+                        <TableCell>
                           <div className="flex items-center gap-2 bg-orange-50/50 px-3 py-2 rounded-full w-fit">
                             <Building2 className="h-4 w-4 text-orange-500" />
                             <span className="text-sm font-medium text-orange-700">{project.project_type || 'General'}</span>
                           </div>
                         </TableCell>
-                        <TableCell className="py-3">
+                        <TableCell>
                           <Badge className={`${getStatusBadgeStyle(project.status)} font-semibold px-3 py-2 text-xs border shadow-md hover:shadow-lg transition-all`}>
                             <StatusIcon className="h-3 w-3 mr-1" />
                             {project.status?.replace('_', ' ') || 'Unknown'}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-orange-700 py-3">
+                        <TableCell className="text-orange-700">
                           <div className="flex items-center gap-2 bg-orange-50/30 px-3 py-2 rounded-lg w-fit">
                             <MapPin className="h-4 w-4 text-orange-500" />
                             <span className="text-sm font-medium">{project.location || 'Not specified'}</span>
                           </div>
                         </TableCell>
-                        <TableCell className="text-orange-700 py-3">
+                        <TableCell className="text-orange-700">
                           <div className="flex items-center gap-2 bg-green-50/50 px-3 py-2 rounded-lg w-fit">
                             <DollarSign className="h-4 w-4 text-green-600" />
                             <span className="text-sm font-bold text-green-700">{project.budget ? formatCurrency(project.budget) : 'Not specified'}</span>
                           </div>
                         </TableCell>
-                        <TableCell className="text-orange-600/80 py-3">
+                        <TableCell className="text-orange-600/80">
                           <div className="flex items-center gap-2 bg-blue-50/50 px-3 py-2 rounded-lg w-fit">
                             <CalendarDays className="h-4 w-4 text-blue-500" />
                             <span className="text-sm font-medium text-blue-700">{getDaysAgo(project.created_at)}</span>
                           </div>
                         </TableCell>
-                        <TableCell className="text-right py-3">
+                        <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-3">
                             <Link href={`/homeowner/projects/view/${project.id}`}>
                               <Button 

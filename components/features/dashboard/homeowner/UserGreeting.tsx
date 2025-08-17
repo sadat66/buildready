@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Calendar, Clock, TrendingUp, Home } from 'lucide-react'
+import RandomAvatar from '@/components/ui/random-avatar'
 
 interface UserGreetingProps {
   userEmail?: string
@@ -50,13 +51,15 @@ export default function UserGreeting({ userEmail }: UserGreetingProps) {
           <div className="space-y-4 lg:space-y-6">
             <div className="flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-4">
               <div className="relative">
-                <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-orange-400 via-orange-500 to-red-500 rounded-2xl sm:rounded-3xl flex items-center justify-center shadow-2xl transform hover:scale-105 transition-all duration-300">
-                  <span className="text-white font-bold text-2xl sm:text-3xl">{displayName.charAt(0).toUpperCase()}</span>
-                </div>
+                <RandomAvatar 
+                  name={displayName}
+                  size={80}
+                  className="transform hover:scale-105 transition-all duration-300"
+                />
                 {/* Decorative ring */}
                 <div className="absolute -inset-2 bg-gradient-to-r from-orange-300 to-amber-300 rounded-2xl sm:rounded-3xl opacity-20 blur-sm"></div>
               </div>
-              <div className="space-y-2 lg:space-y-3 text-center sm:text-left">
+              <div className="space-y-2 lg:space-y-3 text-center sm:text-left mt-4">
                 <div className="flex flex-col sm:flex-row items-center sm:items-center gap-2 sm:gap-3">
                   <span className="text-3xl sm:text-4xl lg:text-5xl">{getGreetingEmoji()}</span>
                   <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight bg-gradient-to-r from-orange-600 via-orange-700 to-red-700 bg-clip-text text-transparent leading-tight">
