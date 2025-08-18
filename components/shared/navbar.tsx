@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import UserMenu from "./UserMenu";
+import { UserMenu } from "./UserMenu";
 import { Menu } from "lucide-react";
 
 interface NavbarProps {
@@ -64,7 +64,7 @@ export default function Navbar({
           {isHomePage && user && (
             <Link
               href={`/${
-                user?.user_metadata?.role || user?.user_role || "homeowner"
+                user?.user_role || "homeowner"
               }/dashboard`}
               className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1.5 rounded-md text-sm font-medium transition-colors"
             >

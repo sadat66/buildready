@@ -1,9 +1,15 @@
 'use client'
 
-import { Calendar, MapPin, DollarSign, Clock, Eye, User } from 'lucide-react'
+import { Calendar, MapPin, DollarSign, Clock, Eye, User, MoreHorizontal, Edit, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { Project } from '@/types'
 
 interface ProjectCardProps {
@@ -60,9 +66,41 @@ export default function ProjectCard({ projects, onProjectClick }: ProjectCardPro
                     {project.statement_of_work || 'No description available'}
                   </CardDescription>
                 </div>
-                <Badge variant={statusConfig.variant} className={statusConfig.color}>
-                  {statusConfig.label}
-                </Badge>
+                <div className="flex items-center gap-4">
+                  <Badge variant={statusConfig.variant} className={statusConfig.color}>
+                    {statusConfig.label}
+                  </Badge>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-8 w-8 p-0 hover:bg-gray-100"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <MoreHorizontal className="h-4 w-4" />
+                        <span className="sr-only">Actions</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={(e) => {
+                        e.stopPropagation()
+                        onProjectClick?.(project)
+                      }}>
+                        <Eye className="h-4 w-4 mr-2" />
+                        View Details
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
+                        <Edit className="h-4 w-4 mr-2" />
+                        Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuItem className="text-red-600 focus:text-red-600" onClick={(e) => e.stopPropagation()}>
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </div>
             </CardHeader>
             
@@ -105,18 +143,7 @@ export default function ProjectCard({ projects, onProjectClick }: ProjectCardPro
             </CardContent>
             
             <CardFooter className="pt-3">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onProjectClick?.(project)
-                }}
-              >
-                <Eye className="h-4 w-4 mr-2" />
-                View Details
-              </Button>
+              {/* Actions moved to header */}
             </CardFooter>
           </Card>
         )

@@ -17,7 +17,6 @@ export default function DashboardLayout({
   const router = useRouter();
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
 
   const [accessDenied, setAccessDenied] = useState(false);
 
@@ -83,10 +82,7 @@ export default function DashboardLayout({
     setSidebarOpen(!sidebarOpen);
   };
 
-  // Handle sidebar collapse toggle
-  const handleSidebarToggleCollapse = () => {
-    setSidebarCollapsed(!sidebarCollapsed);
-  };
+
 
   // Close sidebar on mobile when screen size changes
   useEffect(() => {
@@ -154,12 +150,12 @@ export default function DashboardLayout({
         <Sidebar
           isOpen={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
-          isCollapsed={sidebarCollapsed}
-          onToggleCollapse={handleSidebarToggleCollapse}
+          isCollapsed={false}
+          onToggleCollapse={() => {}}
         />
 
         {/* Main Content - Fixed position, sidebar expands on top */}
-        <main className="transition-all duration-300 min-h-[calc(100vh-4rem)] lg:pl-16">
+        <main className="transition-all duration-300 min-h-[calc(100vh-4rem)] lg:pl-64">
           <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
             {children}
           </div>

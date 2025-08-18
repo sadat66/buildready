@@ -56,8 +56,8 @@ export default function LoginPage() {
             });
             
             if (!error && data.user) {
-              // Get user's role from metadata
-              const userRole = data.user.user_metadata?.role || 'homeowner';
+              // Get user's role from user object
+              const userRole = data.user.user_role || 'homeowner';
               
               // Update user's is_verified_email field to true in the database
               try {

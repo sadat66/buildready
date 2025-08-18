@@ -3,10 +3,16 @@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { CalendarDays, DollarSign, MapPin, Plus, Eye, Edit, Clock, Star, TrendingUp, Building2, Sparkles, XCircle } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { CalendarDays, DollarSign, MapPin, Plus, Eye, Edit, Building2, Sparkles, XCircle, MoreHorizontal, Clock, TrendingUp, Star } from "lucide-react"
 import Link from "next/link"
 import { Project } from '@/types'
+import ProjectTable from '@/components/features/projects/ProjectTable'
 
 interface RecentProjectsProps {
   projects: Project[]
@@ -77,12 +83,10 @@ export default function RecentProjects({ projects }: RecentProjectsProps) {
   const recentProjects = getRecentProjects(projects, 30)
   const displayProjects = recentProjects.slice(0, 5)
 
-  return (
-    <div className="relative overflow-hidden rounded-lg bg-white border border-gray-200 shadow-sm">
-      
-      <div className="relative p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6">
-        {/* Enhanced Header Section */}
-        <div className="space-y-4 sm:space-y-6">
+     return (
+     <div className="space-y-6">
+               {/* Enhanced Header Section */}
+        <div className="py-4 sm:py-6 lg:py-8">
           {/* Main Header */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-6">
             <div className="space-y-2 w-full sm:w-auto">
@@ -101,40 +105,37 @@ export default function RecentProjects({ projects }: RecentProjectsProps) {
               </div>
             </div>
             
-            <Link href="/homeowner/projects" className="w-full sm:w-auto">
+            <Link href="/homeowner/projects/create" className="w-full sm:w-auto">
               <Button className="w-full sm:w-auto bg-gray-900 hover:bg-black text-white transition-all duration-300 px-3 py-2 text-xs">
-                <Eye className="mr-1 h-3 w-3" />
-                View All
+                <Plus className="mr-1 h-3 w-3" />
+                Post a Project
               </Button>
             </Link>
           </div>
-          
-
         </div>
-      </div>
 
-      {/* Content */}
-      {displayProjects.length === 0 ? (
-        <div className="text-center py-16">
-          <div className="w-24 h-24 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-6">
-            <Plus className="h-12 w-12 text-gray-600" />
-          </div>
-          <h3 className="text-2xl font-bold text-gray-900 mb-3">No recent projects</h3>
-          <p className="text-gray-600 mb-8 max-w-md mx-auto text-lg leading-relaxed">
-            {recentProjects.length === 0 
-              ? "You haven't created any projects in the last 30 days. Start a new project to get started!"
-              : "No projects to display from the last 30 days."
-            }
-          </p>
-          <Link href="/homeowner/projects/create">
-            <Button className="bg-gray-900 hover:bg-black text-white transition-all duration-300 px-4 py-2 text-sm">
-              <Plus className="mr-2 h-4 w-4" />
-              Create Project
-            </Button>
-          </Link>
-        </div>
-      ) : (
-        <div className="space-y-6">
+                    {/* Content */}
+       {displayProjects.length === 0 ? (
+         <div className="text-center py-16 px-4 sm:px-6 lg:px-8">
+           <div className="w-24 h-24 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-6">
+             <Plus className="h-12 w-12 text-gray-600" />
+           </div>
+           <h3 className="text-2xl font-bold text-gray-900 mb-3">No recent projects</h3>
+           <p className="text-gray-600 mb-8 max-w-md mx-auto text-lg leading-relaxed">
+             {recentProjects.length === 0 
+               ? "You haven't created any projects in the last 30 days. Start a new project to get started!"
+               : "No projects to display from the last 30 days."
+             }
+           </p>
+           <Link href="/homeowner/projects/create">
+             <Button className="bg-gray-900 hover:bg-black text-white transition-all duration-300 px-4 py-2 text-sm">
+               <Plus className="mr-2 h-4 w-4" />
+               Create Project
+             </Button>
+           </Link>
+         </div>
+       ) : (
+         <div className="space-y-6">
           {/* Enhanced Project Cards for Mobile */}
           <div className="block lg:hidden space-y-4">
             {displayProjects.map((project) => {
@@ -155,9 +156,6 @@ export default function RecentProjects({ projects }: RecentProjectsProps) {
                         <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-gray-700 transition-colors line-clamp-1">
                           {project.project_title}
                         </h3>
-                        <p className="text-gray-600 text-sm leading-relaxed mb-3 line-clamp-2">
-                          {project.statement_of_work}
-                        </p>
                       </div>
                       <div className="ml-4">
                         <Badge className={`${getStatusBadgeStyle(project.status)} font-medium px-3 py-1 text-xs border shadow-sm`}>
@@ -185,26 +183,33 @@ export default function RecentProjects({ projects }: RecentProjectsProps) {
                         <CalendarDays className="h-4 w-4 text-gray-600" />
                         <span className="text-sm font-medium">{getDaysAgo(project.created_at)}</span>
                       </div>
-                      <div className="flex gap-2">
-                        <Link href={`/homeowner/projects/edit/${project.id}`}>
-                          <Button 
-                            variant="outline"
-                            size="sm"
-                            className="border-gray-300 text-gray-700 hover:bg-gray-50 transition-all duration-200"
-                          >
-                            Edit
-                          </Button>
-                        </Link>
-                        <Link href={`/homeowner/projects/view/${project.id}`}>
-                          <Button 
-                            size="sm"
-                            className="bg-gray-900 hover:bg-black text-white transition-all duration-200"
-                          >
-                            <Eye className="h-4 w-4 mr-2" />
-                            View
-                          </Button>
-                        </Link>
-                      </div>
+                                             <div className="flex gap-2">
+                         <DropdownMenu>
+                           <DropdownMenuTrigger asChild>
+                             <Button variant="ghost" size="sm">
+                               <MoreHorizontal className="h-4 w-4" />
+                             </Button>
+                           </DropdownMenuTrigger>
+                           <DropdownMenuContent align="end">
+                             <DropdownMenuItem asChild>
+                               <Link href={`/homeowner/projects/view/${project.id}`} className="flex items-center">
+                                 <Eye className="h-4 w-4 mr-2" />
+                                 View
+                               </Link>
+                             </DropdownMenuItem>
+                             <DropdownMenuItem asChild>
+                               <Link href={`/homeowner/projects/edit/${project.id}`} className="flex items-center">
+                                 <Edit className="h-4 w-4 mr-2" />
+                                 Edit
+                               </Link>
+                             </DropdownMenuItem>
+                             <DropdownMenuItem className="text-red-600 focus:text-red-600">
+                               <XCircle className="h-4 w-4 mr-2" />
+                               Delete
+                             </DropdownMenuItem>
+                           </DropdownMenuContent>
+                         </DropdownMenu>
+                       </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -212,95 +217,26 @@ export default function RecentProjects({ projects }: RecentProjectsProps) {
             })}
           </div>
 
-          {/* Enhanced Table for Desktop */}
-          <div className="hidden lg:block">
-            <Card className="bg-white border border-gray-200 shadow-sm overflow-hidden">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-gray-50 border-gray-200 hover:bg-gray-100 transition-all">
-                    <TableHead className="text-gray-900 font-bold text-sm">Project Name</TableHead>
-                    <TableHead className="text-gray-900 font-bold text-sm">Type</TableHead>
-                    <TableHead className="text-gray-900 font-bold text-sm">Status</TableHead>
-                    <TableHead className="text-gray-900 font-bold text-sm">Location</TableHead>
-                    <TableHead className="text-gray-900 font-bold text-sm">Budget</TableHead>
-                    <TableHead className="text-gray-900 font-bold text-sm">Created</TableHead>
-                    <TableHead className="text-gray-900 font-bold text-sm text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {displayProjects.map((project) => {
-                    const StatusIcon = getStatusIcon(project.status)
-                    
-                    return (
-                      <TableRow key={project.id} className="group hover:bg-gray-50 transition-all duration-200 border-gray-100">
-                        <TableCell className="font-medium text-gray-900">
-                          <div className="flex flex-col space-y-1">
-                            <span className="font-bold text-base group-hover:text-orange-600 transition-colors">{project.project_title}</span>
-                            <span className="text-sm text-gray-600 line-clamp-1 leading-relaxed">{project.statement_of_work}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2 bg-gray-100 px-3 py-2 rounded-full w-fit">
-                            <Building2 className="h-4 w-4 text-gray-600" />
-                            <span className="text-sm font-medium text-gray-700">{project.project_type || 'General'}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge className={`${getStatusBadgeStyle(project.status)} font-semibold px-3 py-2 text-xs border shadow-md hover:shadow-lg transition-all`}>
-                            <StatusIcon className="h-3 w-3 mr-1" />
-                            {project.status?.replace('_', ' ') || 'Unknown'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-gray-700">
-                          <div className="flex items-center gap-2 bg-gray-100 px-3 py-2 rounded-lg w-fit">
-                            <MapPin className="h-4 w-4 text-gray-600" />
-                            <span className="text-sm font-medium">{project.location?.address || 'Not specified'}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-gray-700">
-                          <div className="flex items-center gap-2 bg-gray-100 px-3 py-2 rounded-lg w-fit">
-                            <DollarSign className="h-4 w-4 text-orange-600" />
-                            <span className="text-sm font-bold text-gray-900">{project.budget ? formatCurrency(project.budget) : 'Not specified'}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-gray-600">
-                          <div className="flex items-center gap-2 bg-gray-100 px-3 py-2 rounded-lg w-fit">
-                            <CalendarDays className="h-4 w-4 text-gray-600" />
-                            <span className="text-sm font-medium text-gray-700">{getDaysAgo(project.created_at)}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-3">
-                            <Link href={`/homeowner/projects/view/${project.id}`}>
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                className="border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-all duration-200"
-                              >
-                                <Eye className="h-4 w-4 mr-1" />
-                                View
-                              </Button>
-                            </Link>
-                            <Link href={`/homeowner/projects/edit/${project.id}`}>
-                              <Button 
-                                variant="default"
-                                size="sm"
-                                className="bg-gray-900 hover:bg-black text-white transition-all duration-200"
-                              >
-                                <Edit className="h-4 w-4 mr-1" />
-                                Edit
-                              </Button>
-                            </Link>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    )
-                  })}
-                </TableBody>
-              </Table>
-            </Card>
-          </div>
+                                           {/* Enhanced Table for Desktop - Using ProjectTable Component */}
+            <div className="hidden lg:block">
+              <ProjectTable 
+                projects={displayProjects} 
+                onProjectClick={(project) => {
+                  // Navigate to project view page
+                  window.location.href = `/homeowner/projects/view/${project.id}`
+                }}
+              />
+            </div>
           
+          {/* View All button at bottom right */}
+          <div className="flex justify-end pt-4">
+            <Link href="/homeowner/projects">
+              <Button className="bg-gray-900 hover:bg-black text-white transition-all duration-300 px-3 py-2 text-xs">
+                <Eye className="mr-1 h-3 w-3" />
+                View All
+              </Button>
+            </Link>
+          </div>
         </div>
       )}
     </div>
