@@ -14,4 +14,5 @@ export interface GeospatialLocation {
   city: string
   province: string
   postalCode: string
+  country?: string
 }

@@ -1,30 +1,36 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useAuth } from '@/contexts/AuthContext'
-import { LoadingSpinner, Breadcrumbs } from '@/components/shared'
-import dynamic from 'next/dynamic'
+import { useState, useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { LoadingSpinner, Breadcrumbs } from "@/components/shared";
+import dynamic from "next/dynamic";
 
- const CreateProjectForm = dynamic(() => import('@/components/features/projects/CreateProjectForm').then(mod => ({ default: mod.default })), {
-  ssr: false,
-  loading: () => (
-    <div className="space-y-6">
-      <div className="flex items-center justify-center min-h-[400px]">
-        <LoadingSpinner />
+const CreateProjectForm = dynamic(
+  () =>
+    import("@/components/features/projects/CreateProjectForm").then((mod) => ({
+      default: mod.default,
+    })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="space-y-6">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <LoadingSpinner />
+        </div>
       </div>
-    </div>
-  )
-})
+    ),
+  }
+);
 
 export default function CreateProjectPage() {
-  const { user } = useAuth()
-  const [loading, setLoading] = useState(true)
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-     if (user) {
-      setLoading(false)
+    if (user) {
+      setLoading(false);
     }
-  }, [user])
+  }, [user]);
 
   if (loading) {
     return (
@@ -33,7 +39,7 @@ export default function CreateProjectPage() {
           <LoadingSpinner />
         </div>
       </div>
-    )
+    );
   }
 
   if (!user) {
@@ -43,15 +49,21 @@ export default function CreateProjectPage() {
           <LoadingSpinner />
         </div>
       </div>
-    )
+    );
   }
 
   return (
     <div className="space-y-6">
       <Breadcrumbs />
-       <CreateProjectForm 
-        user={user}
-      />
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Post a Project</h1>
+          <p className="text-muted-foreground">
+            Create a detailed project request to attract quality contractors
+          </p>
+        </div>
+      </div>
+      <CreateProjectForm user={user} />
     </div>
-  )
+  );
 }
