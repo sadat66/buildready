@@ -47,8 +47,6 @@ function formatCurrency(amount: number) {
   }).format(amount)
 }
 
-
-
 function getDaysAgo(dateString: string) {
   const date = new Date(dateString)
   const now = new Date()
@@ -63,8 +61,21 @@ function getDaysAgo(dateString: string) {
   return `${Math.floor(diffDays / 365)} years ago`
 }
 
+// Function to filter projects from the last 30 days
+function getRecentProjects(projects: Project[], days: number = 30) {
+  const cutoffDate = new Date()
+  cutoffDate.setDate(cutoffDate.getDate() - days)
+  
+  return projects.filter(project => {
+    const projectDate = new Date(project.created_at)
+    return projectDate >= cutoffDate
+  })
+}
+
 export default function RecentProjects({ projects }: RecentProjectsProps) {
-  const recentProjects = projects.slice(0, 5)
+  // Filter projects from the last 30 days
+  const recentProjects = getRecentProjects(projects, 30)
+  const displayProjects = recentProjects.slice(0, 5)
 
   return (
     <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-orange-50 via-amber-50 to-orange-100 border border-orange-200/60 shadow-2xl">
@@ -112,8 +123,8 @@ export default function RecentProjects({ projects }: RecentProjectsProps) {
                     <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                   </div>
                   <div>
-                    <p className="text-xs sm:text-sm font-medium text-blue-700">Total Projects</p>
-                    <p className="text-xl sm:text-2xl font-bold text-blue-900">{projects.length}</p>
+                    <p className="text-xs sm:text-sm font-medium text-blue-700">Recent Projects (Last 30 Days)</p>
+                    <p className="text-xl sm:text-2xl font-bold text-blue-900">{recentProjects.length}</p>
                   </div>
                 </div>
               </CardContent>
@@ -127,7 +138,7 @@ export default function RecentProjects({ projects }: RecentProjectsProps) {
                   </div>
                   <div>
                     <p className="text-xs sm:text-sm font-medium text-green-700">Accepted Proposals</p>
-                                         <p className="text-xl sm:text-2xl font-bold text-green-900">{projects.filter(p => p.status === 'Awarded').length}</p>
+                    <p className="text-xl sm:text-2xl font-bold text-green-900">{recentProjects.filter(p => p.status === 'Awarded').length}</p>
                   </div>
                 </div>
               </CardContent>
@@ -141,7 +152,7 @@ export default function RecentProjects({ projects }: RecentProjectsProps) {
                   </div>
                   <div>
                     <p className="text-xs sm:text-sm font-medium text-purple-700">Rejected Proposals</p>
-                                         <p className="text-xl sm:text-2xl font-bold text-purple-900">{projects.filter(p => p.status === 'Cancelled').length}</p>
+                    <p className="text-xl sm:text-2xl font-bold text-purple-900">{recentProjects.filter(p => p.status === 'Cancelled').length}</p>
                   </div>
                 </div>
               </CardContent>
@@ -151,20 +162,22 @@ export default function RecentProjects({ projects }: RecentProjectsProps) {
       </div>
 
       {/* Content */}
-      {recentProjects.length === 0 ? (
+      {displayProjects.length === 0 ? (
         <div className="text-center py-16">
           <div className="w-24 h-24 bg-gradient-to-br from-orange-100 to-amber-100 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg">
             <Plus className="h-12 w-12 text-orange-600" />
           </div>
-          <h3 className="text-2xl font-bold text-orange-800 mb-3">No projects yet</h3>
+          <h3 className="text-2xl font-bold text-orange-800 mb-3">No recent projects</h3>
           <p className="text-orange-600/80 mb-8 max-w-md mx-auto text-lg leading-relaxed">
-            Start your first project and connect with skilled contractors in your area. 
-            It&apos;s time to bring your home improvement dreams to life!
+            {recentProjects.length === 0 
+              ? "You haven't created any projects in the last 30 days. Start a new project to get started!"
+              : "No projects to display from the last 30 days."
+            }
           </p>
           <Link href="/homeowner/projects/create">
             <Button className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 px-8 py-3 text-lg">
               <Plus className="mr-3 h-5 w-5" />
-              Create Your First Project
+              Create New Project
             </Button>
           </Link>
         </div>
@@ -172,7 +185,7 @@ export default function RecentProjects({ projects }: RecentProjectsProps) {
         <div className="space-y-6">
           {/* Enhanced Project Cards for Mobile */}
           <div className="block lg:hidden space-y-4">
-            {recentProjects.map((project) => {
+            {displayProjects.map((project) => {
               const StatusIcon = getStatusIcon(project.status)
               
               return (
@@ -190,7 +203,7 @@ export default function RecentProjects({ projects }: RecentProjectsProps) {
                         <h3 className="text-lg font-bold text-orange-900 mb-2 group-hover:text-orange-700 transition-colors line-clamp-1">
                           {project.project_title}
                         </h3>
-                                                 <p className="text-orange-600/70 text-sm leading-relaxed mb-3 line-clamp-2">
+                        <p className="text-orange-600/70 text-sm leading-relaxed mb-3 line-clamp-2">
                            {project.statement_of_work}
                          </p>
                       </div>
@@ -206,7 +219,7 @@ export default function RecentProjects({ projects }: RecentProjectsProps) {
                     <div className="grid grid-cols-2 gap-4 mb-4">
                       <div className="flex items-center gap-2 text-orange-700 bg-orange-50/50 p-2 rounded-lg">
                         <MapPin className="h-4 w-4 text-orange-500" />
-                                                 <span className="text-sm font-medium truncate">{project.location?.address || 'Not specified'}</span>
+                        <span className="text-sm font-medium truncate">{project.location?.address || 'Not specified'}</span>
                       </div>
                       <div className="flex items-center gap-2 text-orange-700 bg-orange-50/50 p-2 rounded-lg">
                         <DollarSign className="h-4 w-4 text-orange-500" />
@@ -263,7 +276,7 @@ export default function RecentProjects({ projects }: RecentProjectsProps) {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {recentProjects.map((project) => {
+                  {displayProjects.map((project) => {
                     const StatusIcon = getStatusIcon(project.status)
                     
                     return (
@@ -297,6 +310,7 @@ export default function RecentProjects({ projects }: RecentProjectsProps) {
                                 : 'Not specified'
                               }
                             </span>
+                            <span className="text-sm font-medium">{project.location?.address || 'Not specified'}</span>
                           </div>
                         </TableCell>
                         <TableCell className="text-orange-700">
