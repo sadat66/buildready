@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { createClient } from '@/lib/supabase'
-import { Project } from '@/types/database'
+import { Project } from '@/types'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -289,7 +289,7 @@ export default function SubmitProposalPage() {
             </div>
             <div>
               <Label className="text-sm font-medium text-gray-600">Location</Label>
-              <p className="text-sm">{project.location_address || 'Not specified'}</p>
+              <p className="text-sm">{project.location?.address || 'Not specified'}</p>
             </div>
             <div>
               <Label className="text-sm font-medium text-gray-600">Budget Range</Label>

@@ -16,7 +16,7 @@ export const projectSchema = z.object({
   budget: validationPatterns.positiveNumber,
   category: z.array(tradeCategoryEnum).default([]),
   pid: validationPatterns.nonEmptyString,
-  location: validationPatterns.geospatialLocation, // Updated to handle geospatial data
+  location: validationPatterns.geospatialLocation,
   certificate_of_title: validationPatterns.optionalUrl,
   project_type: projectTypeEnum,
   status: projectStatusEnum.default('Published'),
@@ -24,10 +24,13 @@ export const projectSchema = z.object({
   start_date: z.date(),
   end_date: z.date(),
   expiry_date: z.date(),
+  // ✅ NEW WORKFLOW FIELDS
+  decision_date: validationPatterns.optionalDate, // Required in workflow, but optional in schema for flexibility
+  permit_required: z.boolean().default(false), // Optional permit toggle
   substantial_completion: validationPatterns.optionalDate,
   is_verified_project: z.boolean().default(false),
-  project_photos: z.array(validationPatterns.fileReference).default([]), // Updated to handle actual files
-  files: z.array(validationPatterns.fileReference).default([]), // Updated to handle actual files
+  project_photos: z.array(validationPatterns.fileReference).default([]),
+  files: z.array(validationPatterns.fileReference).default([]),
   creator: validationPatterns.uuid,
   proposal_count: z.number().int().min(0).default(0),
 })

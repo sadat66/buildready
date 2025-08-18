@@ -4,7 +4,7 @@ import { Calendar, MapPin, DollarSign, Clock, Eye, User } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import { Project } from '@/types/database'
+import { Project } from '@/types'
 
 interface ProjectCardProps {
   projects: Project[]
@@ -25,8 +25,9 @@ export default function ProjectCard({ projects, onProjectClick }: ProjectCardPro
     return statusConfig[status as keyof typeof statusConfig] || statusConfig.open
   }
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+  const formatDate = (date: Date | string) => {
+    const dateObj = typeof date === 'string' ? new Date(date) : date
+    return dateObj.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -67,10 +68,10 @@ export default function ProjectCard({ projects, onProjectClick }: ProjectCardPro
             
             <CardContent className="space-y-4">
               {/* Location */}
-              {project.location_address && (
+              {project.location?.address && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <MapPin className="h-4 w-4 flex-shrink-0" />
-                  <span className="line-clamp-1">{project.location_address}</span>
+                  <span className="line-clamp-1">{project.location.address}</span>
                 </div>
               )}
               

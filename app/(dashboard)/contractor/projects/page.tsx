@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 
 import { useAuth } from '@/contexts/AuthContext'
 import { createClient } from '@/lib/supabase'
-import { Project } from '@/types/database'
+import { Project } from '@/types'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -90,7 +90,7 @@ export default function ContractorProjectsPage() {
   const filteredProjects = projects.filter(project => {
     const matchesSearch = project.project_title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         project.statement_of_work?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        project.location_address?.toLowerCase().includes(searchTerm.toLowerCase())
+        project.location?.address?.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesCategory = categoryFilter === 'all' || project.category?.includes(categoryFilter)
     return matchesSearch && matchesCategory
   })
@@ -104,8 +104,9 @@ export default function ContractorProjectsPage() {
     }).format(amount)
   }
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+  const formatDate = (date: Date | string) => {
+    const dateObj = typeof date === 'string' ? new Date(date) : date
+    return dateObj.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
@@ -196,7 +197,7 @@ export default function ContractorProjectsPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                 <div className="flex items-center gap-2">
                   <MapPin className="h-4 w-4 text-gray-500" />
-                  <span>{project.location_address || 'Not specified'}</span>
+                  <span>{project.location?.address || 'Not specified'}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <DollarSign className="h-4 w-4 text-gray-500" />

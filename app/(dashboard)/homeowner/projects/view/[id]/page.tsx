@@ -25,12 +25,14 @@ interface Project {
   budget: number
   category: string[]
   pid: string
-  location_address: string
-  location_city: string
-  location_province: string
-  location_postal_code: string
-  location_latitude: number | null
-  location_longitude: number | null
+  location: {
+    address: string
+    city: string
+    province: string
+    postalCode: string
+    latitude?: number | null
+    longitude?: number | null
+  }
   project_type: string
   status: string
   visibility_settings: string
@@ -294,25 +296,25 @@ export default function ProjectViewPage() {
             <CardContent className="space-y-4">
               <div>
                 <Label className="text-sm font-medium text-muted-foreground">Address</Label>
-                <p className="mt-1 text-gray-900">{project.location_address}</p>
+                <p className="mt-1 text-gray-900">{project.location?.address}</p>
               </div>
               
               <div className="grid grid-cols-3 gap-4">
                 <div>
                   <Label className="text-sm font-medium text-muted-foreground">City</Label>
-                  <p className="mt-1 text-gray-900">{project.location_city}</p>
+                  <p className="mt-1 text-gray-900">{project.location?.city}</p>
                 </div>
                 <div>
                   <Label className="text-sm font-medium text-muted-foreground">Province</Label>
-                  <p className="mt-1 text-gray-900">{project.location_province}</p>
+                  <p className="mt-1 text-gray-900">{project.location?.province}</p>
                 </div>
                 <div>
                   <Label className="text-sm font-medium text-muted-foreground">Postal Code</Label>
-                  <p className="mt-1 text-gray-900">{project.location_postal_code}</p>
+                  <p className="mt-1 text-gray-900">{project.location?.postalCode}</p>
                 </div>
               </div>
 
-              {project.location_latitude && project.location_longitude && (
+              {project.location?.latitude && project.location?.longitude && (
                 <div>
                   <Label className="text-sm font-medium text-muted-foreground">Map</Label>
                   <div className="mt-2">

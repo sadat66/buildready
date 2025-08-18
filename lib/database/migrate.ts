@@ -20,6 +20,7 @@ import { migration_006_create_contractor_profiles } from './migrations/006_creat
 import { migration_010_add_rls_policies } from './migrations/010_add_rls_policies'
 import { migration_011_update_projects_schema } from './migrations/011_update_projects_schema'
 import { migration_013_update_projects_location_to_jsonb } from './migrations/013_update_projects_location_to_jsonb'
+import { migration_014_add_workflow_fields_to_projects } from './migrations/014_add_workflow_fields_to_projects'
 
 // Explicitly register migrations to ensure they're loaded
 migrationRegistry.register(migration_002_proposal_resubmission)
@@ -29,6 +30,7 @@ migrationRegistry.register(migration_006_create_contractor_profiles)
 migrationRegistry.register(migration_010_add_rls_policies)
 migrationRegistry.register(migration_011_update_projects_schema)
 migrationRegistry.register(migration_013_update_projects_location_to_jsonb)
+migrationRegistry.register(migration_014_add_workflow_fields_to_projects)
 
 // CLI argument parsing
 const args = process.argv.slice(2)

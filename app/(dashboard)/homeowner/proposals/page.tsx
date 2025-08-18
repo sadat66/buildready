@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { createClient } from '@/lib/supabase'
-import { Proposal } from '@/types/database'
+import { Proposal } from '@/types'
 
 interface Project {
   id: string
@@ -44,7 +44,7 @@ export default function HomeownerProposalsPage() {
         // Fetch projects first
         const { data: projectsData, error: projectsError } = await supabase
           .from('projects')
-          .select('id, title')
+          .select('id, project_title')
           .eq('creator', user.id)
         
         if (projectsError) throw projectsError
@@ -67,23 +67,23 @@ export default function HomeownerProposalsPage() {
             .from('proposals')
             .select(`
               *,
-              projects (
+              project:projects (
                 id,
-                title,
-                description,
+                project_title,
+                statement_of_work,
                 category,
                 location,
                 status,
                 budget
               ),
-              users!contractor_id (
+              contractor:users!contractor_id (
                 id,
                 full_name,
                 first_name,
                 last_name
               )
             `)
-            .in('project_id', projectIdList)
+            .in('projectId', projectIdList)
             .order('created_at', { ascending: false })
           
           if (proposalsError) {
@@ -159,7 +159,7 @@ export default function HomeownerProposalsPage() {
           const { error: projectError } = await supabase
             .from('projects')
             .update({ status: 'awarded' })
-            .eq('id', proposal.project_id)
+            .eq('id', proposal.projectId)
           
           if (projectError) throw projectError
         }

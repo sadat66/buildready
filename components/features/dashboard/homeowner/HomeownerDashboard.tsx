@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase'
-import { Project } from '@/types/database'
+import { Project } from '@/types'
 
 import UserGreeting from './UserGreeting'
 import QuickActions from './QuickActions'
@@ -46,12 +46,7 @@ export default function HomeownerDashboard({ userEmail }: HomeownerDashboardProp
             budget,
             category,
             pid,
-            location_address,
-            location_city,
-            location_province,
-            location_postal_code,
-            location_latitude,
-            location_longitude,
+            location,
             certificate_of_title,
             project_type,
             status,
@@ -59,6 +54,8 @@ export default function HomeownerDashboard({ userEmail }: HomeownerDashboardProp
             start_date,
             end_date,
             expiry_date,
+            decision_date,
+            permit_required,
             substantial_completion,
             is_verified_project,
             project_photos,
