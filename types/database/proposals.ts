@@ -1,62 +1,157 @@
 import { User } from './auth'
 import { Project } from './projects'
 
-// Base proposal interface (matches the schema exactly)
+// Base proposal interface (matches the comprehensive schema exactly)
 export interface Proposal {
   id: string
-  projectId: string
-  contractorId: string
-  bidAmount: number
-  description: string
-  timeline: string
-  status: 'pending' | 'accepted' | 'rejected' | 'withdrawn'
-  created_at: Date
-  updated_at: Date
+  createdAt: Date
+  updatedAt: Date
   
-  // Optional relationships for database queries
-  contractor?: User
-  project?: Project
+  // Core proposal fields
+  title: string
+  description_of_work: string
+  
+  // Project and user relationships (flat ID references)
+  project: string
+  contractor: string
+  homeowner: string
+  
+  // Financial fields
+  subtotal_amount: number
+  tax_included: 'yes' | 'no'
+  total_amount: number
+  deposit_amount: number
+  deposit_due_on: Date
+  
+  // Timeline fields
+  proposed_start_date: Date
+  proposed_end_date: Date
+  expiry_date: Date
+  
+  // Status and workflow fields
+  status: 'draft' | 'submitted' | 'viewed' | 'accepted' | 'rejected' | 'withdrawn' | 'expired'
+  is_selected: 'yes' | 'no'
+  is_deleted: 'yes' | 'no'
+  
+  // Dates and timestamps
+  submitted_date?: Date
+  accepted_date?: Date
+  rejected_date?: Date
+  withdrawn_date?: Date
+  viewed_date?: Date
+  last_updated: Date
+  
+  // Rejection handling
+  rejected_by?: string
+  rejection_reason?: 'price_too_high' | 'timeline_unrealistic' | 'experience_insufficient' | 'scope_mismatch' | 'other'
+  rejection_reason_notes?: string
+  
+  // Content and documentation
+  clause_preview_html?: string
+  attached_files: Array<{
+    id: string
+    filename: string
+    url: string
+    size?: number
+    mimeType?: string
+    uploadedAt?: Date
+  }>
+  notes?: string
+  
+  // Relationships and references
+  agreement?: string
+  proposals: string[]
+  
+  // User tracking
+  created_by: string
+  last_modified_by: string
+  
+  // Visibility and sharing
+  visibility_settings: 'private' | 'public' | 'shared'
 }
 
 // Additional proposal types from the schema
 export interface ProposalCreate {
-  projectId: string
-  contractorId: string
-  bidAmount: number
-  description: string
-  timeline: string
+  title: string
+  description_of_work: string
+  project: string
+  contractor: string
+  homeowner: string
+  subtotal_amount: number
+  tax_included: 'yes' | 'no'
+  total_amount: number
+  deposit_amount: number
+  deposit_due_on: Date
+  proposed_start_date: Date
+  proposed_end_date: Date
+  expiry_date: Date
+  clause_preview_html?: string
+  attached_files?: Array<{
+    id: string
+    filename: string
+    url: string
+    size?: number
+    mimeType?: string
+    uploadedAt?: Date
+  }>
+  notes?: string
+  visibility_settings?: 'private' | 'public' | 'shared'
 }
 
 export interface ProposalUpdate {
-  bidAmount?: number
-  description?: string
-  timeline?: string
-  status?: 'pending' | 'accepted' | 'rejected' | 'withdrawn'
+  title?: string
+  description_of_work?: string
+  subtotal_amount?: number
+  tax_included?: 'yes' | 'no'
+  total_amount?: number
+  deposit_amount?: number
+  deposit_due_on?: Date
+  proposed_start_date?: Date
+  proposed_end_date?: Date
+  expiry_date?: Date
+  status?: 'draft' | 'submitted' | 'viewed' | 'accepted' | 'rejected' | 'withdrawn' | 'expired'
+  is_selected?: 'yes' | 'no'
+  clause_preview_html?: string
+  attached_files?: Array<{
+    id: string
+    filename: string
+    url: string
+    size?: number
+    mimeType?: string
+    uploadedAt?: Date
+  }>
+  notes?: string
+  visibility_settings?: 'private' | 'public' | 'shared'
 }
 
 export interface ProposalStatusUpdate {
   proposal_id: string
-  new_status: 'pending' | 'accepted' | 'rejected' | 'withdrawn'
+  new_status: 'draft' | 'submitted' | 'viewed' | 'accepted' | 'rejected' | 'withdrawn' | 'expired'
   status_reason?: string
   updated_by: string
 }
 
 export interface ProposalResubmission {
   original_proposal_id: string
-  new_bid_amount: number
-  new_description: string
-  new_timeline: string
+  new_subtotal_amount: number
+  new_description_of_work: string
+  new_timeline: {
+    proposed_start_date: Date
+    proposed_end_date: Date
+  }
   resubmission_reason?: string
 }
 
 export interface ProposalSearch {
-  project_id?: string
-  contractor_id?: string
-  status?: 'pending' | 'accepted' | 'rejected' | 'withdrawn'
-  bid_amount_min?: number
-  bid_amount_max?: number
+  project?: string
+  contractor?: string
+  homeowner?: string
+  status?: 'draft' | 'submitted' | 'viewed' | 'accepted' | 'rejected' | 'withdrawn' | 'expired'
+  subtotal_amount_min?: number
+  subtotal_amount_max?: number
   date_from?: Date
   date_to?: Date
+  is_selected?: 'yes' | 'no'
 }
 
 export interface ProposalComparison {

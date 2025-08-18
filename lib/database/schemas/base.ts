@@ -14,8 +14,10 @@ export const commonFields = {
 
 export const commonEnums = {
   userRole: z.enum(['homeowner', 'contractor', 'admin']),
-  proposalStatus: z.enum(['pending', 'accepted', 'rejected', 'withdrawn']),
+  proposalStatus: z.enum(['draft', 'submitted', 'viewed', 'accepted', 'rejected', 'withdrawn', 'expired']),
   legalEntityType: z.enum(['Corporation', 'Partnership', 'Sole Proprietorship', 'LLC']),
+  rejectionReason: z.enum(['price_too_high', 'timeline_unrealistic', 'experience_insufficient', 'scope_mismatch', 'other']),
+  visibilitySettings: z.enum(['private', 'public', 'shared']),
 } as const
 
 export const validationPatterns = {
@@ -48,9 +50,18 @@ export const validationPatterns = {
     uploadedAt: z.date().optional(),
   }),
   fileArray: z.array(z.string().url()).default([]), // For backward compatibility
+  // New patterns for proposal fields
+  yesNo: z.enum(['yes', 'no']),
+  htmlContent: z.string().optional(),
+  amount: z.number().positive(),
+  date: z.date(),
 } as const
 
 export type BaseSchema = z.infer<typeof baseSchema>
 export type CommonFields = z.infer<typeof commonFields>
 export type GeospatialLocation = z.infer<typeof validationPatterns.geospatialLocation>
 export type FileReference = z.infer<typeof validationPatterns.fileReference>
+export type YesNo = z.infer<typeof validationPatterns.yesNo>
+export type ProposalStatus = z.infer<typeof commonEnums.proposalStatus>
+export type RejectionReason = z.infer<typeof commonEnums.rejectionReason>
+export type VisibilitySettings = z.infer<typeof commonEnums.visibilitySettings>

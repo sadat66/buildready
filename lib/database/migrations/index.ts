@@ -13,6 +13,7 @@ import { migration_006_create_contractor_profiles } from './006_create_contracto
 import { migration_007_fix_role_field_conflicts } from './007_fix_role_field_conflicts'
 import { migration_010_add_rls_policies } from './010_add_rls_policies'
 import { migration_011_update_projects_schema } from './011_update_projects_schema'
+import { migration_015_add_comprehensive_proposal_schema } from './015_add_comprehensive_proposal_schema'
 
 // Register all migrations
 migrationRegistry.register(migration_002_proposal_resubmission)
@@ -22,6 +23,7 @@ migrationRegistry.register(migration_006_create_contractor_profiles)
 migrationRegistry.register(migration_007_fix_role_field_conflicts)
 migrationRegistry.register(migration_010_add_rls_policies)
 migrationRegistry.register(migration_011_update_projects_schema)
+migrationRegistry.register(migration_015_add_comprehensive_proposal_schema)
 
 // Export the migration registry for external use
 export { migrationRegistry } from '../migrations'
