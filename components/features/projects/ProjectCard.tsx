@@ -68,10 +68,14 @@ export default function ProjectCard({ projects, onProjectClick }: ProjectCardPro
             
             <CardContent className="space-y-4">
               {/* Location */}
-              {project.location?.address && (
+              {project.location && (project.location.address || project.location.city || project.location.province) && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <MapPin className="h-4 w-4 flex-shrink-0" />
-                  <span className="line-clamp-1">{project.location.address}</span>
+                  <span className="line-clamp-1">
+                    {[project.location.address, project.location.city, project.location.province]
+                      .filter(Boolean)
+                      .join(', ')}
+                  </span>
                 </div>
               )}
               

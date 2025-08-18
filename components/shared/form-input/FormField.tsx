@@ -1,10 +1,11 @@
 import * as React from "react"
 import { Control, FieldPath, FieldValues, ControllerRenderProps } from "react-hook-form"
-import { useFormField } from "./useFormField"
+import { useFormField } from "@/lib/hooks"
 import { FormInput } from "./FormInput"
 import { FormTextarea } from "./FormTextarea"
 import { FormSelect } from "./FormSelect"
 import { FormSwitch } from "./FormSwitch"
+import { LocationInput, LocationData } from "./LocationInput"
 
 export interface FormFieldProps<
   TFieldValues extends FieldValues = FieldValues,
@@ -137,6 +138,38 @@ export function FormFieldSwitch<
           {...props}
           checked={field.value}
           onCheckedChange={field.onChange}
+          error={error}
+        />
+      )}
+    </FormField>
+  )
+}
+
+export interface FormFieldLocationProps<
+  TFieldValues extends FieldValues = FieldValues,
+  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
+> {
+  name: TName
+  control: Control<TFieldValues>
+  label?: string
+  placeholder?: string
+  required?: boolean
+  helperText?: string
+  showMap?: boolean
+}
+
+export function FormFieldLocation<
+  TFieldValues extends FieldValues = FieldValues,
+  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
+>({ name, control, ...props }: FormFieldLocationProps<TFieldValues, TName>) {
+  return (
+    <FormField name={name} control={control}>
+      {({ field, error }) => (
+        <LocationInput
+          {...props}
+          value={field.value as LocationData}
+          onChange={field.onChange}
+          onBlur={field.onBlur}
           error={error}
         />
       )}

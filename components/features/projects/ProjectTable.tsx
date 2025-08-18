@@ -51,17 +51,51 @@ export default function ProjectTable({ projects, onProjectClick }: ProjectTableP
       }),
       columnHelper.accessor('location', {
         header: 'Location',
-        cell: ({ row }) => (
-          <div className="flex items-center gap-2">
-            <MapPin className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm">
-              {row.original.location?.address 
-                ? `${row.original.location.address}, ${row.original.location.city}`
-                : 'Not specified'
-              }
-            </span>
-          </div>
-        ),
+        cell: ({ row }) => {
+          const location = row.original.location;
+          
+          // Check if location exists and has meaningful data
+          if (location && location.address && location.city) {
+            return (
+              <div className="flex items-center gap-2">
+                <MapPin className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm">
+                  {location.address}, {location.city}
+                </span>
+              </div>
+            );
+          }
+          
+          // Check if location exists but might have empty strings
+          if (location && (location.address || location.city || location.province)) {
+            const displayParts = [
+              location.address,
+              location.city,
+              location.province
+            ].filter(Boolean);
+            
+            if (displayParts.length > 0) {
+              return (
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm">
+                    {displayParts.join(', ')}
+                  </span>
+                </div>
+              );
+            }
+          }
+          
+          // No valid location data
+          return (
+            <div className="flex items-center gap-2">
+              <MapPin className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">
+                Not specified
+              </span>
+            </div>
+          );
+        },
         size: 200,
       }),
       columnHelper.accessor('budget', {

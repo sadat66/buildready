@@ -218,7 +218,7 @@ export default function RecentProjects({ projects }: RecentProjectsProps) {
                     <div className="flex items-center justify-between pt-4 border-t border-orange-100">
                       <div className="flex items-center gap-2 text-orange-600/80">
                         <CalendarDays className="h-4 w-4 text-orange-500" />
-                        <span className="text-sm font-medium">{getDaysAgo(project.created_at)}</span>
+                        <span className="text-sm font-medium">{getDaysAgo(project.created_at.toString())}</span>
                       </div>
                       <div className="flex gap-2">
                         <Link href={`/homeowner/projects/edit/${project.id}`}>
@@ -289,7 +289,14 @@ export default function RecentProjects({ projects }: RecentProjectsProps) {
                         <TableCell className="text-orange-700">
                           <div className="flex items-center gap-2 bg-orange-50/30 px-3 py-2 rounded-lg w-fit">
                             <MapPin className="h-4 w-4 text-orange-500" />
-                                                         <span className="text-sm font-medium">{project.location?.address || 'Not specified'}</span>
+                            <span className="text-sm font-medium">
+                              {project.location && (project.location.address || project.location.city || project.location.province)
+                                ? [project.location.address, project.location.city, project.location.province]
+                                    .filter(Boolean)
+                                    .join(', ')
+                                : 'Not specified'
+                              }
+                            </span>
                           </div>
                         </TableCell>
                         <TableCell className="text-orange-700">
@@ -301,7 +308,7 @@ export default function RecentProjects({ projects }: RecentProjectsProps) {
                         <TableCell className="text-orange-600/80">
                           <div className="flex items-center gap-2 bg-blue-50/50 px-3 py-2 rounded-lg w-fit">
                             <CalendarDays className="h-4 w-4 text-blue-500" />
-                            <span className="text-sm font-medium text-blue-700">{getDaysAgo(project.created_at)}</span>
+                            <span className="text-sm font-medium text-blue-700">{getDaysAgo(project.created_at.toString())}</span>
                           </div>
                         </TableCell>
                         <TableCell className="text-right">

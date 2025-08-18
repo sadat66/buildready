@@ -1,24 +1,18 @@
 import * as React from "react"
 import { Control } from "react-hook-form"
-import { MapPin } from "lucide-react"
-import { Label } from "@/components/ui/label"
-import { FormField, FormInput, FormTextarea, FormSelect, FormBadge } from "@/components/shared/form-input"
-import { TradeCategory } from "@/lib/database/schemas/projects"
+import { FormField, FormInput, FormTextarea, FormSelect, FormBadge, FormFieldLocation } from "@/components/shared/form-input"
 import { CreateProjectFormInputData } from "@/lib/validation/projects"
-import LocationMap from "../LocationMap"
  
 interface BasicInformationSectionProps {
   control: Control<CreateProjectFormInputData>
   watch: any
   setValue: any
-  errors: any
 }
 
 export function BasicInformationSection({ 
   control, 
   watch, 
-  setValue, 
-  errors 
+  setValue
 }: BasicInformationSectionProps) {
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-6">
@@ -65,11 +59,8 @@ export function BasicInformationSection({
               ]}
               onValueChange={(value) => {
                 const currentCategories = watch("category") || []
-                if (!currentCategories.includes(value as TradeCategory)) {
-                  setValue("category", [
-                    ...currentCategories,
-                    value as TradeCategory,
-                  ])
+                if (!currentCategories.includes(value)) {
+                  setValue("category", [...currentCategories, value])
                 }
               }}
               error={error}
@@ -140,40 +131,14 @@ export function BasicInformationSection({
           )}
         </FormField>
 
-        <div>
-          <Label className="flex items-center space-x-2">
-            <MapPin className="h-4 w-4" />
-            <span>Project Location *</span>
-          </Label>
-          <div className="mt-2">
-            <LocationMap
-              onLocationSelect={(coordinates: any) => {
-                setValue("location", {
-                  address: coordinates.address,
-                  city: "Vancouver", // Default city - should be parsed from address
-                  province: "BC", // Default province
-                  postalCode: "V6B 1A1", // Default postal code - should be parsed from address
-                  latitude: coordinates.lat,
-                  longitude: coordinates.lng,
-                })
-              }}
-              className="mt-2"
-            />
-          </div>
-          {watch("location") && watch("location").address && (
-            <p className="text-xs text-muted-foreground mt-2">
-              Selected: {watch("location").address}
-            </p>
-          )}
-          <p className="text-xs text-muted-foreground mt-1">
-            Note: Only city will be visible to contractors for privacy
-          </p>
-          {errors.location && (
-            <p className="text-red-500 text-sm mt-1">
-              {errors.location.message}
-            </p>
-          )}
-        </div>
+        <FormFieldLocation
+          name="location"
+          control={control}
+          label="Project Location"
+          placeholder="Search for an address..."
+          required
+          helperText="Enter the project address to help contractors find your project"
+        />
       </div>
     </div>
   )
