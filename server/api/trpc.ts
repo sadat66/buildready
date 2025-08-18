@@ -47,10 +47,19 @@ export const createTRPCContext = (opts: { headers: Headers }) => {
 /**
  * App Router context for fetch adapter
  */
-export const createTRPCContextAppRouter = (opts: { headers: Headers }) => {
-  return createInnerTRPCContext({
+export const createTRPCContextAppRouter = async (opts: { headers: Headers }) => {
+  const supabase = await createSupabaseClient()
+  
+  // Get the user from the session
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  return {
     headers: opts.headers,
-  })
+    supabase,
+    user,
+  }
 }
 
 /**
@@ -69,7 +78,7 @@ export const createTRPCContextAppRouterFetch = (opts: { headers: Headers }) => {
  * ZodErrors so that you get typesafety on the frontend if your procedure fails due to validation
  * errors on the backend.
  */
-const t = initTRPC.context<typeof createTRPCContext>().create({
+const t = initTRPC.context<typeof createTRPCContextAppRouter>().create({
   transformer: superjson,
   errorFormatter({ shape, error }) {
     return {
@@ -161,7 +170,8 @@ export const publicProcedureWithSupabase = t.procedure.use(async ({ ctx, next })
 
 export const protectedProcedure = t.procedure.use(async ({ ctx, next }) => {
   const supabase = await createSupabaseClient()
-
+  
+  // Get the user from the session
   const {
     data: { user },
   } = await supabase.auth.getUser()
