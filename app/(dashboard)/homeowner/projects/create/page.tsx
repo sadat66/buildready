@@ -5,8 +5,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { LoadingSpinner, Breadcrumbs } from '@/components/shared'
 import dynamic from 'next/dynamic'
 
-// Force client-side rendering to avoid React 19 SSR issues
-const CreateProjectForm = dynamic(() => import('@/components/features/projects').then(mod => ({ default: mod.CreateProjectForm })), {
+ const CreateProjectForm = dynamic(() => import('@/components/features/projects/CreateProjectForm').then(mod => ({ default: mod.default })), {
   ssr: false,
   loading: () => (
     <div className="space-y-6">
@@ -22,8 +21,7 @@ export default function CreateProjectPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Simple loading state management
-    if (user) {
+     if (user) {
       setLoading(false)
     }
   }, [user])
@@ -51,9 +49,7 @@ export default function CreateProjectPage() {
   return (
     <div className="space-y-6">
       <Breadcrumbs />
-
-      {/* Enhanced Create Project Form Component */}
-      <CreateProjectForm 
+       <CreateProjectForm 
         user={user}
       />
     </div>
