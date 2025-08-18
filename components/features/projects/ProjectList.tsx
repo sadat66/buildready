@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import { Project } from "@/types/database";
+import { Project } from "@/types";
 import ProjectTable from "./ProjectTable";
 import ProjectCard from "./ProjectCard";
 import Link from "next/link";
@@ -42,7 +42,8 @@ export default function ProjectList({
         project.statement_of_work
           ?.toLowerCase()
           .includes(searchQuery.toLowerCase()) ||
-        project.location_address?.toLowerCase().includes(searchQuery.toLowerCase());
+        project.location?.address?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        project.location?.city?.toLowerCase().includes(searchQuery.toLowerCase());
 
       const matchesStatus =
         statusFilter === "all" || project.status === statusFilter;

@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { CalendarDays, DollarSign, MapPin, Plus, Eye, Edit, Clock, Star, TrendingUp, Building2, Sparkles, BarChart3, CheckCircle, XCircle } from "lucide-react"
 import Link from "next/link"
-import { Project } from '@/types/database'
+import { Project } from '@/types'
 
 interface RecentProjectsProps {
   projects: Project[]
@@ -206,7 +206,7 @@ export default function RecentProjects({ projects }: RecentProjectsProps) {
                     <div className="grid grid-cols-2 gap-4 mb-4">
                       <div className="flex items-center gap-2 text-orange-700 bg-orange-50/50 p-2 rounded-lg">
                         <MapPin className="h-4 w-4 text-orange-500" />
-                                                 <span className="text-sm font-medium truncate">{project.location_address || 'Not specified'}</span>
+                                                 <span className="text-sm font-medium truncate">{project.location?.address || 'Not specified'}</span>
                       </div>
                       <div className="flex items-center gap-2 text-orange-700 bg-orange-50/50 p-2 rounded-lg">
                         <DollarSign className="h-4 w-4 text-orange-500" />
@@ -289,7 +289,7 @@ export default function RecentProjects({ projects }: RecentProjectsProps) {
                         <TableCell className="text-orange-700">
                           <div className="flex items-center gap-2 bg-orange-50/30 px-3 py-2 rounded-lg w-fit">
                             <MapPin className="h-4 w-4 text-orange-500" />
-                                                         <span className="text-sm font-medium">{project.location_address || 'Not specified'}</span>
+                                                         <span className="text-sm font-medium">{project.location?.address || 'Not specified'}</span>
                           </div>
                         </TableCell>
                         <TableCell className="text-orange-700">

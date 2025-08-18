@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
-import { Project } from '@/types/database'
+import { Project } from '@/types'
 import dynamic from 'next/dynamic'
 import { Breadcrumbs, LoadingSpinner } from '@/components/shared'
 
@@ -43,18 +43,15 @@ export default function HomeownerProjectsPage() {
           budget,
           category,
           pid,
-          location_address,
-          location_city,
-          location_province,
-          location_postal_code,
-          location_latitude,
-          location_longitude,
+          location,
           project_type,
           status,
           visibility_settings,
           start_date,
           end_date,
           expiry_date,
+          decision_date,
+          permit_required,
           substantial_completion,
           is_verified_project,
           certificate_of_title,

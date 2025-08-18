@@ -3,7 +3,7 @@
 import { useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import ProjectList from './ProjectList'
-import { Project } from '@/types/database'
+import { Project } from '@/types'
 
 interface ProjectsPageProps {
   projects: Project[]

@@ -7,7 +7,7 @@ const projectSchema = z.object({
   statement_of_work: z.string().min(1, 'Statement of work is required'),
   budget: z.number().positive('Budget must be a positive number'),
   category: z.array(z.string()).min(1, 'At least one category is required'),
-  pid: z.string().min(1, 'Project ID is required'),
+  pid: z.string().min(1, 'PID is required'),
   location: z.object({
     address: z.string().min(1, 'Address is required'),
     latitude: z.number().min(-90).max(90).optional(),
@@ -16,13 +16,15 @@ const projectSchema = z.object({
     province: z.string().min(1, 'Province is required'),
     postalCode: z.string().min(1, 'Postal code is required'),
   }),
-  project_type: z.enum(['residential', 'commercial', 'industrial']),
-  visibility_settings: z.enum(['public', 'private', 'invite_only']),
+  project_type: z.enum(['New Build', 'Renovation', 'Maintenance', 'Repair', 'Inspection']),
+  visibility_settings: z.enum(['Public', 'Private', 'Invitation Only']),
   start_date: z.date(),
   end_date: z.date(),
   expiry_date: z.date(),
   decision_date: z.date(),
   permit_required: z.boolean().default(false),
+  substantial_completion: z.date().optional(),
+  is_verified_project: z.boolean().default(false),
   project_photos: z.array(z.object({
     id: z.string().uuid(),
     filename: z.string().min(1),
@@ -32,8 +34,6 @@ const projectSchema = z.object({
     uploadedAt: z.date().optional(),
   })).min(1, 'At least one project photo is required'),
   certificate_of_title: z.string().url().optional(),
-  substantial_completion: z.date().optional(),
-  is_verified_project: z.boolean().default(false),
   files: z.array(z.object({
     id: z.string().uuid(),
     filename: z.string().min(1),
@@ -49,17 +49,21 @@ export const projectsRouter = createTRPCRouter({
   create: protectedProcedure
     .input(projectSchema)
     .mutation(async ({ input, ctx }) => {
+
+      console.log('input', input)
       const { data, error } = await ctx.supabase
         .from('projects')
         .insert({
           ...input,
           creator: ctx.user.id,
           status: 'Published',
+          proposal_count: 0,
         })
         .select()
         .single()
 
       if (error) {
+        console.error('Database error:', error)
         throw new TRPCError({
           code: 'BAD_REQUEST',
           message: error.message,

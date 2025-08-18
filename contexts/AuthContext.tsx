@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { User as SupabaseUser } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase'
-import { UserRole } from '@/types/database'
+import { UserRole } from '@/types'
 
 export interface ExtendedUser extends SupabaseUser {
   user_role?: UserRole

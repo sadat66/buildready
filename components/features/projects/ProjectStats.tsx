@@ -7,7 +7,7 @@ import {
   TrendingUp, 
   Clock
 } from 'lucide-react'
-import { Project } from '@/types/database'
+import { Project } from '@/types'
 
 interface ProjectStatsProps {
   projects: Project[]
@@ -22,7 +22,7 @@ export default function ProjectStats({ projects }: ProjectStatsProps) {
     completed: projects.filter(p => p.status === 'Completed').length,
     cancelled: projects.filter(p => p.status === 'Cancelled').length,
     totalBudget: projects.reduce((sum, p) => sum + (p.budget || 0), 0),
-    withLocation: projects.filter(p => p.location_address).length,
+    withLocation: projects.filter(p => p.location?.address).length,
     upcomingDeadlines: projects.filter(p => {
       if (!p.expiry_date) return false
       const deadline = new Date(p.expiry_date)
