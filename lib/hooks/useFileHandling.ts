@@ -1,8 +1,18 @@
 import { useState } from "react"
 import { UseFormSetValue } from "react-hook-form"
-import { CreateProjectFormInputData } from "@/lib/validation/projects"
 
-export function useFileHandling(setValue: UseFormSetValue<CreateProjectFormInputData>) {
+// Generic interface for file handling - can be reused across different forms
+export interface FileHandlingOptions {
+  onFileChange?: (files: any[], type: string) => void
+  onFileRemove?: (index: number, type: string) => void
+  maxFileSize?: number
+  allowedTypes?: string[]
+}
+
+export function useFileHandling<T extends Record<string, any>>(
+  setValue: UseFormSetValue<T>,
+  options: FileHandlingOptions = {}
+) {
   const [dragActive, setDragActive] = useState(false)
   const [selectedPhotos, setSelectedPhotos] = useState<File[]>([])
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
@@ -26,8 +36,13 @@ export function useFileHandling(setValue: UseFormSetValue<CreateProjectFormInput
           mimeType: f.type,
           uploadedAt: new Date(),
         }))
-        setValue("project_photos", photoObjects)
+        
+        // Update form state - this is generic and will work with any form
+        setValue("project_photos" as keyof T, photoObjects as any)
         console.log("Updated project_photos:", photoObjects)
+        
+        // Call custom callback if provided
+        options.onFileChange?.(photoObjects, type)
       } else {
         setSelectedFiles((prev) => [...prev, ...newFiles])
         // Create proper file objects for the validation schema
@@ -40,8 +55,13 @@ export function useFileHandling(setValue: UseFormSetValue<CreateProjectFormInput
           mimeType: f.type,
           uploadedAt: new Date(),
         }))
-        setValue("files", fileObjects)
+        
+        // Update form state
+        setValue("files" as keyof T, fileObjects as any)
         console.log("Updated files:", fileObjects)
+        
+        // Call custom callback if provided
+        options.onFileChange?.(fileObjects, type)
       }
     }
   }
@@ -58,8 +78,12 @@ export function useFileHandling(setValue: UseFormSetValue<CreateProjectFormInput
         mimeType: f.type,
         uploadedAt: new Date(),
       }))
-      setValue("project_photos", photoObjects)
+      
+      setValue("project_photos" as keyof T, photoObjects as any)
       console.log("Updated project_photos after removal:", photoObjects)
+      
+      // Call custom callback if provided
+      options.onFileRemove?.(index, type)
     } else {
       const newFiles = selectedFiles.filter((_, i) => i !== index)
       setSelectedFiles(newFiles)
@@ -71,8 +95,12 @@ export function useFileHandling(setValue: UseFormSetValue<CreateProjectFormInput
         mimeType: f.type,
         uploadedAt: new Date(),
       }))
-      setValue("files", fileObjects)
+      
+      setValue("files" as keyof T, fileObjects as any)
       console.log("Updated files after removal:", fileObjects)
+      
+      // Call custom callback if provided
+      options.onFileRemove?.(index, type)
     }
   }
 

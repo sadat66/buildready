@@ -197,7 +197,14 @@ export default function ContractorProjectsViewPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                 <div className="flex items-center gap-2">
                   <MapPin className="h-4 w-4 text-gray-500" />
-                  <span>{project.location?.address || 'Not specified'}</span>
+                  <span>
+                    {project.location && (project.location.address || project.location.city || project.location.province)
+                      ? [project.location.address, project.location.city, project.location.province]
+                          .filter(Boolean)
+                          .join(', ')
+                      : 'Not specified'
+                    }
+                  </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <DollarSign className="h-4 w-4 text-gray-500" />

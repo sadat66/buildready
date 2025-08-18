@@ -11,7 +11,6 @@ interface FileUploadSectionProps {
   dragActive: boolean
   selectedPhotos: File[]
   selectedFiles: File[]
-  errors: any
   handleDrag: (e: React.DragEvent) => void
   handleDrop: (e: React.DragEvent, type: "photos" | "documents") => void
   handleFileChange: (files: FileList | null, type: "photos" | "documents") => void
@@ -23,7 +22,6 @@ export function FileUploadSection({
   dragActive,
   selectedPhotos,
   selectedFiles,
-  errors,
   handleDrag,
   handleDrop,
   handleFileChange,
@@ -49,8 +47,6 @@ export function FileUploadSection({
             className={`mt-2 border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
               dragActive
                 ? "border-blue-500 bg-blue-50"
-                : errors.project_photos
-                ? "border-red-500 bg-red-50"
                 : "border-gray-300 hover:border-gray-400"
             }`}
             onDragEnter={handleDrag}
@@ -75,12 +71,6 @@ export function FileUploadSection({
             />
           </div>
 
-          {errors.project_photos && (
-            <p className="text-red-500 text-sm mt-2">
-              {errors.project_photos.message}
-            </p>
-          )}
-
           {/* Photo Previews */}
           {selectedPhotos.length > 0 && (
             <div className="mt-4">
@@ -102,14 +92,14 @@ export function FileUploadSection({
                           type="button"
                           variant="destructive"
                           size="sm"
-                          className="opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                          className="opacity-0 group-hover:opacity-100 transition-opacity"
                           onClick={() => removeFile(index, "photos")}
                         >
                           <X className="h-4 w-4" />
                         </Button>
                       </div>
                     </div>
-                    <p className="text-xs text-gray-500 mt-1 truncate">
+                    <p className="text-xs text-gray-600 mt-1 truncate">
                       {file.name}
                     </p>
                   </div>
@@ -117,21 +107,19 @@ export function FileUploadSection({
               </div>
             </div>
           )}
-
-          <p className="text-xs text-muted-foreground mt-2">
-            Include photos showing site access, current conditions, and
-            areas to be worked on
-          </p>
         </div>
 
         {/* Project Files */}
         <div>
-          <Label htmlFor="files" className="flex items-center space-x-2">
+          <Label
+            htmlFor="project_files"
+            className="flex items-center space-x-2"
+          >
             <Paperclip className="h-4 w-4" />
             <span>Project Files (Optional)</span>
           </Label>
 
-          {/* Drag & Drop Area for Project Files */}
+          {/* Drag & Drop Area */}
           <div
             className={`mt-2 border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
               dragActive
@@ -143,26 +131,24 @@ export function FileUploadSection({
             onDragOver={handleDrag}
             onDrop={(e) => handleDrop(e, "documents")}
           >
-            <Paperclip className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+            <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
             <p className="text-sm text-gray-600 mb-2">
               Drag and drop files here, or click to browse
             </p>
             <p className="text-xs text-gray-500">
-              Supports PDF, DOC, DWG, images up to 10MB each
+              Supports PDF, DOC, XLS up to 10MB each
             </p>
             <Input
-              id="files"
+              id="project_files"
               type="file"
               multiple
-              accept=".pdf,.doc,.docx,.dwg,.jpg,.jpeg,.png"
-              onChange={(e) =>
-                handleFileChange(e.target.files, "documents")
-              }
+              accept=".pdf,.doc,.docx,.xls,.xlsx"
+              onChange={(e) => handleFileChange(e.target.files, "documents")}
               className="mt-4 bg-white"
             />
           </div>
 
-          {/* Project Files List */}
+          {/* File List */}
           {selectedFiles.length > 0 && (
             <div className="mt-4">
               <p className="text-sm font-medium text-gray-700 mb-3">
@@ -170,10 +156,7 @@ export function FileUploadSection({
               </p>
               <div className="space-y-2">
                 {selectedFiles.map((file, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                  >
+                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div className="flex items-center space-x-3">
                       <FileText className="h-5 w-5 text-gray-400" />
                       <div>
@@ -190,7 +173,6 @@ export function FileUploadSection({
                       variant="ghost"
                       size="sm"
                       onClick={() => removeFile(index, "documents")}
-                      className="text-red-500 hover:text-red-700 hover:bg-red-50"
                     >
                       <X className="h-4 w-4" />
                     </Button>
@@ -199,10 +181,6 @@ export function FileUploadSection({
               </div>
             </div>
           )}
-
-          <p className="text-xs text-muted-foreground mt-2">
-            Upload plans, specifications, or other relevant documents
-          </p>
         </div>
       </div>
     </div>
