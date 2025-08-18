@@ -410,14 +410,10 @@ export function ContractorProfile({ user }: ContractorProfileProps) {
       {/* Service Location Section */}
       <ServiceLocationSection
         formData={{
-          service_address: contractorFormData.service_location,
-          service_city: "",
-          service_province: "",
-          service_postal_code: "",
-          service_country: "",
+          service_location: contractorFormData.service_location,
         }}
         onInputChange={(field, value) => {
-          if (field === 'service_address') {
+          if (field === 'service_location') {
             setContractorFormData(prev => ({ ...prev, service_location: value }));
           }
         }}
@@ -425,28 +421,7 @@ export function ContractorProfile({ user }: ContractorProfileProps) {
 
       {/* Contact Management Section */}
       <ContactManagementSection
-        contractor_contacts={contractorFormData.contractor_contacts.map(contactId => ({
-          name: "",
-          role: "",
-          email: "",
-          phone: "",
-        }))}
-        onAddContact={() => {
-          setContractorFormData(prev => ({
-            ...prev,
-            contractor_contacts: [...prev.contractor_contacts, ""]
-          }));
-        }}
-        onRemoveContact={(index) => {
-          setContractorFormData(prev => ({
-            ...prev,
-            contractor_contacts: prev.contractor_contacts.filter((_, i) => i !== index)
-          }));
-        }}
-        onUpdateContact={(index, field, value) => {
-          // This would need to be implemented based on your contact structure
-          console.log('Contact update:', index, field, value);
-        }}
+        contractor_contacts={contractorFormData.contractor_contacts}
       />
 
       {/* Save Button */}

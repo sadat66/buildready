@@ -1,8 +1,8 @@
 "use client";
 
+import { FormInput, FormSelect } from "@/components/shared/form-input";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Shield, Building2, FileText, CheckCircle, Calendar } from "lucide-react";
 
 interface InsuranceSectionProps {
@@ -37,48 +37,40 @@ export function InsuranceSection({ formData, onInputChange }: InsuranceSectionPr
           </div>
         </div>
         <div className="p-6 space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="legal_entity_type" className="flex items-center space-x-2 text-sm font-medium text-slate-700">
-              <Building2 className="h-4 w-4 text-slate-500" />
-              <span>Legal Entity Type</span>
-            </Label>
-            <Select value={formData.legal_entity_type} onValueChange={(value) => onInputChange("legal_entity_type", value)}>
-              <SelectTrigger className="border-slate-300 focus:border-amber-500 focus:ring-amber-500">
-                <SelectValue placeholder="Select legal entity type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Corporation">Corporation</SelectItem>
-                <SelectItem value="Partnership">Partnership</SelectItem>
-                <SelectItem value="Sole Proprietorship">Sole Proprietorship</SelectItem>
-                <SelectItem value="LLC">LLC</SelectItem>
-              </SelectContent>
-            </Select>
+          <div>
+            <FormSelect
+              label="Legal Entity Type"
+              placeholder="Select legal entity type"
+              value={formData.legal_entity_type}
+              onValueChange={(value) => onInputChange("legal_entity_type", value)}
+              options={[
+                { value: "Corporation", label: "Corporation" },
+                { value: "Partnership", label: "Partnership" },
+                { value: "Sole Proprietorship", label: "Sole Proprietorship" },
+                { value: "LLC", label: "LLC" }
+              ]}
+              containerClassName="space-y-2"
+            />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <Label htmlFor="gst_hst_number" className="flex items-center space-x-2 text-sm font-medium text-slate-700">
-                <FileText className="h-4 w-4 text-slate-500" />
-                <span>GST/HST Number</span>
-              </Label>
-              <Input
-                id="gst_hst_number"
+            <div>
+              <FormInput
+                label="GST/HST Number"
                 value={formData.gst_hst_number}
                 onChange={(e) => onInputChange("gst_hst_number", e.target.value)}
                 placeholder="Enter your CRA GST/HST number"
                 className="border-slate-300 focus:border-amber-500 focus:ring-amber-500"
+                containerClassName="space-y-2"
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="wcb_number" className="flex items-center space-x-2 text-sm font-medium text-slate-700">
-                <Shield className="h-4 w-4 text-slate-500" />
-                <span>WCB Number</span>
-              </Label>
-              <Input
-                id="wcb_number"
+            <div>
+              <FormInput
+                label="WCB Number"
                 value={formData.wcb_number}
                 onChange={(e) => onInputChange("wcb_number", e.target.value)}
                 placeholder="Enter Workers' Compensation Board number"
                 className="border-slate-300 focus:border-amber-500 focus:ring-amber-500"
+                containerClassName="space-y-2"
               />
             </div>
           </div>
@@ -115,62 +107,50 @@ export function InsuranceSection({ formData, onInputChange }: InsuranceSectionPr
         </div>
         <div className="p-6 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <Label htmlFor="insurance_general_liability" className="flex items-center space-x-2 text-sm font-medium text-slate-700">
-                <Shield className="h-4 w-4 text-slate-500" />
-                <span>General Liability (CAD)</span>
-              </Label>
-              <Input
-                id="insurance_general_liability"
+            <div>
+              <FormInput
+                label="General Liability (CAD)"
                 type="number"
                 min="0"
                 value={formData.insurance_general_liability}
                 onChange={(e) => onInputChange("insurance_general_liability", parseInt(e.target.value) || 0)}
                 placeholder="Enter coverage amount in CAD"
                 className="border-slate-300 focus:border-orange-500 focus:ring-orange-500"
+                containerClassName="space-y-2"
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="insurance_builders_risk" className="flex items-center space-x-2 text-sm font-medium text-slate-700">
-                <Building2 className="h-4 w-4 text-slate-500" />
-                <span>Builders Risk (CAD)</span>
-              </Label>
-              <Input
-                id="insurance_builders_risk"
+            <div>
+              <FormInput
+                label="Builders Risk (CAD)"
                 type="number"
                 min="0"
                 value={formData.insurance_builders_risk}
                 onChange={(e) => onInputChange("insurance_builders_risk", parseInt(e.target.value) || 0)}
                 placeholder="Enter coverage amount in CAD"
                 className="border-slate-300 focus:border-orange-500 focus:ring-orange-500"
+                containerClassName="space-y-2"
               />
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <Label htmlFor="insurance_expiry" className="flex items-center space-x-2 text-sm font-medium text-slate-700">
-                <Calendar className="h-4 w-4 text-slate-500" />
-                <span>Insurance Expiry Date</span>
-              </Label>
-              <Input
-                id="insurance_expiry"
+            <div>
+              <FormInput
+                label="Insurance Expiry Date"
                 type="date"
                 value={formData.insurance_expiry}
                 onChange={(e) => onInputChange("insurance_expiry", e.target.value)}
                 className="border-slate-300 focus:border-orange-500 focus:ring-orange-500"
+                containerClassName="space-y-2"
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="insurance_upload" className="flex items-center space-x-2 text-sm font-medium text-slate-700">
-                <FileText className="h-4 w-4 text-slate-500" />
-                <span>Proof of Insurance URL</span>
-              </Label>
-              <Input
-                id="insurance_upload"
+            <div>
+              <FormInput
+                label="Proof of Insurance URL"
                 value={formData.insurance_upload}
                 onChange={(e) => onInputChange("insurance_upload", e.target.value)}
                 placeholder="Enter URL to proof of insurance file"
                 className="border-slate-300 focus:border-orange-500 focus:ring-orange-500"
+                containerClassName="space-y-2"
               />
             </div>
           </div>

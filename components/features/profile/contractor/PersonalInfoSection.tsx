@@ -1,8 +1,8 @@
 "use client";
 
+import { FormInput, FormTextarea } from "@/components/shared/form-input";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { User, Phone, Mail, MapPin, FileText, Shield } from "lucide-react";
 import { ExtendedUser } from "@/contexts/AuthContext";
 
@@ -33,32 +33,26 @@ export function PersonalInfoSection({ formData, user, onInputChange }: PersonalI
       </div>
       <div className="p-6 space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-2">
-            <Label htmlFor="full_name" className="text-sm font-semibold text-slate-700 flex items-center">
-              <User className="h-4 w-4 mr-2 text-slate-500" />
-              Full Name
-            </Label>
-            <Input
-              id="full_name"
+          <div>
+            <FormInput
+              label="Full Name"
               value={formData.full_name}
               onChange={(e) => onInputChange("full_name", e.target.value)}
               placeholder="Enter your full name"
               className="border-slate-300 focus:border-orange-500 focus:ring-orange-500"
+              containerClassName="space-y-2"
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="phone" className="text-sm font-semibold text-slate-700 flex items-center">
-              <Phone className="h-4 w-4 mr-2 text-slate-500" />
-              Phone Number
-            </Label>
-            <Input
-              id="phone"
+          <div>
+            <FormInput
+              label="Phone Number"
               type="tel"
               value={formData.phone}
               onChange={(e) => onInputChange("phone", e.target.value)}
               placeholder="Enter your phone number"
               className="border-slate-300 focus:border-orange-500 focus:ring-orange-500"
+              containerClassName="space-y-2"
             />
           </div>
         </div>
@@ -81,34 +75,28 @@ export function PersonalInfoSection({ formData, user, onInputChange }: PersonalI
           </p>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="location" className="text-sm font-semibold text-slate-700 flex items-center">
-            <MapPin className="h-4 w-4 mr-2 text-slate-500" />
-            Primary Service Area
-          </Label>
-          <Input
-            id="location"
+        <div>
+          <FormInput
+            label="Primary Service Area"
             value={formData.location}
             onChange={(e) => onInputChange("location", e.target.value)}
             placeholder="Enter your primary service area or location"
             className="border-slate-300 focus:border-orange-500 focus:ring-orange-500"
+            containerClassName="space-y-2"
           />
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="bio" className="text-sm font-semibold text-slate-700 flex items-center">
-            <FileText className="h-4 w-4 mr-2 text-slate-500" />
-            Professional Bio
-          </Label>
-          <Textarea
-            id="bio"
+        <div>
+          <FormTextarea
+            label="Professional Bio"
             value={formData.bio}
             onChange={(e) => onInputChange("bio", e.target.value)}
             placeholder="Describe your experience, expertise, and what sets you apart..."
             rows={4}
             className="border-slate-300 focus:border-orange-500 focus:ring-orange-500 resize-none"
+            helperText="This will be visible to potential clients"
+            containerClassName="space-y-2"
           />
-          <p className="text-xs text-slate-500">This will be visible to potential clients</p>
         </div>
       </div>
     </div>
