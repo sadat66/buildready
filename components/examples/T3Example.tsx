@@ -54,8 +54,8 @@ export function T3Example() {
         province: 'Example Province',
         postalCode: '12345',
       },
-      project_type: 'residential',
-      visibility_settings: 'public',
+      project_type: 'New Build',
+      visibility_settings: 'Public',
       start_date: new Date(),
       end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
       expiry_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days from now

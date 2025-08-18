@@ -31,11 +31,20 @@ export interface ProjectData {
   permit_required: boolean
   substantial_completion: string | null
   is_verified_project: boolean
-  project_photos: any[]
-  files: any[]
+  project_photos: FileObject[]
+  files: FileObject[]
   creator: string
   status: string
   proposal_count: number
+}
+
+interface FileObject {
+  id: string
+  filename: string
+  url: string
+  size: number
+  mimeType: string
+  uploadedAt: Date
 }
 
 export class ProjectService {

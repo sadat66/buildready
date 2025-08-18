@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase";
 import toast from "react-hot-toast";
 import Breadcrumbs from "@/components/shared/Breadcrumbs";
-import { ExtendedUser } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Import modular components
 import { PersonalInfoSection } from "./PersonalInfoSection";
@@ -16,24 +16,10 @@ import { InsuranceSection } from "./InsuranceSection";
 import { ContactManagementSection } from "./ContactManagementSection";
 import { ServiceLocationSection } from "./ServiceLocationSection";
 
-interface ContractorProfileProps {
-  user: ExtendedUser;
-}
-
-export function ContractorProfile({ user }: ContractorProfileProps) {
-  // Ensure user is authenticated
-  if (!user?.id) {
-    return (
-      <div className="space-y-6">
-        <div className="rounded-lg border bg-card text-card-foreground">
-          <div className="p-6">
-            <div className="text-center">Authentication required. Please sign in.</div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
+export function ContractorProfile() {
+  const { user } = useAuth();
+  
+  // Move all hooks to the top before any conditional returns
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   
@@ -67,10 +53,37 @@ export function ContractorProfile({ user }: ContractorProfileProps) {
   });
 
   // State for profile data
-  const [userProfile, setUserProfile] = useState<any>(null);
-  const [contractorProfile, setContractorProfile] = useState<any>(null);
-  const [userError, setUserError] = useState<string | null>(null);
-  const [contractorError, setContractorError] = useState<string | null>(null);
+  interface UserProfileData {
+    first_name?: string
+    last_name?: string
+    phone_number?: string
+    address?: string
+  }
+
+  interface ContractorProfileData {
+    business_name?: string
+    bio?: string
+    legal_entity_type?: "Corporation" | "Partnership" | "Sole Proprietorship" | "LLC" | ""
+    gst_hst_number?: string
+    wcb_number?: string
+    service_location?: string
+    trade_category?: string[]
+    phone_number?: string
+    logo?: string
+    portfolio?: string[]
+    licenses?: string[]
+    insurance_general_liability?: number
+    insurance_builders_risk?: number
+    insurance_expiry?: string
+    insurance_upload?: string
+    work_guarantee?: number
+    contractor_contacts?: string[]
+  }
+
+  const [userProfile, setUserProfile] = useState<UserProfileData | null>(null)
+  const [contractorProfile, setContractorProfile] = useState<ContractorProfileData | null>(null)
+  const [userError, setUserError] = useState<string | null>(null)
+  const [contractorError, setContractorError] = useState<string | null>(null)
 
   // Fetch user and contractor profile data using Supabase
   useEffect(() => {
@@ -159,6 +172,17 @@ export function ContractorProfile({ user }: ContractorProfileProps) {
       });
     }
   }, [contractorProfile]);
+
+  // Now check for authentication after all hooks are declared
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="max-w-md w-full bg-white rounded-lg shadow-md p-6">
+          <div className="text-center">Authentication required. Please sign in.</div>
+        </div>
+      </div>
+    );
+  }
 
   const handleUserInputChange = (field: string, value: string) => {
     setUserFormData((prev) => ({ ...prev, [field]: value }));

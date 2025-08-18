@@ -1,12 +1,12 @@
 import * as React from "react"
-import { Control } from "react-hook-form"
+import { Control, UseFormWatch, UseFormSetValue } from "react-hook-form"
 import { FormField, FormInput, FormTextarea, FormSelect, FormBadge, FormFieldLocation } from "@/components/shared/form-input"
 import { CreateProjectFormInputData } from "@/lib/validation/projects"
  
 interface BasicInformationSectionProps {
   control: Control<CreateProjectFormInputData>
-  watch: any
-  setValue: any
+  watch: UseFormWatch<CreateProjectFormInputData>
+  setValue: UseFormSetValue<CreateProjectFormInputData>
 }
 
 export function BasicInformationSection({ 
@@ -59,8 +59,9 @@ export function BasicInformationSection({
               ]}
               onValueChange={(value) => {
                 const currentCategories = watch("category") || []
-                if (!currentCategories.includes(value)) {
-                  setValue("category", [...currentCategories, value])
+                const categoryValue = value as "Electrical" | "Framing" | "HVAC" | "Plumbing" | "Roofing" | "Masonry"
+                if (!currentCategories.includes(categoryValue)) {
+                  setValue("category", [...currentCategories, categoryValue])
                 }
               }}
               error={error}
@@ -78,7 +79,7 @@ export function BasicInformationSection({
                 removable
                 onRemove={() => {
                   const newCategories = watch("category").filter(
-                    (_: any, i: number) => i !== index
+                    (_: string, i: number) => i !== index
                   )
                   setValue("category", newCategories)
                 }}

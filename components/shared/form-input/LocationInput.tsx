@@ -405,7 +405,7 @@ export function LocationInput({
                 onClick={handleManualInput}
                 className="w-full text-left px-4 py-3 hover:bg-gray-50 focus:bg-gray-50 focus:outline-none text-sm text-gray-600"
               >
-                Use "{searchQuery}" as address
+                Use &quot;{searchQuery}&quot; as address
               </button>
             </div>
           )}

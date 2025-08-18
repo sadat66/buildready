@@ -1,15 +1,26 @@
+"use client"
+
 import { useState } from "react"
 import { UseFormSetValue } from "react-hook-form"
 
 // Generic interface for file handling - can be reused across different forms
 export interface FileHandlingOptions {
-  onFileChange?: (files: any[], type: string) => void
+  onFileChange?: (files: FileObject[], type: string) => void
   onFileRemove?: (index: number, type: string) => void
   maxFileSize?: number
   allowedTypes?: string[]
 }
 
-export function useFileHandling<T extends Record<string, any>>(
+export interface FileObject {
+  id: string
+  filename: string
+  url: string
+  size: number
+  mimeType: string
+  uploadedAt: Date
+}
+
+export function useFileHandling<T extends Record<string, unknown>>(
   setValue: UseFormSetValue<T>,
   options: FileHandlingOptions = {}
 ) {
@@ -28,7 +39,7 @@ export function useFileHandling<T extends Record<string, any>>(
         setSelectedPhotos((prev) => [...prev, ...newFiles])
         // Create proper file objects for the validation schema
         const allPhotos = [...selectedPhotos, ...newFiles]
-        const photoObjects = allPhotos.map((f) => ({
+        const photoObjects: FileObject[] = allPhotos.map((f) => ({
           id: crypto.randomUUID(),
           filename: f.name,
           url: URL.createObjectURL(f), // Temporary URL for preview
@@ -38,7 +49,7 @@ export function useFileHandling<T extends Record<string, any>>(
         }))
         
         // Update form state - this is generic and will work with any form
-        setValue("project_photos" as keyof T, photoObjects as any)
+        setValue("project_photos" as keyof T, photoObjects as unknown as T[keyof T])
         console.log("Updated project_photos:", photoObjects)
         
         // Call custom callback if provided
@@ -47,7 +58,7 @@ export function useFileHandling<T extends Record<string, any>>(
         setSelectedFiles((prev) => [...prev, ...newFiles])
         // Create proper file objects for the validation schema
         const allFiles = [...selectedFiles, ...newFiles]
-        const fileObjects = allFiles.map((f) => ({
+        const fileObjects: FileObject[] = allFiles.map((f) => ({
           id: crypto.randomUUID(),
           filename: f.name,
           url: URL.createObjectURL(f), // Temporary URL for preview
@@ -57,7 +68,7 @@ export function useFileHandling<T extends Record<string, any>>(
         }))
         
         // Update form state
-        setValue("files" as keyof T, fileObjects as any)
+        setValue("files" as keyof T, fileObjects as unknown as T[keyof T])
         console.log("Updated files:", fileObjects)
         
         // Call custom callback if provided
@@ -70,7 +81,7 @@ export function useFileHandling<T extends Record<string, any>>(
     if (type === "photos") {
       const newPhotos = selectedPhotos.filter((_, i) => i !== index)
       setSelectedPhotos(newPhotos)
-      const photoObjects = newPhotos.map((f) => ({
+      const photoObjects: FileObject[] = newPhotos.map((f) => ({
         id: crypto.randomUUID(),
         filename: f.name,
         url: URL.createObjectURL(f),
@@ -79,7 +90,7 @@ export function useFileHandling<T extends Record<string, any>>(
         uploadedAt: new Date(),
       }))
       
-      setValue("project_photos" as keyof T, photoObjects as any)
+      setValue("project_photos" as keyof T, photoObjects as unknown as T[keyof T])
       console.log("Updated project_photos after removal:", photoObjects)
       
       // Call custom callback if provided
@@ -87,7 +98,7 @@ export function useFileHandling<T extends Record<string, any>>(
     } else {
       const newFiles = selectedFiles.filter((_, i) => i !== index)
       setSelectedFiles(newFiles)
-      const fileObjects = newFiles.map((f) => ({
+      const fileObjects: FileObject[] = newFiles.map((f) => ({
         id: crypto.randomUUID(),
         filename: f.name,
         url: URL.createObjectURL(f),
@@ -96,7 +107,7 @@ export function useFileHandling<T extends Record<string, any>>(
         uploadedAt: new Date(),
       }))
       
-      setValue("files" as keyof T, fileObjects as any)
+      setValue("files" as keyof T, fileObjects as unknown as T[keyof T])
       console.log("Updated files after removal:", fileObjects)
       
       // Call custom callback if provided

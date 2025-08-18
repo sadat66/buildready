@@ -3,29 +3,86 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { createClient } from '@/lib/supabase'
-import { Proposal } from '@/types'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Label } from '@/components/ui/label'
+import { FileText, Search, Filter, CheckCircle, XCircle, Clock, AlertTriangle, User, Calendar, DollarSign } from 'lucide-react'
+import toast from 'react-hot-toast'
+
+// Interface for the actual data structure being fetched with joins
+interface ProposalWithJoins {
+  id: string
+  createdAt: Date
+  updatedAt: Date
+  title: string
+  description_of_work: string
+  project: {
+    id: string
+    title: string
+    statement_of_work: string
+    category: string[]
+    location: Record<string, unknown>
+    status: string
+    budget: number
+  }
+  contractor: {
+    id: string
+    full_name: string
+  }
+  homeowner: string
+  subtotal_amount: number
+  tax_included: 'yes' | 'no'
+  total_amount: number
+  deposit_amount: number
+  deposit_due_on: Date
+  proposed_start_date: Date
+  proposed_end_date: Date
+  expiry_date: Date
+  status: 'draft' | 'submitted' | 'viewed' | 'accepted' | 'rejected' | 'withdrawn' | 'expired'
+  is_selected: 'yes' | 'no'
+  is_deleted: 'yes' | 'no'
+  submitted_date?: Date
+  accepted_date?: Date
+  rejected_date?: Date
+  withdrawn_date?: Date
+  viewed_date?: Date
+  last_updated: Date
+  rejected_by?: string
+  rejection_reason?: 'price_too_high' | 'timeline_unrealistic' | 'experience_insufficient' | 'scope_mismatch' | 'other'
+  rejection_reason_notes?: string
+  clause_preview_html?: string
+  attached_files: Array<{
+    id: string
+    filename: string
+    url: string
+    size?: number
+    mimeType?: string
+    uploadedAt?: Date
+  }>
+  notes?: string
+  agreement?: string
+  proposals: string[]
+  created_by: string
+  last_modified_by: string
+  visibility_settings: 'private' | 'public' | 'shared'
+}
 
 interface Project {
   id: string
   title: string
   status?: string
 }
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Calendar, DollarSign, Search, CheckCircle, XCircle, User, FileText, Clock, AlertTriangle } from 'lucide-react'
-import toast from 'react-hot-toast'
-import { Label } from '@/components/ui/label'
 
 export default function HomeownerProposalsPage() {
   const { user, userRole } = useAuth()
   
-  const [proposals, setProposals] = useState<Proposal[]>([])
+  const [proposals, setProposals] = useState<ProposalWithJoins[]>([])
   const [searchTerm, setSearchTerm] = useState('')
-  const [statusFilter, setStatusFilter] = useState('all')
-  const [projectFilter, setProjectFilter] = useState('all')
+  const [statusFilter, setStatusFilter] = useState<'all' | 'draft' | 'submitted' | 'viewed' | 'accepted' | 'rejected' | 'withdrawn' | 'expired'>('all')
+  const [projectFilter, setProjectFilter] = useState<string>('all')
   const [projects, setProjects] = useState<Project[]>([])
   const [proposalsLoading, setProposalsLoading] = useState(true)
   const [error, setError] = useState('')
@@ -134,7 +191,7 @@ export default function HomeownerProposalsPage() {
           const { error: projectError } = await supabase
             .from('projects')
             .update({ status: 'awarded' })
-            .eq('id', proposal.project.id)
+            .eq('id', proposal.project)
           
           if (projectError) throw projectError
         }
@@ -249,7 +306,7 @@ export default function HomeownerProposalsPage() {
             
             <div>
               <Label htmlFor="status-filter" className="text-sm font-medium">Status</Label>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                              <Select value={statusFilter} onValueChange={(value: string) => setStatusFilter(value as typeof statusFilter)}>
                 <SelectTrigger className="mt-1">
                   <SelectValue placeholder="Filter by status" />
                 </SelectTrigger>
