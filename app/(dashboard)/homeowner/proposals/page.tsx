@@ -44,7 +44,7 @@ export default function HomeownerProposalsPage() {
         // Fetch projects first
         const { data: projectsData, error: projectsError } = await supabase
           .from('projects')
-          .select('id, project_title')
+          .select('id, title')
           .eq('creator', user.id)
         
         if (projectsError) throw projectsError
@@ -67,9 +67,9 @@ export default function HomeownerProposalsPage() {
             .from('proposals')
             .select(`
               *,
-              project:projects (
+              project:projects!project_id (
                 id,
-                project_title,
+                title,
                 statement_of_work,
                 category,
                 location,
@@ -78,12 +78,10 @@ export default function HomeownerProposalsPage() {
               ),
               contractor:users!contractor_id (
                 id,
-                full_name,
-                first_name,
-                last_name
+                full_name
               )
             `)
-            .in('projectId', projectIdList)
+            .in('project_id', projectIdList)
             .order('created_at', { ascending: false })
           
           if (proposalsError) {
@@ -99,20 +97,16 @@ export default function HomeownerProposalsPage() {
         }
       } catch (error: unknown) {
         console.error('Error fetching data:', error)
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-        console.error('Error details:', errorMessage)
-        setError('Failed to load proposals')
+        setError(error instanceof Error ? error.message : 'Failed to fetch data')
       } finally {
         setProposalsLoading(false)
       }
     }
-    
-    if (user && userRole === 'homeowner') {
-      fetchData()
-    }
-  }, [user, userRole])
 
-  const handleStatusUpdate = async (proposalId: string, status: 'accepted' | 'rejected', feedback?: string) => {
+    fetchData()
+  }, [user])
+
+  const handleStatusUpdate = async (proposalId: string, status: 'draft' | 'submitted' | 'viewed' | 'accepted' | 'rejected' | 'withdrawn' | 'expired', feedback?: string) => {
     if (!user) return
     
     setActionLoading(proposalId)
@@ -121,36 +115,17 @@ export default function HomeownerProposalsPage() {
       const supabase = createClient()
       
       // Update proposal status
-      const updateData: Record<string, unknown> = { 
-        status,
-        updated_at: new Date().toISOString()
-      }
-      
-      // Only include feedback if it's provided (field might not exist in DB yet)
-      // Note: This field requires the migration to be applied first
-      if (feedback !== undefined && feedback !== null) {
-        updateData.feedback = feedback
-      }
-      
-      // Try to update with feedback first, fallback to without feedback if field doesn't exist
       const { error: updateError } = await supabase
         .from('proposals')
-        .update(updateData)
+        .update({ 
+          status,
+          ...(feedback && { rejection_reason_notes: feedback }),
+          ...(status === 'rejected' && { rejected_date: new Date().toISOString() }),
+          ...(status === 'accepted' && { accepted_date: new Date().toISOString() })
+        })
         .eq('id', proposalId)
       
-      // If feedback field doesn't exist, try without it
-      if (updateError && updateError.message?.includes('feedback')) {
-        console.log('Feedback field not found, updating without feedback field')
-        const { ...updateDataWithoutFeedback } = updateData
-        const { error: retryError } = await supabase
-          .from('proposals')
-          .update(updateDataWithoutFeedback)
-          .eq('id', proposalId)
-        
-        if (retryError) throw retryError
-      } else if (updateError) {
-        throw updateError
-      }
+      if (updateError) throw updateError
       
       // If accepted, update project status to awarded
       if (status === 'accepted') {
@@ -159,7 +134,7 @@ export default function HomeownerProposalsPage() {
           const { error: projectError } = await supabase
             .from('projects')
             .update({ status: 'awarded' })
-            .eq('id', proposal.projectId)
+            .eq('id', proposal.project.id)
           
           if (projectError) throw projectError
         }
@@ -168,7 +143,7 @@ export default function HomeownerProposalsPage() {
       // Update local state
       setProposals(prev => prev.map(p => 
         p.id === proposalId 
-          ? { ...p, status, ...(feedback !== undefined && feedback !== null && { feedback }) }
+          ? { ...p, status, ...(feedback !== undefined && feedback !== null && { rejection_reason_notes: feedback }) }
           : p
       ))
       
@@ -190,11 +165,11 @@ export default function HomeownerProposalsPage() {
   }
 
   const filteredProposals = proposals.filter(proposal => {
-    const matchesSearch = proposal.projects?.project_title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         proposal.users?.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         proposal.description?.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesSearch = proposal.project?.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         proposal.contractor?.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         proposal.description_of_work?.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesStatus = statusFilter === 'all' || proposal.status === statusFilter
-    const matchesProject = projectFilter === 'all' || proposal.project_id === projectFilter
+    const matchesProject = projectFilter === 'all' || proposal.project?.id === projectFilter
     return matchesSearch && matchesStatus && matchesProject
   })
 
@@ -252,50 +227,54 @@ export default function HomeownerProposalsPage() {
             Review and manage proposals from contractors for your projects
           </p>
         </div>
-        <div className="text-sm text-gray-500">
-          {filteredProposals.length} proposal(s) received
-        </div>
       </div>
 
-      {/* Search and Filters */}
+      {/* Filters */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Search className="h-5 w-5" />
-            Search & Filter
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <Input
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search proposals by project, contractor, or description..."
-                className="pl-10"
-              />
+        <CardContent className="pt-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <Label htmlFor="search" className="text-sm font-medium">Search</Label>
+              <div className="relative mt-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  id="search"
+                  placeholder="Search proposals..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
             </div>
-            <div className="w-full md:w-48">
+            
+            <div>
+              <Label htmlFor="status-filter" className="text-sm font-medium">Status</Label>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Status" />
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Filter by status" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="draft">Draft</SelectItem>
+                  <SelectItem value="submitted">Submitted</SelectItem>
+                  <SelectItem value="viewed">Viewed</SelectItem>
                   <SelectItem value="accepted">Accepted</SelectItem>
                   <SelectItem value="rejected">Rejected</SelectItem>
+                  <SelectItem value="withdrawn">Withdrawn</SelectItem>
+                  <SelectItem value="expired">Expired</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            <div className="w-full md:w-48">
+            
+            <div>
+              <Label htmlFor="project-filter" className="text-sm font-medium">Project</Label>
               <Select value={projectFilter} onValueChange={setProjectFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Project" />
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Filter by project" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Projects</SelectItem>
-                  {projects.map(project => (
+                  {projects.map((project) => (
                     <SelectItem key={project.id} value={project.id}>
                       {project.title}
                     </SelectItem>
@@ -315,23 +294,11 @@ export default function HomeownerProposalsPage() {
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <CardTitle className="text-xl flex items-center gap-2">
-                    {proposal.projects?.project_title}
-                    <Badge variant="outline" className="capitalize">
-                      {Array.isArray(proposal.projects?.category) ? proposal.projects.category.join(', ') : 'Not specified'}
-                    </Badge>
+                    {proposal.project?.title}
                   </CardTitle>
                   <CardDescription className="text-sm mt-2">
                     Proposal from <span className="font-medium">
-                      {(() => {
-                        const contractor = proposal.users
-                        if (contractor?.first_name && contractor?.last_name) {
-                          return `${contractor.first_name} ${contractor.last_name}`.trim()
-                        } else if (contractor?.full_name) {
-                          return contractor.full_name
-                        } else {
-                          return 'Unknown Contractor'
-                        }
-                      })()}
+                      {proposal.contractor?.full_name || 'Unknown Contractor'}
                     </span>
                   </CardDescription>
                 </div>
@@ -352,15 +319,15 @@ export default function HomeownerProposalsPage() {
               {/* Financial Summary */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-gray-50 rounded-lg">
                 <div className="text-center">
-                  <Label className="text-xs font-medium text-gray-600">Net Amount</Label>
+                  <Label className="text-xs font-medium text-gray-600">Subtotal</Label>
                   <p className="text-lg font-semibold text-green-600">
-                    {proposal.net_amount ? formatCurrency(proposal.net_amount) : 'N/A'}
+                    {proposal.subtotal_amount ? formatCurrency(proposal.subtotal_amount) : 'N/A'}
                   </p>
                 </div>
                 <div className="text-center">
                   <Label className="text-xs font-medium text-gray-600">Tax</Label>
                   <p className="text-lg font-semibold text-orange-600">
-                    {proposal.tax_amount ? formatCurrency(proposal.tax_amount) : 'N/A'}
+                    {proposal.tax_included === 'yes' ? 'Included' : 'Not Included'}
                   </p>
                 </div>
                 <div className="text-center">
@@ -383,7 +350,7 @@ export default function HomeownerProposalsPage() {
                   <Calendar className="h-4 w-4 text-gray-500" />
                   <span>
                     {proposal.proposed_start_date && proposal.proposed_end_date 
-                      ? `${formatDate(proposal.proposed_start_date)} - ${formatDate(proposal.proposed_end_date)}`
+                      ? `${formatDate(proposal.proposed_start_date.toString())} - ${formatDate(proposal.proposed_end_date.toString())}`
                       : 'Dates not specified'
                     }
                   </span>
@@ -391,154 +358,85 @@ export default function HomeownerProposalsPage() {
                 <div className="flex items-center gap-2">
                   <Clock className="h-4 w-4 text-gray-500" />
                   <span>
-                    {proposal.estimated_days ? `${proposal.estimated_days} days` : 'Duration not specified'}
+                    {proposal.proposed_start_date && proposal.proposed_end_date 
+                      ? `${Math.ceil((new Date(proposal.proposed_end_date.toString()).getTime() - new Date(proposal.proposed_start_date.toString()).getTime()) / (1000 * 60 * 60 * 24))} days`
+                      : 'Duration not specified'
+                    }
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <DollarSign className="h-4 w-4 text-gray-500" />
-                  <span>Due: {proposal.deposit_due_date ? formatDate(proposal.deposit_due_date) : 'Not specified'}</span>
-                </div>
-              </div>
-
-              {/* Contractor Info */}
-              <div className="flex items-center justify-between pt-2 border-t">
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <User className="h-4 w-4 text-gray-500" />
-                    <span className="font-medium">
-                      {(() => {
-                        const contractor = proposal.users
-                        if (contractor?.first_name && contractor?.last_name) {
-                          return `${contractor.first_name} ${contractor.last_name}`.trim()
-                        } else if (contractor?.full_name) {
-                          return contractor.full_name
-                        } else {
-                          return 'Unknown Contractor'
-                        }
-                      })()}
-                    </span>
-                  </div>
+                  <span>Due: {proposal.deposit_due_on ? formatDate(proposal.deposit_due_on.toString()) : 'Not specified'}</span>
                 </div>
               </div>
 
               {/* Description */}
-              <div className="pt-2 border-t">
-                <Label className="text-sm font-medium text-gray-600">Proposal Description</Label>
-                <p className="text-sm text-gray-700 mt-1">{proposal.description}</p>
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <Label className="text-sm font-medium text-gray-700 mb-2 block">Description of Work</Label>
+                <p className="text-gray-600 text-sm">
+                  {proposal.description_of_work || 'No description provided'}
+                </p>
               </div>
 
-              {/* Additional Details */}
-              {(proposal.materials_included || proposal.warranty_period || proposal.additional_notes) && (
-                <div className="pt-2 border-t space-y-2">
-                  {proposal.materials_included && (
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4 text-green-600" />
-                      <span className="text-sm text-green-600">Materials included in price</span>
-                    </div>
-                  )}
-                  {proposal.warranty_period && (
-                    <div className="text-sm">
-                      <span className="font-medium">Warranty:</span> {proposal.warranty_period}
-                    </div>
-                  )}
-                  {proposal.additional_notes && (
-                    <div className="text-sm">
-                      <span className="font-medium">Additional Notes:</span> {proposal.additional_notes}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Penalties */}
-              {(proposal.delay_penalty || proposal.abandonment_penalty) && (
-                <div className="pt-2 border-t">
-                  <Label className="text-sm font-medium text-gray-600">Penalties & Guarantees</Label>
-                  <div className="flex gap-4 mt-1">
-                    {proposal.delay_penalty && (
-                      <div className="flex items-center gap-2">
-                        <AlertTriangle className="h-4 w-4 text-orange-500" />
-                        <span className="text-sm">Delay: {formatCurrency(proposal.delay_penalty)}/day</span>
-                      </div>
-                    )}
-                    {proposal.abandonment_penalty && (
-                      <div className="flex items-center gap-2">
-                        <AlertTriangle className="h-4 w-4 text-red-500" />
-                        <span className="text-sm">Abandonment: {formatCurrency(proposal.abandonment_penalty)}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Files */}
-              {proposal.uploaded_files && proposal.uploaded_files.length > 0 && (
-                <div className="pt-2 border-t">
-                  <Label className="text-sm font-medium text-gray-600">Supporting Documents</Label>
-                  <div className="flex flex-wrap gap-2 mt-1">
-                    {proposal.uploaded_files.map((file, index) => (
-                      <Badge key={index} variant="outline" className="text-xs">
-                        {file}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Action Buttons */}
-              {proposal.status === 'pending' && (
-                <div className="flex gap-2 pt-4 border-t">
-                  <Button
-                    onClick={() => handleStatusUpdate(proposal.id, 'accepted')}
-                    disabled={actionLoading === proposal.id}
-                    className="flex-1 bg-green-600 hover:bg-green-700"
-                  >
-                    {actionLoading === proposal.id ? 'Processing...' : (
-                      <>
-                        <CheckCircle className="h-4 w-4 mr-2" />
-                        Accept Proposal
-                      </>
-                    )}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => handleStatusUpdate(proposal.id, 'rejected')}
-                    disabled={actionLoading === proposal.id}
-                  >
-                    {actionLoading === proposal.id ? 'Processing...' : (
-                      <>
-                        <XCircle className="h-4 w-4 mr-2" />
-                        Reject Proposal
-                      </>
-                    )}
-                  </Button>
-                </div>
-              )}
-
-              {/* Feedback Display */}
-              {proposal.feedback && (
-                <div className="pt-2 border-t">
-                  <Label className="text-sm font-medium text-gray-600">Your Feedback</Label>
-                  <p className="text-sm text-gray-700 mt-1">{proposal.feedback}</p>
-                </div>
-              )}
+              {/* Actions */}
+              <div className="flex items-center justify-end gap-2 pt-4 border-t">
+                {proposal.status === 'submitted' || proposal.status === 'viewed' ? (
+                  <>
+                    <Button
+                      onClick={() => handleStatusUpdate(proposal.id, 'accepted')}
+                      disabled={actionLoading === proposal.id}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      Accept
+                    </Button>
+                    <Button
+                      onClick={() => handleStatusUpdate(proposal.id, 'rejected')}
+                      disabled={actionLoading === proposal.id}
+                      variant="destructive"
+                    >
+                      <XCircle className="h-4 w-4 mr-2" />
+                      Reject
+                    </Button>
+                  </>
+                ) : proposal.status === 'accepted' ? (
+                  <Badge variant="default" className="bg-green-100 text-green-800">
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                    Accepted
+                  </Badge>
+                ) : proposal.status === 'rejected' ? (
+                  <Badge variant="destructive">
+                    <XCircle className="h-4 w-4 mr-2" />
+                    Rejected
+                  </Badge>
+                ) : (
+                  <Badge variant="secondary" className="capitalize">
+                    {proposal.status}
+                  </Badge>
+                )}
+              </div>
             </CardContent>
           </Card>
         ))}
-        
-        {filteredProposals.length === 0 && (
-          <Card>
-            <CardContent className="text-center py-12">
+      </div>
+
+      {/* Empty State */}
+      {filteredProposals.length === 0 && !proposalsLoading && (
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-center py-12">
               <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">No proposals found</h3>
               <p className="text-gray-600">
                 {searchTerm || statusFilter !== 'all' || projectFilter !== 'all'
-                  ? 'Try adjusting your search criteria or filters.'
-                  : 'No proposals have been submitted for your projects yet. Contractors will submit proposals once you post projects.'}
+                  ? 'Try adjusting your search or filters'
+                  : 'You haven\'t received any proposals yet. Check back later or create a new project to attract contractors.'
+                }
               </p>
-            </CardContent>
-          </Card>
-        )}
-      </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }

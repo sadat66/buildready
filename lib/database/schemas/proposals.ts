@@ -3,12 +3,60 @@ import { baseSchema, commonEnums, validationPatterns } from './base'
 
 export const proposalSchema = z.object({
   ...baseSchema,
-  projectId: validationPatterns.uuid,
-  contractorId: validationPatterns.uuid,
-  bidAmount: validationPatterns.positiveNumber,
-  description: validationPatterns.nonEmptyString,
-  timeline: validationPatterns.nonEmptyString,
-  status: commonEnums.proposalStatus.default('pending'),
+  // Core proposal fields
+  title: validationPatterns.nonEmptyString,
+  description_of_work: validationPatterns.nonEmptyString,
+  
+  // Project and user relationships (flat ID references)
+  project: validationPatterns.uuid,
+  contractor: validationPatterns.uuid,
+  homeowner: validationPatterns.uuid,
+  
+  // Financial fields
+  subtotal_amount: validationPatterns.amount,
+  tax_included: validationPatterns.yesNo,
+  total_amount: validationPatterns.amount,
+  deposit_amount: validationPatterns.amount,
+  deposit_due_on: validationPatterns.date,
+  
+  // Timeline fields
+  proposed_start_date: validationPatterns.date,
+  proposed_end_date: validationPatterns.date,
+  expiry_date: validationPatterns.date,
+  
+  // Status and workflow fields
+  status: commonEnums.proposalStatus.default('draft'),
+  is_selected: validationPatterns.yesNo.default('no'),
+  is_deleted: validationPatterns.yesNo.default('no'),
+  
+  // Dates and timestamps
+  submitted_date: validationPatterns.optionalDate,
+  accepted_date: validationPatterns.optionalDate,
+  rejected_date: validationPatterns.optionalDate,
+  withdrawn_date: validationPatterns.optionalDate,
+  viewed_date: validationPatterns.optionalDate,
+  last_updated: validationPatterns.date,
+  
+  // Rejection handling
+  rejected_by: validationPatterns.uuid.optional(),
+  rejection_reason: commonEnums.rejectionReason.optional(),
+  rejection_reason_notes: validationPatterns.optionalString,
+  
+  // Content and documentation
+  clause_preview_html: validationPatterns.htmlContent,
+  attached_files: z.array(validationPatterns.fileReference).default([]),
+  notes: validationPatterns.optionalString,
+  
+  // Relationships and references
+  agreement: validationPatterns.uuid.optional(),
+  proposals: z.array(validationPatterns.uuid).default([]),
+  
+  // User tracking
+  created_by: validationPatterns.uuid,
+  last_modified_by: validationPatterns.uuid,
+  
+  // Visibility and sharing
+  visibility_settings: commonEnums.visibilitySettings.default('private'),
 })
 
 export const proposalCreateSchema = proposalSchema.omit({
@@ -16,13 +64,28 @@ export const proposalCreateSchema = proposalSchema.omit({
   createdAt: true,
   updatedAt: true,
   status: true,
+  is_selected: true,
+  is_deleted: true,
+  submitted_date: true,
+  accepted_date: true,
+  rejected_date: true,
+  withdrawn_date: true,
+  viewed_date: true,
+  last_updated: true,
+  rejected_by: true,
+  rejection_reason: true,
+  rejection_reason_notes: true,
+  agreement: true,
+  last_modified_by: true,
 })
 
 export const proposalUpdateSchema = proposalSchema.partial().omit({
   id: true,
   createdAt: true,
-  projectId: true,
-  contractorId: true,
+  project: true,
+  contractor: true,
+  homeowner: true,
+  created_by: true,
 })
 
 export const proposalStatusUpdateSchema = z.object({
@@ -34,20 +97,25 @@ export const proposalStatusUpdateSchema = z.object({
 
 export const proposalResubmissionSchema = z.object({
   original_proposal_id: validationPatterns.uuid,
-  new_bid_amount: validationPatterns.positiveNumber,
-  new_description: validationPatterns.nonEmptyString,
-  new_timeline: validationPatterns.nonEmptyString,
+  new_subtotal_amount: validationPatterns.amount,
+  new_description_of_work: validationPatterns.nonEmptyString,
+  new_timeline: z.object({
+    proposed_start_date: validationPatterns.date,
+    proposed_end_date: validationPatterns.date,
+  }),
   resubmission_reason: validationPatterns.optionalString,
 })
 
 export const proposalSearchSchema = z.object({
-  project_id: validationPatterns.uuid.optional(),
-  contractor_id: validationPatterns.uuid.optional(),
+  project: validationPatterns.uuid.optional(),
+  contractor: validationPatterns.uuid.optional(),
+  homeowner: validationPatterns.uuid.optional(),
   status: commonEnums.proposalStatus.optional(),
-  bid_amount_min: validationPatterns.optionalNumber,
-  bid_amount_max: validationPatterns.optionalNumber,
+  subtotal_amount_min: validationPatterns.optionalNumber,
+  subtotal_amount_max: validationPatterns.optionalNumber,
   date_from: validationPatterns.optionalDate,
   date_to: validationPatterns.optionalDate,
+  is_selected: validationPatterns.yesNo.optional(),
 })
 
 export const proposalComparisonSchema = z.object({
