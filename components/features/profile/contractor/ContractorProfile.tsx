@@ -282,12 +282,8 @@ export function ContractorProfile({ user }: ContractorProfileProps) {
             </Button>
           </Link>
         </div>
-        <div className="rounded-lg border bg-card text-card-foreground">
-          <div className="p-6">
-            <div className="text-center">
-              <div>Loading profile...</div>
-            </div>
-          </div>
+        <div className="p-6 text-center">
+          <div>Loading profile...</div>
         </div>
       </div>
     );
@@ -304,18 +300,14 @@ export function ContractorProfile({ user }: ContractorProfileProps) {
             </Button>
           </Link>
         </div>
-        <div className="rounded-lg border bg-card text-card-foreground">
-          <div className="p-6">
-            <div className="text-center">
-              <div className="text-red-600 mb-2">Error loading profile</div>
-              {userError && (
-                <div className="text-sm text-red-500">User profile error: {userError}</div>
-              )}
-              {contractorError && (
-                <div className="text-sm text-red-500">Contractor profile error: {contractorError}</div>
-              )}
-            </div>
-          </div>
+        <div className="p-6 text-center">
+          <div className="text-red-600 mb-2">Error loading profile</div>
+          {userError && (
+            <div className="text-sm text-red-500">User profile error: {userError}</div>
+          )}
+          {contractorError && (
+            <div className="text-sm text-red-500">Contractor profile error: {contractorError}</div>
+          )}
         </div>
       </div>
     );
