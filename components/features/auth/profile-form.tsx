@@ -112,7 +112,7 @@ export function OnboardingForm() {
 
   if (!userType) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
         <Card className="w-full max-w-2xl">
           <CardHeader className="text-center">
             <CardTitle className="text-3xl font-bold">Complete Your Profile</CardTitle>
@@ -124,12 +124,12 @@ export function OnboardingForm() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Card 
                 className={`cursor-pointer transition-all hover:shadow-lg ${
-                  userType === 'homeowner' ? 'ring-2 ring-blue-500 bg-blue-50' : ''
+                  userType === 'homeowner' ? 'ring-2 ring-orange-500 bg-orange-50' : ''
                 }`}
                 onClick={() => setUserType('homeowner')}
               >
                 <CardContent className="p-6 text-center">
-                  <Home className="w-12 h-12 mx-auto mb-4 text-blue-600" />
+                  <Home className="w-12 h-12 mx-auto mb-4 text-gray-900" />
                   <h3 className="text-xl font-semibold mb-2">I&apos;m a Homeowner</h3>
                   <p className="text-gray-600">
                     I need help with home improvement projects and want to find qualified contractors.
@@ -139,12 +139,12 @@ export function OnboardingForm() {
 
               <Card 
                 className={`cursor-pointer transition-all hover:shadow-lg ${
-                  userType === 'contractor' ? 'ring-2 ring-blue-500 bg-blue-50' : ''
+                  userType === 'contractor' ? 'ring-2 ring-orange-500 bg-orange-50' : ''
                 }`}
                 onClick={() => setUserType('contractor')}
               >
                 <CardContent className="p-6 text-center">
-                  <Building2 className="w-12 h-12 mx-auto mb-4 text-green-600" />
+                  <Building2 className="w-12 h-12 mx-auto mb-4 text-gray-900" />
                   <h3 className="text-xl font-semibold mb-2">I&apos;m a Contractor</h3>
                   <p className="text-gray-600">
                     I provide construction and renovation services and want to find new clients.
@@ -159,7 +159,7 @@ export function OnboardingForm() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
       <Card className="w-full max-w-2xl">
         <CardHeader className="text-center">
           <CardTitle className="text-3xl font-bold">

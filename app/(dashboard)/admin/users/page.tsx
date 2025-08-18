@@ -78,11 +78,11 @@ export default function AdminUsersPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'active':
-        return <Badge className="bg-green-100 text-green-800">Active</Badge>
+        return <Badge className="bg-gray-900 text-white">Active</Badge>
       case 'pending':
-        return <Badge className="bg-yellow-100 text-yellow-800">Pending</Badge>
+        return <Badge className="bg-orange-100 text-orange-800">Pending</Badge>
       case 'suspended':
-        return <Badge className="bg-red-100 text-red-800">Suspended</Badge>
+        return <Badge className="bg-gray-100 text-gray-800">Suspended</Badge>
       default:
         return <Badge className="bg-gray-100 text-gray-800">{status}</Badge>
     }
@@ -91,11 +91,11 @@ export default function AdminUsersPage() {
   const getRoleBadge = (role: string) => {
     switch (role) {
       case 'admin':
-        return <Badge className="bg-red-100 text-red-800">Admin</Badge>
+        return <Badge className="bg-orange-100 text-orange-800">Admin</Badge>
       case 'homeowner':
-        return <Badge className="bg-blue-100 text-blue-800">Homeowner</Badge>
+        return <Badge className="bg-gray-100 text-gray-800">Homeowner</Badge>
       case 'contractor':
-        return <Badge className="bg-green-100 text-green-800">Contractor</Badge>
+        return <Badge className="bg-gray-100 text-gray-800">Contractor</Badge>
       default:
         return <Badge className="bg-gray-100 text-gray-800">{role}</Badge>
     }
@@ -120,7 +120,7 @@ export default function AdminUsersPage() {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
-              <User className="h-5 w-5 text-blue-500" />
+              <User className="h-5 w-5 text-gray-600" />
               <div>
                 <p className="text-2xl font-bold">{users.length}</p>
                 <p className="text-sm text-gray-600">Total Users</p>
@@ -131,7 +131,7 @@ export default function AdminUsersPage() {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
-              <Home className="h-5 w-5 text-blue-500" />
+              <Home className="h-5 w-5 text-gray-600" />
               <div>
                 <p className="text-2xl font-bold">{users.filter(u => u.user_role === 'homeowner').length}</p>
                 <p className="text-sm text-gray-600">Homeowners</p>
@@ -142,7 +142,7 @@ export default function AdminUsersPage() {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
-              <Wrench className="h-5 w-5 text-green-500" />
+              <Wrench className="h-5 w-5 text-gray-600" />
               <div>
                 <p className="text-2xl font-bold">{users.filter(u => u.user_role === 'contractor').length}</p>
                 <p className="text-sm text-gray-600">Contractors</p>
@@ -153,7 +153,7 @@ export default function AdminUsersPage() {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
-              <Shield className="h-5 w-5 text-red-500" />
+              <Shield className="h-5 w-5 text-gray-600" />
               <div>
                 <p className="text-2xl font-bold">{users.filter(u => u.user_role === 'admin').length}</p>
                 <p className="text-sm text-gray-600">Admins</p>

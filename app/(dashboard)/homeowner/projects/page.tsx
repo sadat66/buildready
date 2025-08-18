@@ -63,8 +63,8 @@ export default function HomeownerProjectsPage() {
           updated_at
         `)
         
-        // Get user role from metadata
-        const userRole = user.user_metadata?.role || 'homeowner'
+        // Get user role from user object
+        const userRole = user.user_role || 'homeowner'
         
         // If homeowner, show only their projects
         // If contractor, show all open projects
@@ -133,7 +133,7 @@ export default function HomeownerProjectsPage() {
         />
       </div>
 
-      <ProjectsPage projects={projects} userRole={user?.user_metadata?.role || 'homeowner'} />
+      <ProjectsPage projects={projects} userRole={user?.user_role || 'homeowner'} />
     </div>
   )
 }

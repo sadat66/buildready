@@ -1,86 +1,71 @@
 'use client'
 
-import { Home, DollarSign, TrendingUp, FileText } from 'lucide-react'
+import { TrendingUp, TrendingDown, Building2, CheckCircle, Target, Clock } from 'lucide-react'
 
 interface ProjectStatsProps {
   stats: {
     total: number
-    totalBudget: number
-    activeProjects: number
-    upcomingDeadlines: number
+    open: number
+    awarded: number
+    completed: number
   }
 }
 
 export default function ProjectStats({ stats }: ProjectStatsProps) {
   const statItems = [
     {
-      icon: Home,
-      label: 'Total Projects',
-      value: stats.total,
-      description: 'All time projects',
-      gradient: 'from-orange-400 to-red-500',
-      bgGradient: 'from-orange-50 to-red-50',
-      iconBg: 'bg-orange-500'
+      title: 'Total Projects',
+      value: stats.total.toLocaleString(),
+      icon: Building2,
+      description: 'Growing this month',
+      subtitle: 'All active projects'
     },
     {
-      icon: DollarSign,
-      label: 'Total Budget',
-      value: `$${stats.totalBudget.toLocaleString()}`,
-      description: 'Combined project value',
-      gradient: 'from-amber-400 to-orange-500',
-      bgGradient: 'from-amber-50 to-orange-50',
-      iconBg: 'bg-amber-500'
+      title: 'Open Bids',
+      value: stats.open.toLocaleString(),
+      icon: Clock,
+      description: 'Bidding needs attention',
+      subtitle: 'Active proposals'
     },
     {
-      icon: TrendingUp,
-      label: 'Active Projects',
-      value: stats.activeProjects,
-      description: 'Open + Bidding + Awarded',
-      gradient: 'from-orange-500 to-red-600',
-      bgGradient: 'from-orange-50 to-red-50',
-      iconBg: 'bg-orange-600'
+      title: 'Active Projects',
+      value: stats.awarded.toLocaleString(),
+      icon: CheckCircle,
+      description: 'Strong project retention',
+      subtitle: 'Currently in progress'
     },
     {
-      icon: FileText,
-      label: 'Proposal Count',
-      value: stats.upcomingDeadlines,
-      description: 'Total proposals received',
-      gradient: 'from-red-400 to-orange-500',
-      bgGradient: 'from-red-50 to-orange-50',
-      iconBg: 'bg-red-500'
+      title: 'Completion Rate',
+      value: `${Math.round((stats.completed / stats.total) * 100)}%`,
+      icon: Target,
+      description: 'Steady performance increase',
+      subtitle: 'Meets growth projections'
     }
   ]
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       {statItems.map((item, index) => (
-        <div key={index} className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${item.bgGradient} border border-orange-200/50 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group`}>
-          {/* Background decoration */}
-          <div className="absolute top-0 right-0 w-20 h-20 bg-white/20 rounded-full transform translate-x-10 -translate-y-10"></div>
+        <div key={index} className="bg-white border border-gray-100 rounded-lg p-6 hover:shadow-lg transition-all duration-200 shadow-md">
+          <div className="flex items-start justify-between mb-4">
+            <h3 className="text-sm font-medium text-gray-600">{item.title}</h3>
+            <div className="flex items-center space-x-1">
+              <item.icon className="h-7 w-7 text-gray-500" />
+            </div>
+          </div>
           
-          <div className="relative p-6 space-y-4">
-            <div className="flex items-center justify-between">
-              <div className={`w-12 h-12 ${item.iconBg} rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-200`}>
-                <item.icon className="h-6 w-6 text-white" />
-              </div>
-              <div className="text-right">
-                <div className={`text-2xl font-bold bg-gradient-to-r ${item.gradient} bg-clip-text text-transparent`}>
-                  {item.value}
-                </div>
-              </div>
+          <div className="mb-4">
+            <div className="text-3xl font-bold text-gray-900 mb-1">
+              {item.value}
             </div>
-            
-            <div className="space-y-1">
-              <h3 className="text-sm font-semibold text-orange-800">{item.label}</h3>
-              <p className="text-xs text-orange-600/80">{item.description}</p>
+          </div>
+          
+          <div className="space-y-1">
+            <div className="flex items-center space-x-1">
+              <item.icon className="h-3 w-3 text-gray-400" />
+              <span className="text-xs font-medium text-gray-700">{item.description}</span>
             </div>
-            
-            {/* Progress indicator */}
-            <div className="w-full bg-white/50 rounded-full h-1.5">
-              <div className={`h-1.5 bg-gradient-to-r ${item.gradient} rounded-full transition-all duration-1000 ease-out`} 
-                   style={{ width: `${Math.min(100, (typeof item.value === 'number' ? item.value * 10 : 75))}%` }}>
-              </div>
-            </div>
+            <p className="text-xs text-gray-500">{item.subtitle}</p>
           </div>
         </div>
       ))}

@@ -10,10 +10,16 @@ import {
   type SortingState,
 } from '@tanstack/react-table'
 import { useState } from 'react'
-import { ArrowUpDown, Calendar, MapPin, DollarSign, Clock, Eye } from 'lucide-react'
+import { ArrowUpDown, Calendar, MapPin, DollarSign, Clock, MoreHorizontal, Eye, Edit, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { Project } from '@/types'
 
 interface ProjectTableProps {
@@ -148,10 +154,10 @@ export default function ProjectTable({ projects, onProjectClick }: ProjectTableP
         cell: ({ row }) => {
           const status = row.original.status
           const statusConfig = {
-            Published: { label: 'Published', variant: 'default' as const, color: 'bg-green-100 text-green-800' },
-            'In Progress': { label: 'In Progress', variant: 'secondary' as const, color: 'bg-blue-100 text-blue-800' },
-            Completed: { label: 'Completed', variant: 'outline' as const, color: 'bg-gray-100 text-gray-800' },
-            Cancelled: { label: 'Cancelled', variant: 'destructive' as const, color: 'bg-red-100 text-red-800' },
+            Published: { label: 'Published', variant: 'default' as const, color: 'bg-gray-100 text-gray-800' },
+            'In Progress': { label: 'In Progress', variant: 'secondary' as const, color: 'bg-orange-100 text-orange-800' },
+            Completed: { label: 'Completed', variant: 'outline' as const, color: 'bg-gray-900 text-white' },
+            Cancelled: { label: 'Cancelled', variant: 'destructive' as const, color: 'bg-gray-100 text-gray-800' },
           }
           
           const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.Published
@@ -189,15 +195,30 @@ export default function ProjectTable({ projects, onProjectClick }: ProjectTableP
         id: 'actions',
         header: 'Actions',
         cell: ({ row }) => (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onProjectClick?.(row.original)}
-            className="h-8 w-8 p-0"
-          >
-            <Eye className="h-4 w-4" />
-            <span className="sr-only">View project</span>
-          </Button>
+          <div className="flex justify-center">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                  <MoreHorizontal className="h-4 w-4" />
+                  <span className="sr-only">Open menu</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => onProjectClick?.(row.original)}>
+                  <Eye className="h-4 w-4 mr-2" />
+                  View
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit
+                </DropdownMenuItem>
+                <DropdownMenuItem className="text-red-600 focus:text-red-600">
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         ),
         size: 80,
       }),

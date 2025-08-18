@@ -8,7 +8,7 @@ import { FileText, CheckCircle, MessageSquare, TrendingUp, Shield, Award } from 
 
 export function Features() {
   return (
-    <section className="py-16 sm:py-20 bg-gradient-to-b from-orange-50 to-white">
+    <section className="py-16 sm:py-20 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12 sm:mb-16">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-3 sm:mb-4 px-2">
@@ -21,10 +21,10 @@ export function Features() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-          <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:border-orange-200 hover:scale-105">
+          <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:border-gray-200 hover:scale-105">
             <CardHeader className="p-4 sm:p-6">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-3 sm:mb-4">
-                <FileText className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600" />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 rounded-lg flex items-center justify-center mb-3 sm:mb-4">
+                <FileText className="w-5 h-5 sm:w-6 sm:h-6 text-gray-600" />
               </div>
               <CardTitle className="text-base sm:text-lg text-gray-900">Intelligent Project Posting</CardTitle>
               <CardDescription className="text-gray-600 text-sm">
@@ -34,10 +34,10 @@ export function Features() {
             </CardHeader>
           </Card>
 
-          <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:border-orange-200 hover:scale-105">
+          <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:border-gray-200 hover:scale-105">
             <CardHeader className="p-4 sm:p-6">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-3 sm:mb-4">
-                <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600" />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 rounded-lg flex items-center justify-center mb-3 sm:mb-4">
+                <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-gray-600" />
               </div>
               <CardTitle className="text-base sm:text-lg text-gray-900">Verified Professional Network</CardTitle>
               <CardDescription className="text-gray-600 text-sm">
@@ -47,10 +47,10 @@ export function Features() {
             </CardHeader>
           </Card>
 
-          <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:border-orange-200 hover:scale-105">
+          <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:border-gray-200 hover:scale-105">
             <CardHeader className="p-4 sm:p-6">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-3 sm:mb-4">
-                <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600" />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 rounded-lg flex items-center justify-center mb-3 sm:mb-4">
+                <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6 text-gray-600" />
               </div>
               <CardTitle className="text-base sm:text-lg text-gray-900">Strategic Communication Hub</CardTitle>
               <CardDescription className="text-gray-600 text-sm">
@@ -60,10 +60,10 @@ export function Features() {
             </CardHeader>
           </Card>
 
-          <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:border-orange-200 hover:scale-105">
+          <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:border-gray-200 hover:scale-105">
             <CardHeader className="p-4 sm:p-6">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-3 sm:mb-4">
-                <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600" />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 rounded-lg flex items-center justify-center mb-3 sm:mb-4">
+                 <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-gray-600" />
               </div>
               <CardTitle className="text-base sm:text-lg text-gray-900">Proposal Analytics & Insights</CardTitle>
               <CardDescription className="text-gray-600 text-sm">
@@ -73,10 +73,10 @@ export function Features() {
             </CardHeader>
           </Card>
 
-          <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:border-orange-200 hover:scale-105">
+          <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:border-gray-200 hover:scale-105">
             <CardHeader className="p-4 sm:p-6">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-3 sm:mb-4">
-                <Shield className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600" />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 rounded-lg flex items-center justify-center mb-3 sm:mb-4">
+                <Shield className="w-5 h-5 sm:w-6 sm:h-6 text-gray-600" />
               </div>
               <CardTitle className="text-base sm:text-lg text-gray-900">Enterprise Security & Compliance</CardTitle>
               <CardDescription className="text-gray-600 text-sm">
@@ -86,10 +86,10 @@ export function Features() {
             </CardHeader>
           </Card>
 
-          <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:border-orange-200 hover:scale-105">
+          <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:border-gray-200 hover:scale-105">
             <CardHeader className="p-4 sm:p-6">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-3 sm:mb-4">
-                <Award className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600" />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 rounded-lg flex items-center justify-center mb-3 sm:mb-4">
+                <Award className="w-5 h-5 sm:w-6 sm:h-6 text-gray-600" />
               </div>
               <CardTitle className="text-base sm:text-lg text-gray-900">Reputation & Trust System</CardTitle>
               <CardDescription className="text-gray-600 text-sm">

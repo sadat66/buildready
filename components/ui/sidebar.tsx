@@ -106,25 +106,12 @@ export function Sidebar({
         fixed top-16 left-0 h-[calc(100vh-4rem)] bg-white border-r border-gray-200 z-40 transition-all duration-300 ease-in-out
         ${isOpen ? "translate-x-0" : "-translate-x-full"}
         w-64
-        lg:translate-x-0 lg:z-50 lg:h-[calc(100vh-4rem)] lg:top-16
-        lg:group
-        ${isCollapsed ? "lg:w-16" : "lg:w-64"}
-        lg:hover:w-64
+        lg:translate-x-0 lg:z-50 lg:h-[calc(100vh-4rem)] lg:top-16 lg:w-64
         overflow-hidden
-        shadow-2xl lg:shadow-none
+        shadow-2xl lg:shadow-lg
         `}
         role="navigation"
         aria-label="Main navigation"
-        onMouseEnter={() => {
-          if (window.innerWidth >= 1024 && isCollapsed) {
-            onToggleCollapse();
-          }
-        }}
-        onMouseLeave={() => {
-          if (window.innerWidth >= 1024 && !isCollapsed) {
-            onToggleCollapse();
-          }
-        }}
       >
         <div className="flex flex-col h-full bg-white overflow-hidden">
           <div className="relative py-2 px-4 flex-shrink-0">
@@ -132,7 +119,7 @@ export function Sidebar({
               variant="ghost"
               size="sm"
               onClick={onClose}
-              className="lg:hidden absolute top-1 right-1 cursor-pointer p-1 h-7 w-7 rounded-full hover:bg-orange-50"
+              className="lg:hidden absolute top-1 right-1 cursor-pointer p-1 h-7 w-7 rounded-full hover:bg-gray-100"
               aria-label="Close sidebar"
             >
               <X className="h-4 w-4 text-gray-600" />
@@ -148,19 +135,13 @@ export function Sidebar({
                     variant={isActive(item.href) ? "default" : "ghost"}
                     size="sm"
                     className={`
-                      w-full transition-colors overflow-hidden cursor-pointer
+                      w-full transition-all duration-200 overflow-hidden cursor-pointer
                       ${
                         isActive(item.href)
-                          ? "bg-orange-100 text-orange-700 hover:bg-orange-200 hover:text-orange-800"
-                          : "text-gray-700 hover:bg-orange-50 hover:text-orange-700"
+                          ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 shadow-lg"
+                          : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                       }
                       justify-start px-3 py-3
-                      ${
-                        isCollapsed
-                          ? "lg:justify-center lg:px-2"
-                          : "lg:justify-start lg:px-3"
-                      }
-                      lg:group-hover:justify-start lg:group-hover:px-3
                     `}
                     onClick={() => {
                       if (window.innerWidth < 1024) {
@@ -168,20 +149,8 @@ export function Sidebar({
                       }
                     }}
                   >
-                    <Icon
-                      className={`
-                        h-5 w-5 transition-all duration-300 flex-shrink-0 mr-3
-                        ${isCollapsed ? "lg:mr-0" : "lg:mr-3"}
-                        lg:group-hover:mr-3
-                      `}
-                    />
-                    <span
-                      className={`
-                        transition-all duration-300 overflow-hidden block
-                        ${isCollapsed ? "lg:hidden" : "lg:block"}
-                        lg:group-hover:block
-                      `}
-                    >
+                    <Icon className="h-5 w-5 transition-all duration-300 flex-shrink-0 mr-3" />
+                    <span className="transition-all duration-300 overflow-hidden block">
                       {item.name}
                     </span>
                   </Button>

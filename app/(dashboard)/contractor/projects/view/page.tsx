@@ -58,7 +58,7 @@ export default function ContractorProjectsViewPage() {
       }
     }
     
-    if (!loading && user && user.user_metadata?.role === 'contractor') {
+    if (!loading && user && user.user_role === 'contractor') {
       fetchProjects()
     }
   }, [user, loading])
@@ -79,7 +79,7 @@ export default function ContractorProjectsViewPage() {
     )
   }
 
-  if (!user || user.user_metadata?.role !== 'contractor') {
+  if (!user || user.user_role !== 'contractor') {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-lg">Access denied. Only contractors can view available projects.</div>

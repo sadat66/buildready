@@ -9,12 +9,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from '@/components/ui/avatar'
 import { useAuth } from '@/contexts/AuthContext'
 import Link from 'next/link'
 import { capitalizeWords } from '@/lib/helpers'
-import RandomAvatar from '@/components/ui/random-avatar'
 
-export default function UserMenu() {
+export function UserMenu() {
   const { user, signOut } = useAuth()
 
   const handleSignOut = async () => {
@@ -26,87 +30,92 @@ export default function UserMenu() {
     return null
   }
 
-
+  // Get user initials for avatar fallback
+  const getUserInitials = () => {
+    if (user?.user_metadata?.full_name) {
+      const names = user.user_metadata.full_name.split(' ')
+      if (names.length >= 2) {
+        return `${names[0][0]}${names[1][0]}`.toUpperCase()
+      }
+      return names[0][0].toUpperCase()
+    }
+    if (user?.email) {
+      return user.email[0].toUpperCase()
+    }
+    return 'U'
+  }
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <div className="relative group">
-          <RandomAvatar 
-            name={user?.full_name || user?.user_metadata?.full_name || user?.email || "User"}
-            size={48}
-            className="cursor-pointer ring-2 ring-orange-200 hover:ring-orange-400 transition-all duration-300 hover:scale-110 shadow-lg hover:shadow-xl"
-          />
-        </div>
+        <Avatar className="h-11 w-11 cursor-pointer ring-2 ring-gray-200 hover:ring-orange-300 transition-all duration-200 hover:scale-105">
+          <AvatarImage src={user?.user_metadata?.avatar_url || "https://github.com/shadcn.png"} />
+          <AvatarFallback className="bg-gradient-to-br from-orange-100 to-orange-200 text-orange-700 font-semibold text-lg">
+            {getUserInitials()}
+          </AvatarFallback>
+        </Avatar>
       </DropdownMenuTrigger>
       
-      <DropdownMenuContent className="w-72 p-2 bg-white border border-orange-100 shadow-2xl rounded-2xl" align="end" forceMount>
-        {/* Enhanced Header with Gradient Background */}
-        <DropdownMenuLabel className="font-normal p-4 bg-gradient-to-br from-orange-50 via-amber-50 to-orange-100 rounded-xl mb-2 relative overflow-hidden">
-          {/* Decorative background elements */}
-          <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-orange-200/30 to-transparent rounded-full transform translate-x-6 -translate-y-6"></div>
-          <div className="absolute bottom-0 left-0 w-16 h-16 bg-gradient-to-tr from-amber-200/20 to-transparent rounded-full transform -translate-x-4 translate-y-4"></div>
+      <DropdownMenuContent className="w-64 p-1.5" align="end" forceMount>
+        <DropdownMenuLabel className="font-normal p-2.5 bg-gradient-to-r from-gray-50 to-orange-50 rounded-lg mb-1.5 relative">
+          {/* Role Badge - Top Right Corner */}
+          <div className="absolute top-1 right-1">
+            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-500 text-white capitalize">
+              {user?.user_role || "User"}
+            </span>
+          </div>
           
-          {/* User Info - Enhanced */}
-          <div className="relative z-10 flex flex-col space-y-3">
-            <div className="flex items-center space-x-2">
-              <div className="w-2 h-2 bg-gradient-to-r from-orange-400 to-red-400 rounded-full shadow-sm"></div>
-              <p className="text-lg font-bold leading-tight text-gray-800 truncate">
-                {capitalizeWords(user?.full_name || user?.user_metadata?.full_name) || "User"}
+          {/* User Info - Left Side */}
+          <div className="flex flex-col space-y-1 pr-8">
+            <div className="flex items-center space-x-1.5">
+              <div className="w-1.5 h-1.5 bg-orange-400 rounded-full"></div>
+              <p className="text-base font-semibold leading-tight text-gray-800 truncate">
+                {capitalizeWords(user?.user_metadata?.full_name) || "User"}
               </p>
             </div>
-            {/* Role Badge - Moved under name */}
-            <div className="flex items-center space-x-2">
-              <div className="w-1.5 h-1.5 bg-orange-300 rounded-full"></div>
-              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-orange-500 to-red-500 text-white capitalize shadow-sm">
-                {user?.user_role || user?.user_metadata?.role || "User"}
-              </span>
+            <div className="flex items-center space-x-1.5">
+              <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
+              <p className="text-xs leading-tight text-gray-600 truncate whitespace-nowrap">
+                {user?.email}
+              </p>
             </div>
           </div>
         </DropdownMenuLabel>
         
-        <DropdownMenuSeparator className="my-2 bg-gradient-to-r from-transparent via-orange-200 to-transparent" />
+        <DropdownMenuSeparator className="my-1.5" />
         
-        {/* Enhanced Menu Items */}
-        <DropdownMenuItem asChild className="p-3 rounded-xl hover:bg-gradient-to-r hover:from-orange-50 hover:to-amber-50 hover:text-orange-700 transition-all duration-200 group">
+        <DropdownMenuItem asChild className="p-2 rounded-lg hover:bg-orange-50 hover:text-orange-700 transition-colors">
           <Link
             href={`/${
-              user?.user_metadata?.role || user?.user_role || "homeowner"
+              user?.user_role || "homeowner"
             }/profile`}
             className="cursor-pointer flex items-center w-full"
           >
-            <div className="w-8 h-8 bg-gradient-to-br from-orange-100 to-orange-200 rounded-lg flex items-center justify-center mr-3 group-hover:from-orange-200 group-hover:to-orange-300 transition-all duration-200">
-              <User className="h-4 w-4 text-orange-600" />
-            </div>
-            <span className="font-semibold">Profile</span>
+            <User className="mr-2 h-4 w-4 text-orange-600" />
+            <span className="font-medium">Profile</span>
           </Link>
         </DropdownMenuItem>
         
-        <DropdownMenuItem asChild className="p-3 rounded-xl hover:bg-gradient-to-r hover:from-orange-50 hover:to-amber-50 hover:text-orange-700 transition-all duration-200 group">
+        <DropdownMenuItem asChild className="p-2 rounded-lg hover:bg-orange-50 hover:text-orange-700 transition-colors">
           <Link
             href={`/${
-              user?.user_metadata?.role || user?.user_role || "homeowner"
+              user?.user_role || "homeowner"
             }/settings`}
             className="cursor-pointer flex items-center w-full"
           >
-            <div className="w-8 h-8 bg-gradient-to-br from-orange-100 to-orange-200 rounded-lg flex items-center justify-center mr-3 group-hover:from-orange-200 group-hover:to-orange-300 transition-all duration-200">
-              <Settings className="h-4 w-4 text-orange-600" />
-            </div>
-            <span className="font-semibold">Settings</span>
+            <Settings className="mr-2 h-4 w-4 text-orange-600" />
+            <span className="font-medium">Settings</span>
           </Link>
         </DropdownMenuItem>
         
-        <DropdownMenuSeparator className="my-2 bg-gradient-to-r from-transparent via-red-200 to-transparent" />
+        <DropdownMenuSeparator className="my-1.5" />
         
-        {/* Enhanced Sign Out */}
         <DropdownMenuItem
           onClick={handleSignOut}
-          className="p-3 rounded-xl text-red-600 hover:text-red-700 hover:bg-gradient-to-r hover:from-red-50 hover:to-pink-50 transition-all duration-200 group"
+          className="p-2 rounded-lg text-red-600 hover:text-red-700 hover:bg-red-50 transition-colors"
         >
-          <div className="w-8 h-8 bg-gradient-to-br from-red-100 to-red-200 rounded-lg flex items-center justify-center mr-3 group-hover:from-red-200 group-hover:to-red-300 transition-all duration-200">
-            <LogOut className="h-4 w-4 text-red-600" />
-          </div>
-          <span className="font-semibold">Sign Out</span>
+          <LogOut className="mr-2 h-4 w-4" />
+          <span className="font-medium">Sign Out</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

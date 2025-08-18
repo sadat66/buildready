@@ -97,12 +97,12 @@ export default function ProjectViewPage() {
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'draft': return 'bg-gray-500'
-      case 'published': return 'bg-green-500'
-      case 'bidding': return 'bg-blue-500'
-      case 'awarded': return 'bg-purple-500'
-      case 'in progress': return 'bg-yellow-500'
-      case 'completed': return 'bg-green-600'
-      case 'cancelled': return 'bg-red-500'
+      case 'published': return 'bg-gray-500'
+      case 'bidding': return 'bg-orange-500'
+      case 'awarded': return 'bg-orange-500'
+      case 'in progress': return 'bg-orange-500'
+      case 'completed': return 'bg-gray-900'
+      case 'cancelled': return 'bg-gray-500'
       default: return 'bg-gray-500'
     }
   }
@@ -233,7 +233,7 @@ export default function ProjectViewPage() {
               {project.visibility_settings}
             </Badge>
             {project.is_verified_project && (
-              <Badge className="bg-green-500 text-white px-3 py-1">
+              <Badge className="bg-gray-900 text-white px-3 py-1">
                 <CheckCircle className="h-3 w-3 mr-1" />
                 Verified
               </Badge>
