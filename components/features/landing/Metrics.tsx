@@ -67,7 +67,7 @@ function AnimatedCounter({ end, duration, suffix = '' }: CounterProps) {
 
 export function Metrics() {
   return (
-    <section className="py-12 sm:py-16 bg-gradient-to-r from-orange-50 to-white">
+    <section className="py-12 sm:py-16 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-10 sm:mb-12">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-3 sm:mb-4 px-2">
@@ -80,8 +80,8 @@ export function Metrics() {
         
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
           <div className="text-center p-4 sm:p-6">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4 group-hover:scale-110 transition-transform duration-300">
-              <Users className="w-8 h-8 sm:w-10 sm:h-10 text-orange-600" />
+            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4 group-hover:scale-110 transition-transform duration-300">
+              <Users className="w-8 h-8 sm:w-10 sm:h-10 text-gray-600" />
             </div>
             <AnimatedCounter end={500} duration={2.5} suffix="+" />
             <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">Active Projects</h3>
@@ -91,8 +91,8 @@ export function Metrics() {
           </div>
           
           <div className="text-center p-4 sm:p-6">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4 group-hover:scale-110 transition-transform duration-300">
-              <CheckCircle className="w-8 h-8 sm:w-10 sm:h-10 text-orange-600" />
+            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4 group-hover:scale-110 transition-transform duration-300">
+              <CheckCircle className="w-8 h-8 sm:w-10 sm:h-10 text-gray-600" />
             </div>
             <AnimatedCounter end={200} duration={2.5} suffix="+" />
             <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">Verified Contractors</h3>
@@ -102,8 +102,8 @@ export function Metrics() {
           </div>
           
           <div className="text-center p-4 sm:p-6">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4 group-hover:scale-110 transition-transform duration-300">
-              <Award className="w-8 h-8 sm:w-10 sm:h-10 text-orange-600" />
+            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4 group-hover:scale-110 transition-transform duration-300">
+              <Award className="w-8 h-8 sm:w-10 sm:h-10 text-gray-600" />
             </div>
             <AnimatedCounter end={95} duration={2.5} suffix="%" />
             <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">Success Rate</h3>
@@ -113,8 +113,8 @@ export function Metrics() {
           </div>
           
           <div className="text-center p-4 sm:p-6">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4 group-hover:scale-110 transition-transform duration-300">
-              <TrendingUp className="w-8 h-8 sm:w-10 sm:h-10 text-orange-600" />
+            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4 group-hover:scale-110 transition-transform duration-300">
+              <TrendingUp className="w-8 h-8 sm:w-10 sm:h-10 text-gray-600" />
             </div>
             <AnimatedCounter end={1000} duration={2.5} suffix="+" />
             <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">Happy Clients</h3>

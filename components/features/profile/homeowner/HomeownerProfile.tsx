@@ -130,11 +130,9 @@ export function HomeownerProfile({ user }: HomeownerProfileProps) {
             </Button>
           </Link>
         </div>
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-orange-50 via-amber-50 to-orange-100 border border-orange-200/60 shadow-2xl">
-          <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-bl from-orange-200/40 to-amber-200/30 rounded-full transform translate-x-40 -translate-y-40"></div>
-          <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-amber-200/30 to-orange-200/40 rounded-full transform -translate-x-32 translate-y-32"></div>
+        <div className="relative overflow-hidden rounded-3xl bg-white border border-gray-200 shadow-lg">
           <div className="relative p-8 flex items-center justify-center">
-            <div className="text-center text-orange-700 font-semibold">Loading profile...</div>
+            <div className="text-center text-gray-700 font-semibold">Loading profile...</div>
           </div>
         </div>
       </div>
@@ -145,12 +143,8 @@ export function HomeownerProfile({ user }: HomeownerProfileProps) {
     <div className="space-y-6">
       <Breadcrumbs />
 
-      {/* Enhanced Header with Gradient Background */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-orange-50 via-amber-50 to-orange-100 border border-orange-200/60 shadow-2xl">
-        {/* Enhanced Background decoration */}
-        <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-bl from-orange-200/40 to-amber-200/30 rounded-full transform translate-x-40 -translate-y-40"></div>
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-amber-200/30 to-orange-200/40 rounded-full transform -translate-x-32 translate-y-32"></div>
-        <div className="absolute top-1/2 left-1/2 w-32 h-32 bg-gradient-to-br from-orange-300/20 to-red-300/20 rounded-full transform -translate-x-16 -translate-y-16"></div>
+      {/* Enhanced Header with Clean Background */}
+      <div className="relative overflow-hidden rounded-3xl bg-white border border-gray-200 shadow-lg">
         
         <div className="relative p-6 sm:p-8 space-y-6">
           {/* Profile Header Section */}
@@ -161,18 +155,17 @@ export function HomeownerProfile({ user }: HomeownerProfileProps) {
                 size={80}
                 className="transform hover:scale-105 transition-all duration-300"
               />
-              {/* Decorative ring */}
-              <div className="absolute -inset-2 bg-gradient-to-r from-orange-300 to-amber-300 rounded-2xl opacity-20 blur-sm"></div>
+
             </div>
             <div className="space-y-3 text-center sm:text-left">
-              <h1 className="text-3xl sm:text-4xl font-bold tracking-tight bg-gradient-to-r from-orange-600 via-orange-700 to-red-700 bg-clip-text text-transparent leading-tight">
+              <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-gray-900 leading-tight">
                 Profile Settings
               </h1>
-              <p className="text-orange-700 font-medium">
+              <p className="text-gray-600 font-medium">
                 Manage your homeowner account information
               </p>
               <div className="flex items-center justify-center sm:justify-start gap-2">
-                <Badge className="bg-gradient-to-r from-orange-500 to-amber-500 text-white border-0 px-3 py-1.5 text-sm font-semibold shadow-lg">
+                <Badge className="bg-gray-900 text-white border-0 px-3 py-1.5 text-sm font-semibold">
                   <Crown className="mr-2 h-3 w-3" />
                   Homeowner
                 </Badge>
@@ -183,11 +176,11 @@ export function HomeownerProfile({ user }: HomeownerProfileProps) {
       </div>
 
       {/* Profile Information Card */}
-      <Card className="bg-white/70 backdrop-blur-sm border-orange-200/60 shadow-lg hover:shadow-xl transition-all duration-300">
+      <Card className="bg-white border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300">
         <CardContent className="p-6 space-y-6">
           <div className="space-y-4">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-orange-500 rounded-xl flex items-center justify-center shadow-lg">
+              <div className="w-10 h-10 bg-gray-900 rounded-xl flex items-center justify-center">
                 <User className="h-5 w-5 text-white" />
               </div>
               <div>
@@ -207,7 +200,7 @@ export function HomeownerProfile({ user }: HomeownerProfileProps) {
                 value={formData.first_name}
                 onChange={(e) => handleInputChange("first_name", e.target.value)}
                 placeholder="Enter your first name"
-                className="border-orange-200 focus:border-orange-400 focus:ring-orange-400"
+                className="border-gray-200 focus:border-gray-400 focus:ring-gray-400"
               />
             </div>
 
@@ -220,7 +213,7 @@ export function HomeownerProfile({ user }: HomeownerProfileProps) {
                 value={formData.last_name}
                 onChange={(e) => handleInputChange("last_name", e.target.value)}
                 placeholder="Enter your last name"
-                className="border-orange-200 focus:border-orange-400 focus:ring-orange-400"
+                className="border-gray-200 focus:border-gray-400 focus:ring-gray-400"
               />
             </div>
           </div>
@@ -239,7 +232,7 @@ export function HomeownerProfile({ user }: HomeownerProfileProps) {
                 value={formData.phone_number}
                 onChange={(e) => handleInputChange("phone_number", e.target.value)}
                 placeholder="Enter your phone number"
-                className="pl-10 border-orange-200 focus:border-orange-400 focus:ring-orange-400"
+                className="pl-10 border-gray-200 focus:border-gray-400 focus:ring-gray-400"
               />
             </div>
           </div>
@@ -253,7 +246,7 @@ export function HomeownerProfile({ user }: HomeownerProfileProps) {
               type="email"
               value={user?.email || ""}
               disabled
-              className="bg-gray-50 border-orange-200 text-gray-600"
+              className="bg-gray-50 border-gray-200 text-gray-600"
             />
             <p className="text-xs text-gray-500 flex items-center">
               <Shield className="h-3 w-3 mr-1" />
@@ -274,7 +267,7 @@ export function HomeownerProfile({ user }: HomeownerProfileProps) {
                 value={formData.address}
                 onChange={(e) => handleInputChange("address", e.target.value)}
                 placeholder="Enter your city or location"
-                className="pl-10 border-orange-200 focus:border-orange-400 focus:ring-orange-400"
+                className="pl-10 border-gray-200 focus:border-gray-400 focus:ring-gray-400"
               />
             </div>
           </div>
@@ -282,11 +275,11 @@ export function HomeownerProfile({ user }: HomeownerProfileProps) {
       </Card>
 
       {/* Account Summary Card */}
-      <Card className="bg-white/70 backdrop-blur-sm border-orange-200/60 shadow-lg hover:shadow-xl transition-all duration-300">
+      <Card className="bg-white border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300">
         <CardContent className="p-6 space-y-6">
           <div className="space-y-4">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center shadow-lg">
+              <div className="w-10 h-10 bg-gray-900 rounded-xl flex items-center justify-center">
                 <Calendar className="h-5 w-5 text-white" />
               </div>
               <div>
@@ -297,9 +290,9 @@ export function HomeownerProfile({ user }: HomeownerProfileProps) {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="p-4 bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl border border-orange-200/60">
+            <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
               <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-500 rounded-lg flex items-center justify-center">
+                <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center">
                   <Crown className="h-4 w-4 text-white" />
                 </div>
                 <div>
@@ -308,9 +301,9 @@ export function HomeownerProfile({ user }: HomeownerProfileProps) {
                 </div>
               </div>
             </div>
-            <div className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl border border-orange-200/60">
+            <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
               <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-gradient-to-br from-amber-400 to-orange-500 rounded-lg flex items-center justify-center">
+                <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center">
                   <Calendar className="h-4 w-4 text-white" />
                 </div>
                 <div>
@@ -332,7 +325,7 @@ export function HomeownerProfile({ user }: HomeownerProfileProps) {
         <Button 
           onClick={handleSave} 
           disabled={saving} 
-          className="gap-2 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+          className="gap-2 bg-orange-500 hover:bg-orange-600 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300"
         >
           <Save className="h-4 w-4" />
           {saving ? "Saving Changes..." : "Save Changes"}

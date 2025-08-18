@@ -132,7 +132,7 @@ export function Sidebar({
               variant="ghost"
               size="sm"
               onClick={onClose}
-              className="lg:hidden absolute top-1 right-1 cursor-pointer p-1 h-7 w-7 rounded-full hover:bg-orange-50"
+              className="lg:hidden absolute top-1 right-1 cursor-pointer p-1 h-7 w-7 rounded-full hover:bg-gray-100"
               aria-label="Close sidebar"
             >
               <X className="h-4 w-4 text-gray-600" />
@@ -151,8 +151,8 @@ export function Sidebar({
                       w-full transition-colors overflow-hidden cursor-pointer
                       ${
                         isActive(item.href)
-                          ? "bg-orange-100 text-orange-700 hover:bg-orange-200 hover:text-orange-800"
-                          : "text-gray-700 hover:bg-orange-50 hover:text-orange-700"
+                          ? "bg-gray-900 text-white hover:bg-black"
+                          : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                       }
                       justify-start px-3 py-3
                       ${

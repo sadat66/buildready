@@ -1,13 +1,13 @@
 'use client'
 
-import { Home, DollarSign, TrendingUp, FileText } from 'lucide-react'
+import { Home, Clock, Award, CheckCircle } from 'lucide-react'
 
 interface ProjectStatsProps {
   stats: {
     total: number
-    totalBudget: number
-    activeProjects: number
-    upcomingDeadlines: number
+    open: number
+    awarded: number
+    completed: number
   }
 }
 
@@ -17,67 +17,52 @@ export default function ProjectStats({ stats }: ProjectStatsProps) {
       icon: Home,
       label: 'Total Projects',
       value: stats.total,
-      description: 'All time projects',
-      gradient: 'from-orange-400 to-red-500',
-      bgGradient: 'from-orange-50 to-red-50',
-      iconBg: 'bg-orange-500'
+      description: 'All time projects'
     },
     {
-      icon: DollarSign,
-      label: 'Total Budget',
-      value: `$${stats.totalBudget.toLocaleString()}`,
-      description: 'Combined project value',
-      gradient: 'from-amber-400 to-orange-500',
-      bgGradient: 'from-amber-50 to-orange-50',
-      iconBg: 'bg-amber-500'
+      icon: Clock,
+      label: 'Open Projects',
+      value: stats.open,
+      description: 'Published + Bidding'
     },
     {
-      icon: TrendingUp,
-      label: 'Active Projects',
-      value: stats.activeProjects,
-      description: 'Open + Bidding + Awarded',
-      gradient: 'from-orange-500 to-red-600',
-      bgGradient: 'from-orange-50 to-red-50',
-      iconBg: 'bg-orange-600'
+      icon: Award,
+      label: 'Awarded Projects',
+      value: stats.awarded,
+      description: 'Awarded + In Progress'
     },
     {
-      icon: FileText,
-      label: 'Proposal Count',
-      value: stats.upcomingDeadlines,
-      description: 'Total proposals received',
-      gradient: 'from-red-400 to-orange-500',
-      bgGradient: 'from-red-50 to-orange-50',
-      iconBg: 'bg-red-500'
+      icon: CheckCircle,
+      label: 'Completed Projects',
+      value: stats.completed,
+      description: 'Successfully finished'
     }
   ]
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       {statItems.map((item, index) => (
-        <div key={index} className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${item.bgGradient} border border-orange-200/50 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group`}>
-          {/* Background decoration */}
-          <div className="absolute top-0 right-0 w-20 h-20 bg-white/20 rounded-full transform translate-x-10 -translate-y-10"></div>
-          
+        <div key={index} className="relative overflow-hidden rounded-lg bg-white border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300 hover:border-gray-300 group">
           <div className="relative p-6 space-y-4">
             <div className="flex items-center justify-between">
-              <div className={`w-12 h-12 ${item.iconBg} rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-200`}>
-                <item.icon className="h-6 w-6 text-white" />
+              <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center group-hover:bg-orange-50 transition-colors duration-200">
+                <item.icon className="h-6 w-6 text-gray-600 group-hover:text-orange-600" />
               </div>
               <div className="text-right">
-                <div className={`text-2xl font-bold bg-gradient-to-r ${item.gradient} bg-clip-text text-transparent`}>
+                <div className="text-2xl font-bold text-gray-900">
                   {item.value}
                 </div>
               </div>
             </div>
             
             <div className="space-y-1">
-              <h3 className="text-sm font-semibold text-orange-800">{item.label}</h3>
-              <p className="text-xs text-orange-600/80">{item.description}</p>
+              <h3 className="text-sm font-semibold text-gray-900">{item.label}</h3>
+              <p className="text-xs text-gray-600">{item.description}</p>
             </div>
             
             {/* Progress indicator */}
-            <div className="w-full bg-white/50 rounded-full h-1.5">
-              <div className={`h-1.5 bg-gradient-to-r ${item.gradient} rounded-full transition-all duration-1000 ease-out`} 
+            <div className="w-full bg-gray-100 rounded-full h-1.5">
+              <div className="h-1.5 bg-orange-500 rounded-full transition-all duration-1000 ease-out" 
                    style={{ width: `${Math.min(100, (typeof item.value === 'number' ? item.value * 10 : 75))}%` }}>
               </div>
             </div>

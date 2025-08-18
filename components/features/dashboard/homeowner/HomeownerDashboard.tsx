@@ -4,8 +4,6 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase'
 import { Project } from '@/types'
 
-import UserGreeting from './UserGreeting'
-import QuickActions from './QuickActions'
 import ProjectStats from './ProjectStats'
 import RecentProjects from './RecentProjects'
 import { useAuth } from '@/contexts/AuthContext'
@@ -118,30 +116,16 @@ export default function HomeownerDashboard({ userEmail }: HomeownerDashboardProp
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-orange-100 relative">
-        {/* Single consolidated background layer */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-orange-200/20 to-transparent rounded-full transform -translate-x-48 -translate-y-48"></div>
-          <div className="absolute top-1/3 right-0 w-80 h-80 bg-gradient-to-bl from-amber-200/20 to-transparent rounded-full transform translate-x-40"></div>
-          <div className="absolute bottom-0 left-1/3 w-64 h-64 bg-gradient-to-tr from-red-200/20 to-transparent rounded-full transform translate-y-32"></div>
-        </div>
-        
+      <div className="min-h-screen bg-white relative">
         <div className="relative flex items-center justify-center min-h-screen">
           <div className="text-center space-y-8">
-            {/* Enhanced Loading Spinner */}
+            {/* Minimalist Loading Spinner */}
             <div className="relative">
-              <div className="w-24 h-24 bg-gradient-to-br from-orange-400 via-orange-500 to-red-500 rounded-3xl flex items-center justify-center shadow-2xl transform rotate-3 animate-pulse">
-                <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-inner">
-                  <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-red-500 rounded-xl animate-spin"></div>
-                </div>
-              </div>
-              {/* Floating elements */}
-              <div className="absolute -top-2 -right-2 w-6 h-6 bg-amber-300 rounded-full animate-bounce"></div>
-              <div className="absolute -bottom-2 -left-2 w-4 h-4 bg-red-300 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+              <div className="w-16 h-16 border-4 border-gray-200 border-t-orange-500 rounded-full animate-spin"></div>
             </div>
             <div className="space-y-4">
-              <h2 className="text-2xl font-bold text-orange-800">Loading Your Dashboard</h2>
-              <p className="text-orange-600">Preparing your construction project overview...</p>
+              <h2 className="text-2xl font-bold text-gray-900">Loading Your Dashboard</h2>
+              <p className="text-gray-600">Preparing your construction project overview...</p>
             </div>
           </div>
         </div>
@@ -150,15 +134,8 @@ export default function HomeownerDashboard({ userEmail }: HomeownerDashboardProp
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-orange-100 relative">
-      {/* Single consolidated background layer */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-orange-200/20 to-transparent rounded-full transform -translate-x-48 -translate-y-48"></div>
-        <div className="absolute top-1/3 right-0 w-80 h-80 bg-gradient-to-bl from-amber-200/20 to-transparent rounded-full transform translate-x-40"></div>
-        <div className="absolute bottom-0 left-1/3 w-64 h-64 bg-gradient-to-tr from-red-200/20 to-transparent rounded-full transform translate-y-32"></div>
-      </div>
-      
-      <div className="relative container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-white">
+      <div className="container mx-auto px-4 py-8">
         {/* Error Display */}
         {error && (
           <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
@@ -168,19 +145,13 @@ export default function HomeownerDashboard({ userEmail }: HomeownerDashboardProp
 
         {/* Dashboard Content */}
         <div className="space-y-8">
-          {/* User Greeting */}
-          <UserGreeting userEmail={userEmail} />
-
-          {/* Quick Actions */}
-          <QuickActions proposalsCount={proposalsCount} />
-
           {/* Project Statistics */}
           <ProjectStats 
             stats={{
               total: projects.length,
-              totalBudget: projects.reduce((sum, p) => sum + (p.budget || 0), 0),
-              activeProjects: projects.filter(p => ['Published', 'Bidding', 'In Progress'].includes(p.status)).length,
-              upcomingDeadlines: proposalsCount
+              open: projects.filter(p => ['Published', 'Bidding'].includes(p.status)).length,
+              awarded: projects.filter(p => ['Awarded', 'In Progress'].includes(p.status)).length,
+              completed: projects.filter(p => p.status === 'Completed').length
             }}
           />
 

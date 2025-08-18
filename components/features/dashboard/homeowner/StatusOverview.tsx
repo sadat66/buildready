@@ -12,11 +12,11 @@ interface StatusOverviewProps {
 
 export default function StatusOverview({ stats }: StatusOverviewProps) {
   const statusItems = [
-    { label: 'Open', count: stats.open, color: 'bg-green-500' },
-    { label: 'Bidding', count: stats.bidding, color: 'bg-blue-500' },
-    { label: 'Awarded', count: stats.awarded, color: 'bg-purple-500' },
-    { label: 'Completed', count: stats.completed, color: 'bg-gray-500' },
-    { label: 'Cancelled', count: stats.cancelled, color: 'bg-red-500' }
+    { label: 'Open', count: stats.open, color: 'bg-gray-500' },
+    { label: 'Bidding', count: stats.bidding, color: 'bg-orange-500' },
+    { label: 'Awarded', count: stats.awarded, color: 'bg-orange-500' },
+    { label: 'Completed', count: stats.completed, color: 'bg-gray-900' },
+    { label: 'Cancelled', count: stats.cancelled, color: 'bg-gray-500' }
   ]
 
   return (

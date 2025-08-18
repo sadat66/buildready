@@ -35,62 +35,52 @@ export default function UserMenu() {
           <RandomAvatar 
             name={user?.full_name || user?.user_metadata?.full_name || user?.email || "User"}
             size={48}
-            className="cursor-pointer ring-2 ring-orange-200 hover:ring-orange-400 transition-all duration-300 hover:scale-110 shadow-lg hover:shadow-xl"
+            className="cursor-pointer ring-2 ring-gray-200 hover:ring-gray-400 transition-all duration-300 hover:scale-110 shadow-lg hover:shadow-xl"
           />
         </div>
       </DropdownMenuTrigger>
       
-      <DropdownMenuContent className="w-72 p-2 bg-white border border-orange-100 shadow-2xl rounded-2xl" align="end" forceMount>
-        {/* Enhanced Header with Gradient Background */}
-        <DropdownMenuLabel className="font-normal p-4 bg-gradient-to-br from-orange-50 via-amber-50 to-orange-100 rounded-xl mb-2 relative overflow-hidden">
-          {/* Decorative background elements */}
-          <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-orange-200/30 to-transparent rounded-full transform translate-x-6 -translate-y-6"></div>
-          <div className="absolute bottom-0 left-0 w-16 h-16 bg-gradient-to-tr from-amber-200/20 to-transparent rounded-full transform -translate-x-4 translate-y-4"></div>
-          
-          {/* User Info - Enhanced */}
-          <div className="relative z-10 flex flex-col space-y-3">
-            <div className="flex items-center space-x-2">
-              <div className="w-2 h-2 bg-gradient-to-r from-orange-400 to-red-400 rounded-full shadow-sm"></div>
-              <p className="text-lg font-bold leading-tight text-gray-800 truncate">
-                {capitalizeWords(user?.full_name || user?.user_metadata?.full_name) || "User"}
-              </p>
-            </div>
-            {/* Role Badge - Moved under name */}
-            <div className="flex items-center space-x-2">
-              <div className="w-1.5 h-1.5 bg-orange-300 rounded-full"></div>
-              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-orange-500 to-red-500 text-white capitalize shadow-sm">
-                {user?.user_role || user?.user_metadata?.role || "User"}
-              </span>
-            </div>
+      <DropdownMenuContent className="w-72 p-2 bg-white border border-gray-200 shadow-2xl rounded-2xl" align="end" forceMount>
+        {/* Enhanced Header with Clean Background */}
+        <DropdownMenuLabel className="font-normal p-4 bg-gray-50 rounded-xl mb-2 relative overflow-hidden">
+          {/* User Info - Clean and Centered */}
+          <div className="relative z-10 flex flex-col space-y-2 items-center text-center">
+            <p className="text-lg font-bold leading-tight text-gray-900 truncate">
+              {capitalizeWords(user?.full_name || user?.user_metadata?.full_name) || "User"}
+            </p>
+            {/* Role Badge - Under name */}
+            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-700 text-white capitalize shadow-sm">
+              {user?.user_role || user?.user_metadata?.role || "User"}
+            </span>
           </div>
         </DropdownMenuLabel>
         
-        <DropdownMenuSeparator className="my-2 bg-gradient-to-r from-transparent via-orange-200 to-transparent" />
+        <DropdownMenuSeparator className="my-2 bg-gray-200" />
         
         {/* Enhanced Menu Items */}
-        <DropdownMenuItem asChild className="p-3 rounded-xl hover:bg-gradient-to-r hover:from-orange-50 hover:to-amber-50 hover:text-orange-700 transition-all duration-200 group">
+        <DropdownMenuItem asChild className="p-3 rounded-xl hover:bg-gray-100 hover:text-gray-900 transition-all duration-200 group">
           <Link
             href={`/${
               user?.user_metadata?.role || user?.user_role || "homeowner"
             }/profile`}
             className="cursor-pointer flex items-center w-full"
           >
-            <div className="w-8 h-8 bg-gradient-to-br from-orange-100 to-orange-200 rounded-lg flex items-center justify-center mr-3 group-hover:from-orange-200 group-hover:to-orange-300 transition-all duration-200">
-              <User className="h-4 w-4 text-orange-600" />
+            <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center mr-3 group-hover:bg-gray-200 transition-all duration-200">
+              <User className="h-4 w-4 text-gray-900" />
             </div>
             <span className="font-semibold">Profile</span>
           </Link>
         </DropdownMenuItem>
         
-        <DropdownMenuItem asChild className="p-3 rounded-xl hover:bg-gradient-to-r hover:from-orange-50 hover:to-amber-50 hover:text-orange-700 transition-all duration-200 group">
+        <DropdownMenuItem asChild className="p-3 rounded-xl hover:bg-gray-100 hover:text-gray-900 transition-all duration-200 group">
           <Link
             href={`/${
               user?.user_metadata?.role || user?.user_role || "homeowner"
             }/settings`}
             className="cursor-pointer flex items-center w-full"
           >
-            <div className="w-8 h-8 bg-gradient-to-br from-orange-100 to-orange-200 rounded-lg flex items-center justify-center mr-3 group-hover:from-orange-200 group-hover:to-orange-300 transition-all duration-200">
-              <Settings className="h-4 w-4 text-orange-600" />
+            <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center mr-3 group-hover:bg-gray-200 transition-all duration-200">
+              <Settings className="h-4 w-4 text-gray-900" />
             </div>
             <span className="font-semibold">Settings</span>
           </Link>

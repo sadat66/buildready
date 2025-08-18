@@ -15,11 +15,11 @@ export default function ProjectCard({ projects, onProjectClick }: ProjectCardPro
 
   const getStatusConfig = (status: string) => {
     const statusConfig = {
-      open: { label: 'Open', variant: 'default' as const, color: 'bg-green-100 text-green-800' },
-      bidding: { label: 'Bidding', variant: 'secondary' as const, color: 'bg-blue-100 text-blue-800' },
-      awarded: { label: 'Awarded', variant: 'outline' as const, color: 'bg-purple-100 text-purple-800' },
-      completed: { label: 'Completed', variant: 'outline' as const, color: 'bg-gray-100 text-gray-800' },
-      cancelled: { label: 'Cancelled', variant: 'destructive' as const, color: 'bg-red-100 text-red-800' },
+      open: { label: 'Open', variant: 'default' as const, color: 'bg-gray-100 text-gray-800' },
+      bidding: { label: 'Bidding', variant: 'secondary' as const, color: 'bg-orange-100 text-orange-800' },
+      awarded: { label: 'Awarded', variant: 'outline' as const, color: 'bg-orange-100 text-orange-800' },
+      completed: { label: 'Completed', variant: 'outline' as const, color: 'bg-gray-900 text-white' },
+      cancelled: { label: 'Cancelled', variant: 'destructive' as const, color: 'bg-gray-100 text-gray-800' },
     }
     
     return statusConfig[status as keyof typeof statusConfig] || statusConfig.open

@@ -114,10 +114,10 @@ export default function ProjectTable({ projects, onProjectClick }: ProjectTableP
         cell: ({ row }) => {
           const status = row.original.status
           const statusConfig = {
-            Published: { label: 'Published', variant: 'default' as const, color: 'bg-green-100 text-green-800' },
-            'In Progress': { label: 'In Progress', variant: 'secondary' as const, color: 'bg-blue-100 text-blue-800' },
-            Completed: { label: 'Completed', variant: 'outline' as const, color: 'bg-gray-100 text-gray-800' },
-            Cancelled: { label: 'Cancelled', variant: 'destructive' as const, color: 'bg-red-100 text-red-800' },
+            Published: { label: 'Published', variant: 'default' as const, color: 'bg-gray-100 text-gray-800' },
+            'In Progress': { label: 'In Progress', variant: 'secondary' as const, color: 'bg-orange-100 text-orange-800' },
+            Completed: { label: 'Completed', variant: 'outline' as const, color: 'bg-gray-900 text-white' },
+            Cancelled: { label: 'Cancelled', variant: 'destructive' as const, color: 'bg-gray-100 text-gray-800' },
           }
           
           const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.Published

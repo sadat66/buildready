@@ -26,20 +26,20 @@ export function Footer() {
           <div className="text-center md:text-left">
             <h4 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-white">Platform Solutions</h4>
             <ul className="space-y-1.5 sm:space-y-2">
-              <li><Link href="/projects" className="text-sm sm:text-base text-gray-400 hover:text-orange-400 transition-colors">Project Management</Link></li>
-              <li><Link href="/contractors" className="text-sm sm:text-base text-gray-400 hover:text-orange-400 transition-colors">Contractor Network</Link></li>
-              <li><Link href="/proposals" className="text-sm sm:text-base text-gray-400 hover:text-orange-400 transition-colors">Proposal System</Link></li>
-              <li><Link href="/analytics" className="text-sm sm:text-base text-gray-400 hover:text-orange-400 transition-colors">Project Analytics</Link></li>
+              <li><Link href="/projects" className="text-sm sm:text-base text-gray-400 hover:text-gray-200 transition-colors">Project Management</Link></li>
+              <li><Link href="/contractors" className="text-sm sm:text-base text-gray-400 hover:text-gray-200 transition-colors">Contractor Network</Link></li>
+              <li><Link href="/proposals" className="text-sm sm:text-base text-gray-400 hover:text-gray-200 transition-colors">Proposal System</Link></li>
+              <li><Link href="/analytics" className="text-sm sm:text-base text-gray-400 hover:text-gray-200 transition-colors">Project Analytics</Link></li>
             </ul>
           </div>
           
           <div className="text-center md:text-left">
             <h4 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-white">Professional Access</h4>
             <ul className="space-y-1.5 sm:space-y-2">
-              <li><Link href="/login" className="text-sm sm:text-base text-gray-400 hover:text-orange-400 transition-colors">Sign In</Link></li>
-              <li><Link href="/register" className="text-sm sm:text-base text-gray-400 hover:text-orange-400 transition-colors">Create Account</Link></li>
-              <li><Link href="/contact" className="text-sm sm:text-base text-gray-400 hover:text-orange-400 transition-colors">Contact Support</Link></li>
-              <li><Link href="/enterprise" className="text-sm sm:text-base text-gray-400 hover:text-orange-400 transition-colors">Enterprise Solutions</Link></li>
+              <li><Link href="/login" className="text-sm sm:text-base text-gray-400 hover:text-gray-200 transition-colors">Sign In</Link></li>
+              <li><Link href="/register" className="text-sm sm:text-base text-gray-400 hover:text-gray-200 transition-colors">Create Account</Link></li>
+              <li><Link href="/contact" className="text-sm sm:text-base text-gray-400 hover:text-gray-200 transition-colors">Contact Support</Link></li>
+              <li><Link href="/enterprise" className="text-sm sm:text-base text-gray-400 hover:text-gray-200 transition-colors">Enterprise Solutions</Link></li>
             </ul>
           </div>
         </div>

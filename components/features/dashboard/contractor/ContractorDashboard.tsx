@@ -16,14 +16,14 @@ export default function ContractorDashboard({ userEmail }: ContractorDashboardPr
       description: 'Browse projects from homeowners',
       icon: Building,
       href: '/contractor/projects',
-      color: 'bg-green-500'
+      color: 'bg-gray-900'
     },
     {
       title: 'My Proposals',
       description: 'Track your submitted proposals',
       icon: ClipboardList,
       href: '/contractor/proposals',
-      color: 'bg-blue-600'
+      color: 'bg-gray-900'
     }
   ]
 
@@ -33,7 +33,7 @@ export default function ContractorDashboard({ userEmail }: ContractorDashboardPr
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl flex items-center gap-2">
-            <Briefcase className="h-6 w-6 text-blue-600" />
+            <Briefcase className="h-6 w-6 text-gray-900" />
             Welcome back, Contractor!
           </CardTitle>
           <CardDescription>
@@ -48,16 +48,16 @@ export default function ContractorDashboard({ userEmail }: ContractorDashboardPr
       </Card>
 
       {/* Quick Browse Projects */}
-      <Card className="border-blue-200 bg-blue-50">
+      <Card className="border-gray-200 bg-gray-50">
         <CardHeader>
-          <CardTitle className="text-lg text-blue-800">Looking for new projects?</CardTitle>
-          <CardDescription className="text-blue-600">
+          <CardTitle className="text-lg text-gray-900">Looking for new projects?</CardTitle>
+          <CardDescription className="text-gray-600">
             Browse available projects from homeowners and submit your proposals.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Link href="/contractor/projects">
-            <Button className="bg-blue-600 hover:bg-blue-700">
+            <Button className="bg-gray-900 hover:bg-black text-white">
               <Search className="h-4 w-4 mr-2" />
               Browse Projects
             </Button>
@@ -84,7 +84,7 @@ export default function ContractorDashboard({ userEmail }: ContractorDashboardPr
                   {action.description}
                 </CardDescription>
                 <Link href={action.href}>
-                  <Button className="w-full" variant="outline">
+                  <Button className="w-full bg-gray-900 hover:bg-black text-white">
                     Go to {action.title}
                   </Button>
                 </Link>

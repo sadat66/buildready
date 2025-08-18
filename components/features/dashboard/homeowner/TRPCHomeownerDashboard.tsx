@@ -2,8 +2,6 @@
 
 import { api } from '~/components/providers/TRPCProvider'
 import { LoadingSpinner } from '@/components/shared'
-import UserGreeting from './UserGreeting'
-import QuickActions from './QuickActions'
 import ProjectStats from './ProjectStats'
 import RecentProjects from './RecentProjects'
 import { useAuth } from '@/contexts/AuthContext'
@@ -60,34 +58,18 @@ export default function TRPCHomeownerDashboard({ userEmail }: TRPCHomeownerDashb
 
   return (
     <div className="space-y-8">
-      {/* Header Section */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-6 text-white">
-        <UserGreeting userEmail={userEmail} />
-      </div>
+      {/* Project Statistics */}
+      <ProjectStats
+        stats={{
+          total: projectsData.length,
+          open: projectsData.filter(p => ['Published', 'Bidding'].includes(p.status)).length,
+          awarded: projectsData.filter(p => ['Awarded', 'In Progress'].includes(p.status)).length,
+          completed: projectsData.filter(p => p.status === 'Completed').length
+        }}
+      />
 
-      {/* Main Dashboard Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left Column - Quick Actions */}
-        <div className="lg:col-span-1">
-          <QuickActions proposalsCount={proposalsCount} />
-        </div>
-
-        {/* Right Column - Stats and Projects */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Project Statistics */}
-          <ProjectStats
-            stats={{
-              total: projectsData.length,
-              totalBudget: projectsData.reduce((sum, p) => sum + (p.budget || 0), 0),
-              activeProjects: projectsData.filter(p => ['Published', 'Bidding', 'In Progress'].includes(p.status)).length,
-              upcomingDeadlines: proposalsCount
-            }}
-          />
-
-          {/* Recent Projects */}
-          <RecentProjects projects={projectsData.slice(0, 5)} />
-        </div>
-      </div>
+      {/* Recent Projects */}
+      <RecentProjects projects={projectsData.slice(0, 5)} />
     </div>
   )
 }

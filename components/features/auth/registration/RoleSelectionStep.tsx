@@ -32,8 +32,8 @@ export function RoleSelectionStep({ form, onNext }: RoleSelectionStepProps) {
               htmlFor="homeowner"
               className="flex flex-col items-center justify-between rounded-lg border-2 border-gray-200 bg-white p-6 hover:bg-gray-50 hover:border-gray-300 peer-checked:border-orange-500 peer-checked:bg-orange-50 cursor-pointer transition-all duration-200 hover:shadow-md group h-full"
             >
-              <div className="mb-3 p-3 rounded-full bg-blue-100 group-hover:bg-blue-200 transition-colors">
-                <Home className="h-8 w-8 text-blue-600" />
+              <div className="mb-3 p-3 rounded-full bg-gray-100 group-hover:bg-gray-200 transition-colors">
+                <Home className="h-8 w-8 text-gray-900" />
               </div>
               <div className="space-y-2 text-center flex-1 flex flex-col justify-center">
                 <h3 className="text-lg font-semibold leading-none text-gray-900">Homeowner</h3>
@@ -59,8 +59,8 @@ export function RoleSelectionStep({ form, onNext }: RoleSelectionStepProps) {
               htmlFor="contractor"
               className="flex flex-col items-center justify-between rounded-lg border-2 border-gray-200 bg-white p-6 hover:bg-gray-50 hover:border-gray-300 peer-checked:border-orange-500 peer-checked:bg-orange-50 cursor-pointer transition-all duration-200 hover:shadow-md group h-full"
             >
-              <div className="mb-3 p-3 rounded-full bg-green-100 group-hover:bg-green-200 transition-colors">
-                <Building2 className="h-8 w-8 text-green-600" />
+              <div className="mb-3 p-3 rounded-full bg-gray-100 group-hover:bg-gray-200 transition-colors">
+                <Building2 className="h-8 w-8 text-gray-900" />
               </div>
               <div className="space-y-2 text-center flex-1 flex flex-col justify-center">
                 <h3 className="text-lg font-semibold leading-none text-gray-900">Contractor</h3>
