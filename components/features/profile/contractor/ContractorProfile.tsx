@@ -418,7 +418,7 @@ export function ContractorProfile({ user }: ContractorProfileProps) {
 
       {/* Save Button */}
       <div className="flex justify-end">
-        <Button onClick={handleSave} disabled={saving} className="gap-2">
+        <Button onClick={handleSave} disabled={saving} className="gap-2 bg-gray-600 hover:bg-gray-700 text-white">
           <Save className="h-4 w-4" />
           {saving ? "Saving Changes..." : "Save Changes"}
         </Button>

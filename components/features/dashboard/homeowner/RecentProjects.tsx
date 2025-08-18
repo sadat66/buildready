@@ -105,10 +105,10 @@ export default function RecentProjects({ projects }: RecentProjectsProps) {
               </div>
             </div>
             
-            <Link href="/homeowner/projects/create" className="w-full sm:w-auto">
-              <Button className="w-full sm:w-auto bg-gray-900 hover:bg-black text-white transition-all duration-300 px-3 py-2 text-xs">
-                <Plus className="mr-1 h-3 w-3" />
-                Post a Project
+            <Link href="/homeowner/projects/create">
+              <Button className="gap-2 bg-gray-600 hover:bg-gray-700 text-white">
+                <Plus className="h-4 w-4" />
+                Create Project
               </Button>
             </Link>
           </div>
@@ -128,8 +128,8 @@ export default function RecentProjects({ projects }: RecentProjectsProps) {
              }
            </p>
            <Link href="/homeowner/projects/create">
-             <Button className="bg-gray-900 hover:bg-black text-white transition-all duration-300 px-4 py-2 text-sm">
-               <Plus className="mr-2 h-4 w-4" />
+             <Button className="gap-2 bg-gray-600 hover:bg-gray-700 text-white transition-all duration-300 px-4 py-2 text-sm">
+               <Plus className="h-4 w-4" />
                Create Project
              </Button>
            </Link>
@@ -231,8 +231,8 @@ export default function RecentProjects({ projects }: RecentProjectsProps) {
           {/* View All button at bottom right */}
           <div className="flex justify-end pt-4">
             <Link href="/homeowner/projects">
-              <Button className="bg-gray-900 hover:bg-black text-white transition-all duration-300 px-3 py-2 text-xs">
-                <Eye className="mr-1 h-3 w-3" />
+              <Button className="gap-2 bg-gray-600 hover:bg-gray-700 text-white">
+                <Eye className="h-4 w-4" />
                 View All
               </Button>
             </Link>

@@ -126,66 +126,75 @@ export function HomeownerProfile({ user }: HomeownerProfileProps) {
 
       {/* Profile Form */}
       <div className="space-y-4">
-        <div className="flex items-center space-x-2">
-          <User className="h-5 w-5" />
-          <h2 className="text-lg font-semibold">Personal Information</h2>
+        <div className="border-b pb-4">
+          <div className="flex items-center space-x-3">
+            <div className="w-6 h-6 bg-gray-600 rounded flex items-center justify-center">
+              <User className="h-4 w-4 text-white" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900">Personal Information</h3>
+              <p className="text-sm text-gray-600">Your account details and contact information</p>
+            </div>
+          </div>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="first_name">First Name</Label>
+              <Input
+                id="first_name"
+                value={formData.first_name}
+                onChange={(e) => handleInputChange("first_name", e.target.value)}
+                placeholder="Enter your first name"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="last_name">Last Name</Label>
+              <Input
+                id="last_name"
+                value={formData.last_name}
+                onChange={(e) => handleInputChange("last_name", e.target.value)}
+                placeholder="Enter your last name"
+              />
+            </div>
+          </div>
+
           <div className="space-y-2">
-            <Label htmlFor="first_name">First Name</Label>
+            <Label htmlFor="phone_number">Phone Number</Label>
             <Input
-              id="first_name"
-              value={formData.first_name}
-              onChange={(e) => handleInputChange("first_name", e.target.value)}
-              placeholder="Enter your first name"
+              id="phone_number"
+              type="tel"
+              value={formData.phone_number}
+              onChange={(e) => handleInputChange("phone_number", e.target.value)}
+              placeholder="Enter your phone number"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="last_name">Last Name</Label>
+            <Label htmlFor="email">Email Address</Label>
             <Input
-              id="last_name"
-              value={formData.last_name}
-              onChange={(e) => handleInputChange("last_name", e.target.value)}
-              placeholder="Enter your last name"
+              id="email"
+              type="email"
+              value={user?.email || ""}
+              disabled
+              className="bg-gray-50 border-gray-200 text-gray-600"
+            />
+            <p className="text-xs text-gray-500">
+              Email address cannot be changed for security reasons
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="address">Location</Label>
+            <Input
+              id="address"
+              value={formData.address}
+              onChange={(e) => handleInputChange("address", e.target.value)}
+              placeholder="Enter your city or location"
             />
           </div>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="phone_number">Phone Number</Label>
-          <Input
-            id="phone_number"
-            type="tel"
-            value={formData.phone_number}
-            onChange={(e) => handleInputChange("phone_number", e.target.value)}
-            placeholder="Enter your phone number"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="email">Email Address</Label>
-          <Input
-            id="email"
-            type="email"
-            value={user?.email || ""}
-            disabled
-            className="bg-gray-50"
-          />
-          <p className="text-xs text-gray-500">
-            Email address cannot be changed for security reasons
-          </p>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="address">Location</Label>
-          <Input
-            id="address"
-            value={formData.address}
-            onChange={(e) => handleInputChange("address", e.target.value)}
-            placeholder="Enter your city or location"
-          />
         </div>
       </div>
 
@@ -194,10 +203,10 @@ export function HomeownerProfile({ user }: HomeownerProfileProps) {
         <Button 
           onClick={handleSave} 
           disabled={saving} 
-          className="bg-gray-900 hover:bg-black"
+          className="gap-2 bg-gray-600 hover:bg-gray-700 text-white"
         >
-          <Save className="h-4 w-4 mr-2" />
-          {saving ? "Saving..." : "Save Changes"}
+          <Save className="h-4 w-4" />
+          {saving ? "Saving Changes..." : "Save Changes"}
         </Button>
       </div>
     </div>

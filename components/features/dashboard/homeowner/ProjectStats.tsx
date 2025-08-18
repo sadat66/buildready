@@ -1,6 +1,6 @@
 'use client'
 
-import { Home, Clock, Award, CheckCircle } from 'lucide-react'
+import { TrendingUp, TrendingDown, Building2, CheckCircle, Target, Clock } from 'lucide-react'
 
 interface ProjectStatsProps {
   stats: {
@@ -14,58 +14,58 @@ interface ProjectStatsProps {
 export default function ProjectStats({ stats }: ProjectStatsProps) {
   const statItems = [
     {
-      icon: Home,
-      label: 'Total Projects',
-      value: stats.total,
-      description: 'All time projects'
+      title: 'Total Projects',
+      value: stats.total.toLocaleString(),
+      icon: Building2,
+      description: 'Growing this month',
+      subtitle: 'All active projects'
     },
     {
+      title: 'Open Bids',
+      value: stats.open.toLocaleString(),
       icon: Clock,
-      label: 'Open Projects',
-      value: stats.open,
-      description: 'Published + Bidding'
+      description: 'Bidding needs attention',
+      subtitle: 'Active proposals'
     },
     {
-      icon: Award,
-      label: 'Awarded Projects',
-      value: stats.awarded,
-      description: 'Awarded + In Progress'
-    },
-    {
+      title: 'Active Projects',
+      value: stats.awarded.toLocaleString(),
       icon: CheckCircle,
-      label: 'Completed Projects',
-      value: stats.completed,
-      description: 'Successfully finished'
+      description: 'Strong project retention',
+      subtitle: 'Currently in progress'
+    },
+    {
+      title: 'Completion Rate',
+      value: `${Math.round((stats.completed / stats.total) * 100)}%`,
+      icon: Target,
+      description: 'Steady performance increase',
+      subtitle: 'Meets growth projections'
     }
   ]
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       {statItems.map((item, index) => (
-        <div key={index} className="relative overflow-hidden rounded-lg bg-white border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300 hover:border-gray-300 group">
-          <div className="relative p-6 space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center group-hover:bg-orange-50 transition-colors duration-200">
-                <item.icon className="h-6 w-6 text-gray-600 group-hover:text-orange-600" />
-              </div>
-              <div className="text-right">
-                <div className="text-2xl font-bold text-gray-900">
-                  {item.value}
-                </div>
-              </div>
+        <div key={index} className="bg-white border border-gray-100 rounded-lg p-6 hover:shadow-lg transition-all duration-200 shadow-md">
+          <div className="flex items-start justify-between mb-4">
+            <h3 className="text-sm font-medium text-gray-600">{item.title}</h3>
+            <div className="flex items-center space-x-1">
+              <item.icon className="h-7 w-7 text-gray-500" />
             </div>
-            
-            <div className="space-y-1">
-              <h3 className="text-sm font-semibold text-gray-900">{item.label}</h3>
-              <p className="text-xs text-gray-600">{item.description}</p>
+          </div>
+          
+          <div className="mb-4">
+            <div className="text-3xl font-bold text-gray-900 mb-1">
+              {item.value}
             </div>
-            
-            {/* Progress indicator */}
-            <div className="w-full bg-gray-100 rounded-full h-1.5">
-              <div className="h-1.5 bg-orange-500 rounded-full transition-all duration-1000 ease-out" 
-                   style={{ width: `${Math.min(100, (typeof item.value === 'number' ? item.value * 10 : 75))}%` }}>
-              </div>
+          </div>
+          
+          <div className="space-y-1">
+            <div className="flex items-center space-x-1">
+              <item.icon className="h-3 w-3 text-gray-400" />
+              <span className="text-xs font-medium text-gray-700">{item.description}</span>
             </div>
+            <p className="text-xs text-gray-500">{item.subtitle}</p>
           </div>
         </div>
       ))}
