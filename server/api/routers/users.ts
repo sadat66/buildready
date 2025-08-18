@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { createTRPCRouter, protectedProcedure, publicProcedureWithSupabase } from '~/server/api/trpc'
 import { TRPCError } from '@trpc/server'
+import { contractorProfileCreateSchema, contractorProfileUpdateSchema } from '~/lib/database/schemas/contractor_profiles'
 
 export const usersRouter = createTRPCRouter({
   // Get current user profile
@@ -39,6 +40,158 @@ export const usersRouter = createTRPCRouter({
           updated_at: new Date().toISOString(),
         })
         .eq('id', ctx.user.id)
+        .select()
+        .single()
+
+      if (error) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: error.message,
+        })
+      }
+
+      return data
+    }),
+
+  // Get contractor profile for current user
+  getContractorProfile: protectedProcedure.query(async ({ ctx }) => {
+    // First check if user is a contractor
+    const { data: user, error: userError } = await ctx.supabase
+      .from('users')
+      .select('user_role')
+      .eq('id', ctx.user.id)
+      .single()
+
+    if (userError) {
+      throw new TRPCError({
+        code: 'NOT_FOUND',
+        message: 'User not found',
+      })
+    }
+
+    if (user.user_role !== 'contractor') {
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message: 'Only contractors can access contractor profiles',
+      })
+    }
+
+    const { data: profile, error } = await ctx.supabase
+      .from('contractor_profiles')
+      .select('*')
+      .eq('user_id', ctx.user.id)
+      .single()
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        // Profile doesn't exist, return null
+        return null
+      }
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: error.message,
+      })
+    }
+
+    return profile
+  }),
+
+  // Create contractor profile
+  createContractorProfile: protectedProcedure
+    .input(contractorProfileCreateSchema)
+    .mutation(async ({ input, ctx }) => {
+      // Check if user is a contractor
+      const { data: user, error: userError } = await ctx.supabase
+        .from('users')
+        .select('user_role')
+        .eq('id', ctx.user.id)
+        .single()
+
+      if (userError) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'User not found',
+        })
+      }
+
+      if (user.user_role !== 'contractor') {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Only contractors can create contractor profiles',
+        })
+      }
+
+      // Check if profile already exists
+      const { data: existingProfile } = await ctx.supabase
+        .from('contractor_profiles')
+        .select('id')
+        .eq('user_id', ctx.user.id)
+        .single()
+
+      if (existingProfile) {
+        throw new TRPCError({
+          code: 'CONFLICT',
+          message: 'Contractor profile already exists',
+        })
+      }
+
+      const { data, error } = await ctx.supabase
+        .from('contractor_profiles')
+        .insert({
+          ...input,
+          user_id: ctx.user.id,
+        })
+        .select()
+        .single()
+
+      if (error) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: error.message,
+        })
+      }
+
+      // Update the user's contractor_profile field
+      await ctx.supabase
+        .from('users')
+        .update({ contractor_profile: data.id })
+        .eq('id', ctx.user.id)
+
+      return data
+    }),
+
+  // Update contractor profile
+  updateContractorProfile: protectedProcedure
+    .input(contractorProfileUpdateSchema)
+    .mutation(async ({ input, ctx }) => {
+      // Check if user is a contractor
+      const { data: user, error: userError } = await ctx.supabase
+        .from('users')
+        .select('user_role')
+        .eq('id', ctx.user.id)
+        .single()
+
+      if (userError) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'User not found',
+        })
+      }
+
+      if (user.user_role !== 'contractor') {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Only contractors can update contractor profiles',
+        })
+      }
+
+      const { data, error } = await ctx.supabase
+        .from('contractor_profiles')
+        .update({
+          ...input,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('user_id', ctx.user.id)
         .select()
         .single()
 

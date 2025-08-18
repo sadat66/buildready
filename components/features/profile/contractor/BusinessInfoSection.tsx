@@ -8,17 +8,12 @@ import { Briefcase, Building2, Shield, Calendar, Award } from "lucide-react";
 interface BusinessInfoSectionProps {
   formData: {
     business_name: string;
-    company_name: string;
-    license_number: string;
-    years_experience: number;
-    specialties: string[];
     trade_category: string[];
     portfolio: string[];
     logo: string;
     licenses: string[];
   };
   onInputChange: (field: string, value: string | number | string[]) => void;
-  onSpecialtiesChange: (value: string) => void;
   onTradeCategoryChange: (value: string) => void;
   onPortfolioChange: (value: string) => void;
   onLicensesChange: (value: string) => void;
@@ -27,7 +22,6 @@ interface BusinessInfoSectionProps {
 export function BusinessInfoSection({ 
   formData, 
   onInputChange, 
-  onSpecialtiesChange, 
   onTradeCategoryChange, 
   onPortfolioChange, 
   onLicensesChange 
@@ -46,67 +40,33 @@ export function BusinessInfoSection({
         </div>
       </div>
       <div className="p-6 space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-2">
-            <Label htmlFor="business_name" className="text-sm font-semibold text-slate-700 flex items-center">
-              <Building2 className="h-4 w-4 mr-2 text-slate-500" />
-              Business Name
-            </Label>
-            <Input
-              id="business_name"
-              value={formData.business_name}
-              onChange={(e) => onInputChange("business_name", e.target.value)}
-              placeholder="Enter your legal or trade business name"
-              className="border-slate-300 focus:border-orange-500 focus:ring-orange-500"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="company_name" className="text-sm font-semibold text-slate-700">
-              Company Name (Alternative)
-            </Label>
-            <Input
-              id="company_name"
-              value={formData.company_name}
-              onChange={(e) => onInputChange("company_name", e.target.value)}
-              placeholder="Enter your company name"
-              className="border-slate-300 focus:border-orange-500 focus:ring-orange-500"
-            />
-          </div>
+        <div className="space-y-2">
+          <Label htmlFor="business_name" className="text-sm font-semibold text-slate-700 flex items-center">
+            <Building2 className="h-4 w-4 mr-2 text-slate-500" />
+            Business Name
+          </Label>
+          <Input
+            id="business_name"
+            value={formData.business_name}
+            onChange={(e) => onInputChange("business_name", e.target.value)}
+            placeholder="Enter your legal or trade business name"
+            className="border-slate-300 focus:border-orange-500 focus:ring-orange-500"
+          />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-2">
-            <Label htmlFor="license_number" className="text-sm font-semibold text-slate-700 flex items-center">
-              <Shield className="h-4 w-4 mr-2 text-slate-500" />
-              License Number
-            </Label>
-            <Input
-              id="license_number"
-              value={formData.license_number}
-              onChange={(e) => onInputChange("license_number", e.target.value)}
-              placeholder="Enter your license number"
-              className="border-slate-300 focus:border-orange-500 focus:ring-orange-500"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="years_experience" className="text-sm font-semibold text-slate-700 flex items-center">
-              <Calendar className="h-4 w-4 mr-2 text-slate-500" />
-              Years of Experience
-            </Label>
-            <Input
-              id="years_experience"
-              type="number"
-              min="0"
-              value={formData.years_experience}
-              onChange={(e) => onInputChange("years_experience", parseInt(e.target.value) || 0)}
-              placeholder="Enter years of experience"
-              className="border-slate-300 focus:border-orange-500 focus:ring-orange-500"
-            />
-          </div>
+        <div className="space-y-2">
+          <Label htmlFor="logo" className="text-sm font-semibold text-slate-700 flex items-center">
+            <Building2 className="h-4 w-4 mr-2 text-slate-500" />
+            Company Logo URL
+          </Label>
+          <Input
+            id="logo"
+            value={formData.logo}
+            onChange={(e) => onInputChange("logo", e.target.value)}
+            placeholder="Enter your company logo URL"
+            className="border-slate-300 focus:border-orange-500 focus:ring-orange-500"
+          />
         </div>
-
         <div className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="trade_category" className="text-sm font-semibold text-slate-700 flex items-center">
@@ -132,29 +92,7 @@ export function BusinessInfoSection({
             )}
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="specialties" className="text-sm font-semibold text-slate-700 flex items-center">
-              <Award className="h-4 w-4 mr-2 text-slate-500" />
-              Specialties
-            </Label>
-            <Input
-              id="specialties"
-              value={formData.specialties.join(", ")}
-              onChange={(e) => onSpecialtiesChange(e.target.value)}
-              placeholder="Enter specialties separated by commas (e.g., Plumbing, Electrical, HVAC)"
-              className="border-slate-300 focus:border-orange-500 focus:ring-orange-500"
-            />
-            <p className="text-xs text-slate-500">Separate multiple specialties with commas</p>
-            {formData.specialties.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-3">
-                {formData.specialties.map((specialty, index) => (
-                  <Badge key={index} variant="secondary" className="bg-orange-50 text-orange-700 border-orange-200">
-                    {specialty}
-                  </Badge>
-                ))}
-              </div>
-            )}
-          </div>
+
         </div>
 
         <div className="space-y-2">
@@ -169,16 +107,7 @@ export function BusinessInfoSection({
           <p className="text-sm text-gray-500">Separate multiple URLs with commas</p>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="logo">Company Logo URL</Label>
-          <Input
-            id="logo"
-            value={formData.logo}
-            onChange={(e) => onInputChange("logo", e.target.value)}
-            placeholder="Enter URL for your company logo"
-            className="border-slate-300 focus:border-orange-500 focus:ring-orange-500"
-          />
-        </div>
+
 
         <div className="space-y-2">
           <Label htmlFor="licenses">License File URLs</Label>
