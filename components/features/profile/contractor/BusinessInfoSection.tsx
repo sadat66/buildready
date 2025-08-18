@@ -1,7 +1,6 @@
 "use client";
 
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { FormInput } from "@/components/shared/form-input";
 import { Badge } from "@/components/ui/badge";
 import { Briefcase, Building2, Shield, Calendar, Award } from "lucide-react";
 
@@ -40,47 +39,38 @@ export function BusinessInfoSection({
         </div>
       </div>
       <div className="p-6 space-y-6">
-        <div className="space-y-2">
-          <Label htmlFor="business_name" className="text-sm font-semibold text-slate-700 flex items-center">
-            <Building2 className="h-4 w-4 mr-2 text-slate-500" />
-            Business Name
-          </Label>
-          <Input
-            id="business_name"
+        <div>
+          <FormInput
+            label="Business Name"
             value={formData.business_name}
             onChange={(e) => onInputChange("business_name", e.target.value)}
             placeholder="Enter your legal or trade business name"
             className="border-slate-300 focus:border-orange-500 focus:ring-orange-500"
+            containerClassName="space-y-2"
           />
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="logo" className="text-sm font-semibold text-slate-700 flex items-center">
-            <Building2 className="h-4 w-4 mr-2 text-slate-500" />
-            Company Logo URL
-          </Label>
-          <Input
-            id="logo"
+        <div>
+          <FormInput
+            label="Company Logo URL"
             value={formData.logo}
             onChange={(e) => onInputChange("logo", e.target.value)}
             placeholder="Enter your company logo URL"
             className="border-slate-300 focus:border-orange-500 focus:ring-orange-500"
+            containerClassName="space-y-2"
           />
         </div>
         <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="trade_category" className="text-sm font-semibold text-slate-700 flex items-center">
-              <Briefcase className="h-4 w-4 mr-2 text-slate-500" />
-              Trade Categories
-            </Label>
-            <Input
-              id="trade_category"
+          <div>
+            <FormInput
+              label="Trade Categories"
               value={formData.trade_category.join(", ")}
               onChange={(e) => onTradeCategoryChange(e.target.value)}
               placeholder="Enter primary/secondary trade categories (e.g., General Contractor, Electrical, Plumbing)"
               className="border-slate-300 focus:border-orange-500 focus:ring-orange-500"
+              helperText="Separate multiple categories with commas"
+              containerClassName="space-y-2"
             />
-            <p className="text-xs text-slate-500">Separate multiple categories with commas</p>
             {formData.trade_category.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-3">
                 {formData.trade_category.map((category, index) => (
@@ -95,30 +85,30 @@ export function BusinessInfoSection({
 
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="portfolio">Portfolio URLs</Label>
-          <Input
-            id="portfolio"
+        <div>
+          <FormInput
+            label="Portfolio URLs"
             value={formData.portfolio.join(", ")}
             onChange={(e) => onPortfolioChange(e.target.value)}
             placeholder="Enter portfolio/project image URLs separated by commas"
             className="border-slate-300 focus:border-orange-500 focus:ring-orange-500"
+            helperText="Separate multiple URLs with commas"
+            containerClassName="space-y-2"
           />
-          <p className="text-sm text-gray-500">Separate multiple URLs with commas</p>
         </div>
 
 
 
-        <div className="space-y-2">
-          <Label htmlFor="licenses">License File URLs</Label>
-          <Input
-            id="licenses"
+        <div>
+          <FormInput
+            label="License File URLs"
             value={formData.licenses.join(", ")}
             onChange={(e) => onLicensesChange(e.target.value)}
             placeholder="Enter license file URLs separated by commas"
             className="border-slate-300 focus:border-orange-500 focus:ring-orange-500"
+            helperText="Separate multiple license URLs with commas"
+            containerClassName="space-y-2"
           />
-          <p className="text-sm text-gray-500">Separate multiple license URLs with commas</p>
         </div>
       </div>
     </div>
