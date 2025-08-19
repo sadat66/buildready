@@ -244,10 +244,7 @@ export default function ContractorProjectsPage() {
                 <Button 
                   variant="outline" 
                   size="sm"
-                  onClick={() => {
-                    // Show project details in a modal or expand the card
-                    console.log('View project details:', project)
-                  }}
+                  onClick={() => router.push(`/contractor/projects/view/${project.id}`)}
                 >
                   View Details
                 </Button>
