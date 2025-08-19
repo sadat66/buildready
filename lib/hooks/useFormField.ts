@@ -1,5 +1,4 @@
-import React from "react"
-import { Control, FieldPath, FieldValues } from "react-hook-form"
+import { Control, FieldPath, FieldValues, useController } from "react-hook-form"
 
 export interface UseFormFieldProps<
   TFieldValues extends FieldValues = FieldValues,
@@ -13,15 +12,16 @@ export function useFormField<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
 >({ name, control }: UseFormFieldProps<TFieldValues, TName>) {
-  // Temporary fix to get build passing
+  const {
+    field,
+    fieldState: { error },
+  } = useController({
+    name,
+    control,
+  })
+
   return {
-    field: {
-      value: undefined,
-      onChange: () => {},
-      onBlur: () => {},
-      name: name as string,
-      ref: () => {},
-    },
-    error: undefined,
+    field,
+    error,
   }
 }
