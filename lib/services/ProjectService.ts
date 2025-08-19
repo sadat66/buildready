@@ -213,4 +213,59 @@ export class ProjectService {
       return { success: false, error: "Failed to update project" }
     }
   }
+
+  async getAvailableProjects() {
+    try {
+      const { data, error } = await this.supabase
+        .from("projects")
+        .select(`
+          *,
+          homeowner:users!creator(
+            id,
+            full_name,
+            first_name,
+            last_name,
+            email
+          )
+        `)
+        .in("status", ["Published", "Bidding"])
+        .eq("visibility_settings", "Public")
+        .gte("expiry_date", new Date().toISOString())
+        .order("created_at", { ascending: false })
+
+      if (error) throw error
+      return { success: true, data: data || [] }
+    } catch (error) {
+      console.error("Error fetching available projects:", error)
+      return { success: false, error: "Failed to fetch available projects" }
+    }
+  }
+
+  async getProjectsByContractor(contractorId: string) {
+    try {
+      const { data, error } = await this.supabase
+        .from("proposals")
+        .select(`
+          *,
+          project:projects(
+            *,
+            homeowner:users!creator(
+              id,
+              full_name,
+              first_name,
+              last_name,
+              email
+            )
+          )
+        `)
+        .eq("contractor_id", contractorId)
+        .order("created_at", { ascending: false })
+
+      if (error) throw error
+      return { success: true, data: data || [] }
+    } catch (error) {
+      console.error("Error fetching contractor projects:", error)
+      return { success: false, error: "Failed to fetch contractor projects" }
+    }
+  }
 }
