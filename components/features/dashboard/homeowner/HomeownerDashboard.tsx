@@ -11,6 +11,7 @@ import { useAuth } from '@/contexts/AuthContext'
 export default function HomeownerDashboard() {
   const { user } = useAuth()
   const [projects, setProjects] = useState<Project[]>([])
+  const [acceptedProposalsCount, setAcceptedProposalsCount] = useState(0)
   const [loading, setLoading] = useState(true)
 
 
@@ -65,22 +66,20 @@ export default function HomeownerDashboard() {
         }
         
         setProjects(projectsData || [])
-        
-        // Try to fetch proposals count - handle gracefully if table doesn't exist
+
+        // Fetch accepted proposals count
         try {
-          // Get project IDs for the current homeowner
-          const projectIds = projectsData?.map(project => project.id) || []
+          const { count: acceptedCount, error: proposalsError } = await supabase
+            .from('proposals')
+            .select('*', { count: 'exact', head: true })
+            .eq('homeowner', currentUser.id)
+            .eq('status', 'accepted')
+            .eq('is_deleted', 'no')
           
-          if (projectIds.length > 0) {
-            const { error: proposalsError } = await supabase
-              .from('proposals')
-              .select('*', { count: 'exact', head: true })
-              .in('project_id', projectIds)
-              .eq('status', 'pending')
-            
-            if (proposalsError) {
-              console.warn('Proposals table query failed:', proposalsError)
-            }
+          if (proposalsError) {
+            console.warn('Proposals table query failed:', proposalsError)
+          } else {
+            setAcceptedProposalsCount(acceptedCount || 0)
           }
         } catch (proposalsError) {
           console.warn('Proposals table might not exist yet:', proposalsError)
@@ -134,7 +133,7 @@ export default function HomeownerDashboard() {
             stats={{
               total: projects.length,
               open: projects.filter(p => ['Published', 'Bidding'].includes(p.status)).length,
-              awarded: projects.filter(p => ['Awarded', 'In Progress'].includes(p.status)).length,
+              accepted: acceptedProposalsCount,
               completed: projects.filter(p => p.status === 'Completed').length
             }}
           />

@@ -6,7 +6,7 @@ interface ProjectStatsProps {
   stats: {
     total: number
     open: number
-    awarded: number
+    accepted: number
     completed: number
   }
 }
@@ -28,15 +28,15 @@ export default function ProjectStats({ stats }: ProjectStatsProps) {
       subtitle: 'Active proposals'
     },
     {
-      title: 'Active Projects',
-      value: stats.awarded.toLocaleString(),
+      title: 'Accepted Proposals',
+      value: stats.accepted.toLocaleString(),
       icon: CheckCircle,
-      description: 'Strong project retention',
-      subtitle: 'Currently in progress'
+      description: 'Proposals you have accepted',
+      subtitle: 'Ready to start work'
     },
     {
       title: 'Completion Rate',
-      value: `${Math.round((stats.completed / stats.total) * 100)}%`,
+      value: `${stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0}%`,
       icon: Target,
       description: 'Steady performance increase',
       subtitle: 'Meets growth projections'
