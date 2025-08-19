@@ -34,11 +34,14 @@ export default function ContractorProposalsPage() {
       location: string
       status: string
       budget: number | null
-      creator: string
-      users?: {
+      creator: {
         id: string
         full_name: string
       }
+    }
+    contractor?: {
+      id: string
+      full_name: string
     }
   }>>([])
   const [proposalsLoading, setProposalsLoading] = useState(true)
@@ -101,7 +104,14 @@ export default function ContractorProposalsPage() {
               location,
               status,
               budget,
-              creator
+              creator:users (
+                id,
+                full_name
+              )
+            ),
+            contractor:users!proposals_contractor_fkey (
+              id,
+              full_name
             )
           `)
           .eq('contractor', user.id)
@@ -290,7 +300,7 @@ export default function ContractorProposalsPage() {
                     <User className="w-4 h-4 text-gray-500" />
                     <div>
                       <p className="text-sm text-gray-600">Homeowner</p>
-                      <p className="font-semibold">{proposal.project?.users?.full_name || 'Unknown'}</p>
+                      <p className="font-semibold">{proposal.project?.creator?.full_name || 'Unknown'}</p>
                     </div>
                   </div>
                   

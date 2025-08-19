@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useForm, Resolver, FieldErrors } from "react-hook-form";
+import { useForm, Resolver, FieldErrors, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ExtendedUser } from "@/contexts/AuthContext";
 import { CreateProjectFormInputData, createProjectFormInputSchema } from "@/lib/validation/projects";
@@ -30,12 +30,7 @@ export default function CreateProjectForm({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const {
-    handleSubmit,
-    formState: { errors, isValid },
-    setValue,
-    watch,
-  } = useForm<CreateProjectFormInputData>({
+  const form = useForm<CreateProjectFormInputData>({
     resolver: zodResolver(
       createProjectFormInputSchema
     ) as Resolver<CreateProjectFormInputData>,
@@ -68,6 +63,8 @@ export default function CreateProjectForm({
       files: [],
     },
   });
+
+  const { handleSubmit, formState: { errors, isValid }, setValue, watch } = form;
 
   const {
     dragActive,
@@ -167,25 +164,26 @@ export default function CreateProjectForm({
        
       <ErrorDisplay error={error} />
 
-      <form onSubmit={handleSubmit(onSubmit, onFormError)} className="space-y-6">
-        <BasicInformationSection
-          watch={watch}
-          setValue={setValue}
-        />
+      <FormProvider {...form}>
+        <form onSubmit={handleSubmit(onSubmit, onFormError)} className="space-y-6">
+          <BasicInformationSection
+            watch={watch}
+            setValue={setValue}
+          />
 
-        <BudgetSection />
-        <TimelineSection />
-        <VisibilitySettingsSection />
+          <BudgetSection />
+          <TimelineSection />
+          <VisibilitySettingsSection />
 
-        <FileUploadSection
-          dragActive={dragActive}
-          selectedPhotos={selectedPhotos}
-          selectedFiles={selectedFiles}
-          handleDrag={handleDrag}
-          handleDrop={handleDrop}
-          handleFileChange={handleFileChange}
-          removeFile={removeFile}
-        />
+          <FileUploadSection
+            dragActive={dragActive}
+            selectedPhotos={selectedPhotos}
+            selectedFiles={selectedFiles}
+            handleDrag={handleDrag}
+            handleDrop={handleDrop}
+            handleFileChange={handleFileChange}
+            removeFile={removeFile}
+          />
 
         {/* Debug upload states */}
         <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
@@ -267,7 +265,8 @@ export default function CreateProjectForm({
         )}
         
         <FormActions loading={loading || isUploading} />
-      </form>
+        </form>
+      </FormProvider>
     </div>
   );
 }
