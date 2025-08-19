@@ -14,16 +14,17 @@ import { Label } from '@/components/ui/label'
 
 interface Project {
   id: string
-  title: string
+  project_title: string
   status?: string
 }
 
 // Type for proposals with joined data from Supabase query
 interface ProposalWithJoins {
   id: string
+  project: string
   project_id: string
   contractor_id: string
-  homeowner_id: string
+  homeowner: string
   title: string
   description_of_work: string
   subtotal_amount: number
@@ -64,18 +65,21 @@ interface ProposalWithJoins {
   created_at: string
   updated_at: string
   // Joined data
-  project: {
+  project_details: {
     id: string
-    title: string
+    project_title: string
     statement_of_work: string
     category: string[]
     location: Record<string, unknown>
     status: string
     budget: number
   }
-  contractor: {
+  contractor_details: {
     id: string
     full_name: string
+    email: string
+    phone_number?: string
+    address?: string
   }
 }
 
@@ -105,7 +109,7 @@ export default function HomeownerProposalsPage() {
         // Fetch projects first
         const { data: projectsData, error: projectsError } = await supabase
           .from('projects')
-          .select('id, title')
+          .select('id, project_title')
           .eq('creator', user.id)
         
         if (projectsError) throw projectsError
@@ -128,21 +132,26 @@ export default function HomeownerProposalsPage() {
             .from('proposals')
             .select(`
               *,
-              project:projects!project_id (
+              project:projects!proposals_project_fkey (
                 id,
-                title,
+                project_title,
                 statement_of_work,
                 category,
                 location,
                 status,
                 budget
               ),
-              contractor:users!contractor_id (
+              contractor:users!proposals_contractor_fkey (
                 id,
-                full_name
+                full_name,
+                email,
+                phone_number,
+                address
               )
             `)
-            .in('project_id', projectIdList)
+            .in('project', projectIdList)
+            .eq('is_deleted', 'no')
+            .in('status', ['submitted', 'viewed', 'accepted', 'rejected'])
             .order('created_at', { ascending: false })
           
           if (proposalsError) {
@@ -158,6 +167,13 @@ export default function HomeownerProposalsPage() {
         }
       } catch (error: unknown) {
         console.error('Error fetching data:', error)
+        console.error('Error details:', JSON.stringify(error, null, 2))
+        if (error && typeof error === 'object' && 'message' in error) {
+          const errorObj = error as { message?: string; code?: string; hint?: string }
+          console.error('Error message:', errorObj.message)
+          console.error('Error code:', errorObj.code)
+          console.error('Error hint:', errorObj.hint)
+        }
         setError(error instanceof Error ? error.message : 'Failed to fetch data')
       } finally {
         setProposalsLoading(false)
@@ -195,7 +211,7 @@ export default function HomeownerProposalsPage() {
           const { error: projectError } = await supabase
             .from('projects')
             .update({ status: 'awarded' })
-            .eq('id', proposal.project.id)
+            .eq('id', proposal.project_details.id)
           
           if (projectError) throw projectError
         }
@@ -226,11 +242,11 @@ export default function HomeownerProposalsPage() {
   }
 
   const filteredProposals = proposals.filter(proposal => {
-    const matchesSearch = proposal.project?.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         proposal.contractor?.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch = proposal.project_details?.project_title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         proposal.contractor_details?.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          proposal.description_of_work?.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesStatus = statusFilter === 'all' || proposal.status === statusFilter
-    const matchesProject = projectFilter === 'all' || proposal.project?.id === projectFilter
+    const matchesProject = projectFilter === 'all' || proposal.project_details?.id === projectFilter
     return matchesSearch && matchesStatus && matchesProject
   })
 
@@ -337,7 +353,7 @@ export default function HomeownerProposalsPage() {
                   <SelectItem value="all">All Projects</SelectItem>
                   {projects.map((project) => (
                     <SelectItem key={project.id} value={project.id}>
-                      {project.title}
+                      {project.project_title}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -355,11 +371,11 @@ export default function HomeownerProposalsPage() {
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <CardTitle className="text-xl flex items-center gap-2">
-                    {proposal.project?.title}
+                    {proposal.project_details?.project_title}
                   </CardTitle>
                   <CardDescription className="text-sm mt-2">
                     Proposal from <span className="font-medium">
-                      {proposal.contractor?.full_name || 'Unknown Contractor'}
+                      {proposal.contractor_details?.full_name || 'Unknown Contractor'}
                     </span>
                   </CardDescription>
                 </div>

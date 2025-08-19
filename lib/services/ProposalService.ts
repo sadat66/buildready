@@ -6,13 +6,13 @@ export interface CreateProposalResult {
   success: boolean
   error?: string
   proposalId?: string
-  data?: any
+  data?: Record<string, unknown>
 }
 
 export interface UpdateProposalResult {
   success: boolean
   error?: string
-  data?: any
+  data?: Record<string, unknown>
 }
 
 export class ProposalService {

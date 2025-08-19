@@ -3,8 +3,6 @@
  * This file must be imported to load all migrations into the registry
  */
 
-import { migrationRegistry } from '../migrations'
-
 // Import all migrations to register them
 // Note: All user, contractor profile, proposal, and project related migrations have been removed
 

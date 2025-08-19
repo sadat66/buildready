@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
-import { Calendar, DollarSign, FileText, AlertTriangle, Upload, ArrowLeft } from 'lucide-react'
+import { Calendar, DollarSign, FileText, Upload, ArrowLeft } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 export default function SubmitProposalPage() {
@@ -97,7 +97,7 @@ export default function SubmitProposalPage() {
         setProject(data)
       } catch (error) {
         console.error('Error fetching project:', error)
-        setError(`Failed to load project details: ${error.message || 'Unknown error'}`)
+        setError(`Failed to load project details: ${error instanceof Error ? error.message : 'Unknown error'}`)
       } finally {
         setProjectLoading(false)
       }
@@ -270,7 +270,7 @@ export default function SubmitProposalPage() {
         contractor: user.id,
         homeowner: project?.creator || '',
         subtotal_amount: parseFloat(formData.subtotal_amount),
-        tax_included: formData.tax_included ? 'yes' : 'no',
+        tax_included: formData.tax_included as 'yes' | 'no',
         total_amount: parseFloat(formData.total_amount),
         deposit_amount: parseFloat(formData.deposit_amount),
         deposit_due_on: new Date(formData.deposit_due_on),

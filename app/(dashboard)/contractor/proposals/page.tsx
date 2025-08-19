@@ -15,7 +15,31 @@ export default function ContractorProposalsPage() {
   const { user, userRole, loading } = useAuth()
   const router = useRouter()
   const [statusFilter, setStatusFilter] = useState<string>('all')
-  const [proposals, setProposals] = useState<any[]>([])
+  const [proposals, setProposals] = useState<Array<{
+    id: string
+    title: string
+    status: string
+    subtotal_amount: number | null
+    total_amount: number | null
+    created_at: string
+    description_of_work: string
+    proposed_start_date: string | null
+    proposed_end_date: string | null
+    project?: {
+      id: string
+      project_title: string
+      statement_of_work: string
+      category: string
+      location: string
+      status: string
+      budget: number | null
+      creator: string
+      users?: {
+        id: string
+        full_name: string
+      }
+    }
+  }>>([])
   const [proposalsLoading, setProposalsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const supabase = createClient()
@@ -106,7 +130,7 @@ export default function ContractorProposalsPage() {
     }
 
     fetchProposals()
-  }, [loading, user, userRole, supabase])
+  }, [loading, user, userRole, supabase, router])
 
   const getStatusVariant = (status: string): "default" | "secondary" | "destructive" | "outline" => {
     switch (status) {

@@ -166,9 +166,12 @@ export default function ProjectViewPage() {
       } catch (error) {
         console.error('Error fetching proposals:', error)
         console.error('Error details:', JSON.stringify(error, null, 2))
-        console.error('Error message:', error?.message)
-        console.error('Error code:', error?.code)
-        console.error('Error hint:', error?.hint)
+        if (error && typeof error === 'object' && 'message' in error) {
+          const errorObj = error as { message?: string; code?: string; hint?: string }
+          console.error('Error message:', errorObj.message)
+          console.error('Error code:', errorObj.code)
+          console.error('Error hint:', errorObj.hint)
+        }
       } finally {
         setProposalsLoading(false)
       }
