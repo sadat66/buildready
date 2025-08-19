@@ -17,15 +17,11 @@ import { Button } from "./button";
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
-  isCollapsed: boolean;
-  onToggleCollapse: () => void;
 }
 
 export function Sidebar({
   isOpen,
   onClose,
-  isCollapsed,
-  onToggleCollapse,
 }: SidebarProps) {
   const { userRole } = useAuth();
   const pathname = usePathname();

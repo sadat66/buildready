@@ -3,26 +3,87 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { createClient } from '@/lib/supabase'
-import { Proposal } from '@/types'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Calendar, DollarSign, Search, CheckCircle, XCircle, FileText, Clock } from 'lucide-react'
+import toast from 'react-hot-toast'
+import { Label } from '@/components/ui/label'
 
 interface Project {
   id: string
   title: string
   status?: string
 }
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Calendar, DollarSign, Search, CheckCircle, XCircle, User, FileText, Clock, AlertTriangle } from 'lucide-react'
-import toast from 'react-hot-toast'
-import { Label } from '@/components/ui/label'
+
+// Type for proposals with joined data from Supabase query
+interface ProposalWithJoins {
+  id: string
+  project_id: string
+  contractor_id: string
+  homeowner_id: string
+  title: string
+  description_of_work: string
+  subtotal_amount: number
+  tax_included: 'yes' | 'no'
+  total_amount: number
+  deposit_amount: number
+  deposit_due_on: string
+  proposed_start_date: string
+  proposed_end_date: string
+  expiry_date: string
+  status: 'draft' | 'submitted' | 'viewed' | 'accepted' | 'rejected' | 'withdrawn' | 'expired'
+  is_selected: 'yes' | 'no'
+  is_deleted: 'yes' | 'no'
+  submitted_date?: string
+  accepted_date?: string
+  rejected_date?: string
+  withdrawn_date?: string
+  viewed_date?: string
+  last_updated: string
+  rejected_by?: string
+  rejection_reason?: 'price_too_high' | 'timeline_unrealistic' | 'experience_insufficient' | 'scope_mismatch' | 'other'
+  rejection_reason_notes?: string
+  clause_preview_html?: string
+  attached_files?: Array<{
+    id: string
+    filename: string
+    url: string
+    size?: number
+    mimeType?: string
+    uploadedAt?: string
+  }>
+  notes?: string
+  agreement?: string
+  proposals: string[]
+  created_by: string
+  last_modified_by: string
+  visibility_settings: 'private' | 'public' | 'shared'
+  created_at: string
+  updated_at: string
+  // Joined data
+  project: {
+    id: string
+    title: string
+    statement_of_work: string
+    category: string[]
+    location: Record<string, unknown>
+    status: string
+    budget: number
+  }
+  contractor: {
+    id: string
+    full_name: string
+  }
+}
 
 export default function HomeownerProposalsPage() {
   const { user, userRole } = useAuth()
+
   
-  const [proposals, setProposals] = useState<Proposal[]>([])
+  const [proposals, setProposals] = useState<ProposalWithJoins[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [projectFilter, setProjectFilter] = useState('all')

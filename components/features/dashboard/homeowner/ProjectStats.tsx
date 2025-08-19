@@ -1,6 +1,6 @@
 'use client'
 
-import { TrendingUp, TrendingDown, Building2, CheckCircle, Target, Clock } from 'lucide-react'
+import { Building2, CheckCircle, Target, Clock } from 'lucide-react'
 
 interface ProjectStatsProps {
   stats: {

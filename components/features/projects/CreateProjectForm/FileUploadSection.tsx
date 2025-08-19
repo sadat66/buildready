@@ -1,13 +1,10 @@
 import * as React from "react"
-import { Control } from "react-hook-form"
 import { Camera, Paperclip, FileText, X, Upload } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
-import { CreateProjectFormInputData } from "@/lib/validation/projects"
 
 interface FileUploadSectionProps {
-  control: Control<CreateProjectFormInputData>
   dragActive: boolean
   selectedPhotos: File[]
   selectedFiles: File[]
@@ -18,7 +15,6 @@ interface FileUploadSectionProps {
 }
 
 export function FileUploadSection({
-  control,
   dragActive,
   selectedPhotos,
   selectedFiles,
