@@ -1,5 +1,5 @@
 import * as React from "react"
-import { Control, FieldPath, FieldValues, ControllerRenderProps } from "react-hook-form"
+import { FieldPath, FieldValues, ControllerRenderProps } from "react-hook-form"
 import { useFormField } from "@/lib/hooks"
 import { FormInput } from "./FormInput"
 import { FormTextarea } from "./FormTextarea"
@@ -12,17 +12,16 @@ export interface FormFieldProps<
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
 > {
   name: TName
-  control: Control<TFieldValues>
   children: (props: { field: ControllerRenderProps<TFieldValues, TName>; error?: string }) => React.ReactNode
 }
 
 export function FormField<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
->({ name, control, children }: FormFieldProps<TFieldValues, TName>) {
-  const { field, error } = useFormField({ name, control })
+>({ name, children }: FormFieldProps<TFieldValues, TName>) {
+  const { field, error } = useFormField<TFieldValues, TName>({ name })
 
-  return <>{children({ field, error: error?.message })}</>
+  return <>{children({ field, error })}</>
 }
 
 // Convenience components for common field types
@@ -31,7 +30,6 @@ export interface FormFieldInputProps<
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
 > {
   name: TName
-  control: Control<TFieldValues>
   label: string
   placeholder?: string
   required?: boolean
@@ -42,9 +40,9 @@ export interface FormFieldInputProps<
 export function FormFieldInput<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
->({ name, control, ...props }: FormFieldInputProps<TFieldValues, TName>) {
+>({ name, ...props }: FormFieldInputProps<TFieldValues, TName>) {
   return (
-    <FormField name={name} control={control}>
+    <FormField name={name}>
       {({ field, error }) => (
         <FormInput
           {...field}
@@ -61,7 +59,6 @@ export interface FormFieldTextareaProps<
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
 > {
   name: TName
-  control: Control<TFieldValues>
   label: string
   placeholder?: string
   required?: boolean
@@ -72,9 +69,9 @@ export interface FormFieldTextareaProps<
 export function FormFieldTextarea<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
->({ name, control, ...props }: FormFieldTextareaProps<TFieldValues, TName>) {
+>({ name, ...props }: FormFieldTextareaProps<TFieldValues, TName>) {
   return (
-    <FormField name={name} control={control}>
+    <FormField name={name}>
       {({ field, error }) => (
         <FormTextarea
           {...field}
@@ -91,7 +88,6 @@ export interface FormFieldSelectProps<
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
 > {
   name: TName
-  control: Control<TFieldValues>
   label: string
   placeholder?: string
   required?: boolean
@@ -102,9 +98,9 @@ export interface FormFieldSelectProps<
 export function FormFieldSelect<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
->({ name, control, ...props }: FormFieldSelectProps<TFieldValues, TName>) {
+>({ name, ...props }: FormFieldSelectProps<TFieldValues, TName>) {
   return (
-    <FormField name={name} control={control}>
+    <FormField name={name}>
       {({ field, error }) => (
         <FormSelect
           {...props}
@@ -122,7 +118,6 @@ export interface FormFieldSwitchProps<
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
 > {
   name: TName
-  control: Control<TFieldValues>
   label: string
   helperText?: string
 }
@@ -130,9 +125,9 @@ export interface FormFieldSwitchProps<
 export function FormFieldSwitch<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
->({ name, control, ...props }: FormFieldSwitchProps<TFieldValues, TName>) {
+>({ name, ...props }: FormFieldSwitchProps<TFieldValues, TName>) {
   return (
-    <FormField name={name} control={control}>
+    <FormField name={name}>
       {({ field, error }) => (
         <FormSwitch
           {...props}
@@ -150,7 +145,6 @@ export interface FormFieldLocationProps<
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
 > {
   name: TName
-  control: Control<TFieldValues>
   label?: string
   placeholder?: string
   required?: boolean
@@ -161,9 +155,9 @@ export interface FormFieldLocationProps<
 export function FormFieldLocation<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
->({ name, control, ...props }: FormFieldLocationProps<TFieldValues, TName>) {
+>({ name, ...props }: FormFieldLocationProps<TFieldValues, TName>) {
   return (
-    <FormField name={name} control={control}>
+    <FormField name={name}>
       {({ field, error }) => (
         <LocationInput
           {...props}

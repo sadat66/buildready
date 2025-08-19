@@ -1,16 +1,14 @@
 import * as React from "react"
-import { Control, UseFormWatch, UseFormSetValue } from "react-hook-form"
+import { UseFormWatch, UseFormSetValue } from "react-hook-form"
 import { FormField, FormInput, FormTextarea, FormSelect, FormBadge, FormFieldLocation } from "@/components/shared/form-input"
 import { CreateProjectFormInputData } from "@/lib/validation/projects"
  
 interface BasicInformationSectionProps {
-  control: Control<CreateProjectFormInputData>
   watch: UseFormWatch<CreateProjectFormInputData>
   setValue: UseFormSetValue<CreateProjectFormInputData>
 }
 
 export function BasicInformationSection({ 
-  control, 
   watch, 
   setValue
 }: BasicInformationSectionProps) {
@@ -18,24 +16,24 @@ export function BasicInformationSection({
     <div className="bg-white rounded-lg border border-gray-200 p-6">
       <h3 className="text-lg font-medium mb-4">Basic Information</h3>
       <div className="space-y-4">
-        <FormField name="project_title" control={control}>
+        <FormField name="project_title">
           {({ field, error }) => (
             <FormInput
               {...field}
               label="Project Title"
-              placeholder="e.g., Kitchen Renovation"
+              placeholder="Enter project title"
               required
               error={error}
             />
           )}
         </FormField>
 
-        <FormField name="statement_of_work" control={control}>
+        <FormField name="statement_of_work">
           {({ field, error }) => (
             <FormTextarea
               {...field}
               label="Statement of Work"
-              placeholder="Provide detailed description of the work to be done..."
+              placeholder="Describe the work to be done"
               rows={4}
               required
               error={error}
@@ -43,27 +41,20 @@ export function BasicInformationSection({
           )}
         </FormField>
 
-        <FormField name="category" control={control}>
-          {({ error }) => (
+        <FormField name="category">
+          {({ field, error }) => (
             <FormSelect
-              label="Trade Categories"
-              placeholder="Select categories"
-              required
+              {...field}
+              label="Category"
+              placeholder="Select category"
               options={[
-                { value: "Electrical", label: "Electrical" },
-                { value: "Framing", label: "Framing" },
-                { value: "HVAC", label: "HVAC" },
-                { value: "Plumbing", label: "Plumbing" },
-                { value: "Roofing", label: "Roofing" },
-                { value: "Masonry", label: "Masonry" },
+                { value: "renovation", label: "Renovation" },
+                { value: "new_construction", label: "New Construction" },
+                { value: "repair", label: "Repair" },
+                { value: "maintenance", label: "Maintenance" },
+                { value: "other", label: "Other" }
               ]}
-              onValueChange={(value) => {
-                const currentCategories = watch("category") || []
-                const categoryValue = value as "Electrical" | "Framing" | "HVAC" | "Plumbing" | "Roofing" | "Masonry"
-                if (!currentCategories.includes(categoryValue)) {
-                  setValue("category", [...currentCategories, categoryValue])
-                }
-              }}
+              required
               error={error}
             />
           )}
@@ -88,45 +79,43 @@ export function BasicInformationSection({
           </div>
         )}
 
-        <FormField name="project_type" control={control}>
+        <FormField name="project_type">
           {({ field, error }) => (
             <FormSelect
+              {...field}
               label="Project Type"
-              required
+              placeholder="Select project type"
               options={[
-                { value: "New Build", label: "New Build" },
-                { value: "Renovation", label: "Renovation" },
-                { value: "Maintenance", label: "Maintenance" },
-                { value: "Repair", label: "Repair" },
-                { value: "Inspection", label: "Inspection" },
+                { value: "residential", label: "Residential" },
+                { value: "commercial", label: "Commercial" },
+                { value: "industrial", label: "Industrial" },
+                { value: "mixed_use", label: "Mixed Use" }
               ]}
-              value={field.value}
-              onValueChange={field.onChange}
-              error={error}
-            />
-          )}
-        </FormField>
-
-        <FormField name="pid" control={control}>
-          {({ field, error }) => (
-            <FormInput
-              {...field}
-              label="PID"
-              placeholder="e.g., PID-12345-67890"
               required
               error={error}
             />
           )}
         </FormField>
 
-        <FormField name="certificate_of_title" control={control}>
+        <FormField name="pid">
           {({ field, error }) => (
             <FormInput
               {...field}
-              label="Certificate of Title (Optional)"
-              type="url"
-              placeholder="https://example.com/certificate.pdf"
-              helperText="Link to property title certificate or ownership document"
+              label="PID (Property ID)"
+              placeholder="Enter PID"
+              required
+              error={error}
+            />
+          )}
+        </FormField>
+
+        <FormField name="certificate_of_title">
+          {({ field, error }) => (
+            <FormInput
+              {...field}
+              label="Certificate of Title"
+              placeholder="Enter certificate number"
+              required
               error={error}
             />
           )}
@@ -134,11 +123,10 @@ export function BasicInformationSection({
 
         <FormFieldLocation
           name="location"
-          control={control}
           label="Project Location"
-          placeholder="Search for an address..."
+          placeholder="Enter project location"
           required
-          helperText="Enter the project address to help contractors find your project"
+          showMap={true}
         />
       </div>
     </div>
