@@ -44,7 +44,7 @@ export function BasicInformationSection({
         </FormField>
 
         <FormField name="category" control={control}>
-          {({ field, error }) => (
+          {({ error }) => (
             <FormSelect
               label="Trade Categories"
               placeholder="Select categories"

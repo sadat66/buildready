@@ -56,9 +56,8 @@ export default function LoginPage() {
             });
             
             if (!error && data.user) {
-              // Get user's role from database instead of user object
-              let userRole = 'homeowner'; // default role
-              
+              // Get user's role from users table
+              let userRole = 'homeowner'; // default fallback
               try {
                 const { data: userData, error: userError } = await supabase
                   .from('users')
@@ -70,8 +69,8 @@ export default function LoginPage() {
                   userRole = userData.user_role;
                 }
               } catch (roleError) {
-                console.error('Error fetching user role:', roleError);
-                // Use default role if there's an error
+                console.error('Failed to fetch user role:', roleError);
+                // Use default role if we can't fetch it
               }
               
               // Update user's is_verified_email field to true in the database
@@ -141,7 +140,7 @@ export default function LoginPage() {
     return () => {
       setHasShownToast(false);
     };
-  }, [searchParams, router, user]);
+  }, [searchParams, router, user, hasShownToast]);
 
   // Auto-clear success state after 3 seconds as fallback
   useEffect(() => {

@@ -6,7 +6,6 @@ import { Search, MapPin, X, Loader2, Navigation } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 
 export interface LocationData {
   address: string;
@@ -229,7 +228,6 @@ export function LocationInput({
 
     // Get country information
     const country = result.address.country || "";
-    const countryCode = result.address.country_code || "";
 
     const location: LocationData = {
       address: primaryAddress,

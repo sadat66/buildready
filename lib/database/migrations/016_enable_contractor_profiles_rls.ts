@@ -3,6 +3,7 @@ import type { Migration } from '../migrations'
 export const migration_016_enable_contractor_profiles_rls: Migration = {
   id: '016_enable_contractor_profiles_rls',
   name: 'Enable RLS on contractor_profiles table and add access policies',
+  version: 16,
   up: async (db) => {
     // Enable Row Level Security on contractor_profiles table
     await db.execute(`ALTER TABLE public.contractor_profiles ENABLE ROW LEVEL SECURITY;`)

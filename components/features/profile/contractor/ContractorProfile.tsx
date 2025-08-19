@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase";
 import toast from "react-hot-toast";
 import Breadcrumbs from "@/components/shared/Breadcrumbs";
-import { useAuth } from "@/contexts/AuthContext";
+import { ExtendedUser } from "@/contexts/AuthContext";
 
 // Import modular components
 import { PersonalInfoSection } from "./PersonalInfoSection";
@@ -16,10 +16,12 @@ import { InsuranceSection } from "./InsuranceSection";
 import { ContactManagementSection } from "./ContactManagementSection";
 import { ServiceLocationSection } from "./ServiceLocationSection";
 
-export function ContractorProfile() {
-  const { user } = useAuth();
-  
-  // Move all hooks to the top before any conditional returns
+interface ContractorProfileProps {
+  user: ExtendedUser;
+}
+
+export function ContractorProfile({ user }: ContractorProfileProps) {
+  // All React hooks must be called at the top level, before any conditional returns
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   
@@ -53,37 +55,10 @@ export function ContractorProfile() {
   });
 
   // State for profile data
-  interface UserProfileData {
-    first_name?: string
-    last_name?: string
-    phone_number?: string
-    address?: string
-  }
-
-  interface ContractorProfileData {
-    business_name?: string
-    bio?: string
-    legal_entity_type?: "Corporation" | "Partnership" | "Sole Proprietorship" | "LLC" | ""
-    gst_hst_number?: string
-    wcb_number?: string
-    service_location?: string
-    trade_category?: string[]
-    phone_number?: string
-    logo?: string
-    portfolio?: string[]
-    licenses?: string[]
-    insurance_general_liability?: number
-    insurance_builders_risk?: number
-    insurance_expiry?: string
-    insurance_upload?: string
-    work_guarantee?: number
-    contractor_contacts?: string[]
-  }
-
-  const [userProfile, setUserProfile] = useState<UserProfileData | null>(null)
-  const [contractorProfile, setContractorProfile] = useState<ContractorProfileData | null>(null)
-  const [userError, setUserError] = useState<string | null>(null)
-  const [contractorError, setContractorError] = useState<string | null>(null)
+  const [userProfile, setUserProfile] = useState<Record<string, unknown> | null>(null);
+  const [contractorProfile, setContractorProfile] = useState<Record<string, unknown> | null>(null);
+  const [userError, setUserError] = useState<string | null>(null);
+  const [contractorError, setContractorError] = useState<string | null>(null);
 
   // Fetch user and contractor profile data using Supabase
   useEffect(() => {
@@ -141,10 +116,10 @@ export function ContractorProfile() {
   useEffect(() => {
     if (userProfile) {
       setUserFormData({
-        first_name: userProfile.first_name || "",
-        last_name: userProfile.last_name || "",
-        phone_number: userProfile.phone_number || "",
-        address: userProfile.address || "",
+        first_name: (userProfile.first_name as string) || "",
+        last_name: (userProfile.last_name as string) || "",
+        phone_number: (userProfile.phone_number as string) || "",
+        address: (userProfile.address as string) || "",
       });
     }
   }, [userProfile]);
@@ -152,41 +127,39 @@ export function ContractorProfile() {
   useEffect(() => {
     if (contractorProfile) {
       setContractorFormData({
-        business_name: contractorProfile.business_name || "",
-        bio: contractorProfile.bio || "",
-        legal_entity_type: contractorProfile.legal_entity_type || "",
-        gst_hst_number: contractorProfile.gst_hst_number || "",
-        wcb_number: contractorProfile.wcb_number || "",
-        service_location: contractorProfile.service_location || "",
-        trade_category: contractorProfile.trade_category || [],
-        phone_number: contractorProfile.phone_number || "",
-        logo: contractorProfile.logo || "",
-        portfolio: contractorProfile.portfolio || [],
-        licenses: contractorProfile.licenses || [],
-        insurance_general_liability: contractorProfile.insurance_general_liability || 0,
-        insurance_builders_risk: contractorProfile.insurance_builders_risk || 0,
-        insurance_expiry: contractorProfile.insurance_expiry || "",
-        insurance_upload: contractorProfile.insurance_upload || "",
-        work_guarantee: contractorProfile.work_guarantee || 0,
-        contractor_contacts: contractorProfile.contractor_contacts || [],
+        business_name: (contractorProfile.business_name as string) || "",
+        bio: (contractorProfile.bio as string) || "",
+        legal_entity_type: (contractorProfile.legal_entity_type as "Corporation" | "Partnership" | "Sole Proprietorship" | "LLC" | "") || "",
+        gst_hst_number: (contractorProfile.gst_hst_number as string) || "",
+        wcb_number: (contractorProfile.wcb_number as string) || "",
+        service_location: (contractorProfile.service_location as string) || "",
+        trade_category: (contractorProfile.trade_category as string[]) || [],
+        phone_number: (contractorProfile.phone_number as string) || "",
+        logo: (contractorProfile.logo as string) || "",
+        portfolio: (contractorProfile.portfolio as string[]) || [],
+        licenses: (contractorProfile.licenses as string[]) || [],
+        insurance_general_liability: (contractorProfile.insurance_general_liability as number) || 0,
+        insurance_builders_risk: (contractorProfile.insurance_builders_risk as number) || 0,
+        insurance_expiry: (contractorProfile.insurance_expiry as string) || "",
+        insurance_upload: (contractorProfile.insurance_upload as string) || "",
+        work_guarantee: (contractorProfile.work_guarantee as number) || 0,
+        contractor_contacts: (contractorProfile.contractor_contacts as string[]) || [],
       });
     }
   }, [contractorProfile]);
 
-  // Now check for authentication after all hooks are declared
-  if (!user) {
+  // Ensure user is authenticated - moved to render logic
+  if (!user?.id) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="max-w-md w-full bg-white rounded-lg shadow-md p-6">
-          <div className="text-center">Authentication required. Please sign in.</div>
+      <div className="space-y-6">
+        <div className="rounded-lg border bg-card text-card-foreground">
+          <div className="p-6">
+            <div className="text-center">Authentication required. Please sign in.</div>
+          </div>
         </div>
       </div>
     );
   }
-
-  const handleUserInputChange = (field: string, value: string) => {
-    setUserFormData((prev) => ({ ...prev, [field]: value }));
-  };
 
   const handleContractorInputChange = (field: string, value: string | number | string[]) => {
     setContractorFormData((prev) => ({ ...prev, [field]: value }));
@@ -198,13 +171,6 @@ export function ContractorProfile() {
     setContractorFormData((prev) => ({
       ...prev,
       trade_category: categories,
-    }));
-  };
-
-  const removeTradeCategory = (category: string) => {
-    setContractorFormData((prev) => ({
-      ...prev,
-      trade_category: prev.trade_category.filter((c) => c !== category),
     }));
   };
 

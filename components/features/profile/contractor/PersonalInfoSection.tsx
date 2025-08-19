@@ -3,7 +3,7 @@
 import { FormInput, FormTextarea } from "@/components/shared/form-input";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { User, Phone, Mail, MapPin, FileText, Shield } from "lucide-react";
+import { User, Mail, Shield } from "lucide-react";
 import { ExtendedUser } from "@/contexts/AuthContext";
 
 interface PersonalInfoSectionProps {

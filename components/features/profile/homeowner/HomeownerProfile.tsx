@@ -170,7 +170,10 @@ export function HomeownerProfile() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="phone_number">Phone Number</Label>
+            <Label htmlFor="phone_number" className="flex items-center space-x-2">
+              <Phone className="h-4 w-4" />
+              <span>Phone Number</span>
+            </Label>
             <Input
               id="phone_number"
               type="tel"
@@ -195,7 +198,10 @@ export function HomeownerProfile() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="address">Location</Label>
+            <Label htmlFor="address" className="flex items-center space-x-2">
+              <MapPin className="h-4 w-4" />
+              <span>Location</span>
+            </Label>
             <Input
               id="address"
               value={formData.address}

@@ -150,8 +150,6 @@ export default function DashboardLayout({
         <Sidebar
           isOpen={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
-          isCollapsed={false}
-          onToggleCollapse={() => {}}
         />
 
         {/* Main Content - Fixed position, sidebar expands on top */}

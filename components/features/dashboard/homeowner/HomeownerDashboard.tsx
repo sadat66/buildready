@@ -8,16 +8,10 @@ import ProjectStats from './ProjectStats'
 import RecentProjects from './RecentProjects'
 import { useAuth } from '@/contexts/AuthContext'
 
-interface HomeownerDashboardProps {
-  userEmail?: string
-}
-
-export default function HomeownerDashboard({ userEmail }: HomeownerDashboardProps) {
+export default function HomeownerDashboard() {
   const { user } = useAuth()
   const [projects, setProjects] = useState<Project[]>([])
-  const [proposalsCount, setProposalsCount] = useState(0)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('') // Keep for future use
 
 
   useEffect(() => {
@@ -78,7 +72,7 @@ export default function HomeownerDashboard({ userEmail }: HomeownerDashboardProp
           const projectIds = projectsData?.map(project => project.id) || []
           
           if (projectIds.length > 0) {
-            const { count: proposalsCount, error: proposalsError } = await supabase
+            const { error: proposalsError } = await supabase
               .from('proposals')
               .select('*', { count: 'exact', head: true })
               .in('project_id', projectIds)
@@ -86,16 +80,10 @@ export default function HomeownerDashboard({ userEmail }: HomeownerDashboardProp
             
             if (proposalsError) {
               console.warn('Proposals table query failed:', proposalsError)
-              setProposalsCount(0)
-            } else {
-              setProposalsCount(proposalsCount || 0)
             }
-          } else {
-            setProposalsCount(0)
           }
         } catch (proposalsError) {
           console.warn('Proposals table might not exist yet:', proposalsError)
-          setProposalsCount(0)
         }
         
       } catch (error) {
@@ -137,11 +125,7 @@ export default function HomeownerDashboard({ userEmail }: HomeownerDashboardProp
     <div className="min-h-screen bg-white">
       <div className="container mx-auto px-4 py-8">
         {/* Error Display */}
-        {error && (
-          <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
-            <p className="text-red-700">{error}</p>
-          </div>
-        )}
+        {/* Error Display */}
 
         {/* Dashboard Content */}
         <div className="space-y-8">
