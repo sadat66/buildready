@@ -31,12 +31,12 @@ export default function ProfilePage({ params }: ProfilePageProps) {
 
   switch (role) {
     case "contractor":
-      return <ContractorProfile user={user} />;
+      return <ContractorProfile />;
 
     case "homeowner":
-      return <HomeownerProfile user={user} />;
+      return <HomeownerProfile />;
 
     default:
-      return <HomeownerProfile user={user} />;
+      return <HomeownerProfile />;
   }
 }

@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase";
 import toast from "react-hot-toast";
 import Breadcrumbs from "@/components/shared/Breadcrumbs";
-import { ExtendedUser } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Import modular components
 import { PersonalInfoSection } from "./PersonalInfoSection";
@@ -16,11 +16,8 @@ import { InsuranceSection } from "./InsuranceSection";
 import { ContactManagementSection } from "./ContactManagementSection";
 import { ServiceLocationSection } from "./ServiceLocationSection";
 
-interface ContractorProfileProps {
-  user: ExtendedUser;
-}
-
-export function ContractorProfile({ user }: ContractorProfileProps) {
+export function ContractorProfile() {
+  const { user } = useAuth();
   // All React hooks must be called at the top level, before any conditional returns
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
