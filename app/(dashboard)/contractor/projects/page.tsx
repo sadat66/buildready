@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
 import { useAuth } from '@/contexts/AuthContext'
-import { createClient } from '@/lib/supabase'
+import { ProjectService } from '@/lib/services/ProjectService'
 import { Project } from '@/types'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -30,26 +30,14 @@ export default function ContractorProjectsPage() {
       }
       
       try {
-        const supabase = createClient()
-        const { data, error: fetchError } = await supabase
-          .from('projects')
-          .select(`
-            *,
-            homeowner:users!creator(
-              full_name,
-              first_name,
-              last_name
-            )
-          `)
-          .eq('status', 'open')
-          .order('created_at', { ascending: false })
+        const projectService = new ProjectService()
+        const result = await projectService.getAvailableProjects()
         
-        if (fetchError) {
-          console.error('Supabase error:', fetchError)
-          throw fetchError
+        if (!result.success) {
+          throw new Error(result.error || 'Failed to fetch projects')
         }
         
-        setProjects(data || [])
+        setProjects(result.data || [])
       } catch (error) {
         console.error('Error fetching projects:', error)
         setError('Failed to load projects')
@@ -123,7 +111,7 @@ export default function ContractorProjectsPage() {
             Available Projects
           </h1>
           <p className="text-gray-600 mt-2">
-            Browse and bid on construction projects from homeowners
+            Browse and bid on published construction projects from homeowners
           </p>
         </div>
         <div className="text-sm text-gray-500">
@@ -235,7 +223,10 @@ export default function ContractorProjectsPage() {
                     }
                   </span>
                 </div>
-                <Badge variant="default" className="text-xs">
+                <Badge 
+                  variant={project.status === 'Published' ? 'default' : project.status === 'Bidding' ? 'secondary' : 'outline'} 
+                  className="text-xs capitalize"
+                >
                   {project.status}
                 </Badge>
               </div>

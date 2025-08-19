@@ -132,7 +132,7 @@ export function useFileHandling<T extends Record<string, unknown>>(
         );
       }
     },
-    [options.uploadFolder]
+    []
   );
 
   // Handle file upload

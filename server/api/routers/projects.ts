@@ -160,23 +160,18 @@ export const projectsRouter = createTRPCRouter({
           profiles!projects_creator_fkey (
             id,
             full_name,
-            location,
-            bio
+            location
           ),
           proposals (
             id,
-            contractor_id,
+            contractor,
             amount,
             timeline,
             status,
             created_at,
-            profiles!proposals_contractor_id_fkey (
+            users!proposals_contractor_fkey (
               id,
-              full_name,
-              bio,
-              hourly_rate,
-              years_experience,
-              skills
+              full_name
             )
           )
         `)
@@ -212,7 +207,7 @@ export const projectsRouter = createTRPCRouter({
             contractor_id,
             amount,
             status,
-            profiles!proposals_contractor_id_fkey (
+            users!proposals_contractor_fkey (
               id,
               full_name
             )

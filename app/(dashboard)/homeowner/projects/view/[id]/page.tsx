@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, MapPin, Calendar, CheckCircle, AlertCircle, Edit, Trash2, Camera, Paperclip, FileText } from 'lucide-react'
+import { ArrowLeft, MapPin, Calendar, CheckCircle, AlertCircle, Edit, Trash2, Camera, Paperclip, FileText, User, DollarSign, Clock, ThumbsUp, ThumbsDown } from 'lucide-react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 import dynamic from 'next/dynamic'
@@ -52,15 +52,54 @@ interface Project {
   updated_at: string
 }
 
+interface Proposal {
+  id: string
+  title: string
+  description_of_work: string
+  project: string
+  contractor: string
+  homeowner: string
+  subtotal_amount: number
+  tax_included: 'yes' | 'no'
+  total_amount: number
+  deposit_amount: number
+  deposit_due_on: string
+  proposed_start_date: string
+  proposed_end_date: string
+  expiry_date: string
+  status: 'draft' | 'submitted' | 'viewed' | 'accepted' | 'rejected' | 'withdrawn' | 'expired'
+  is_selected: 'yes' | 'no'
+  submitted_date?: string
+  accepted_date?: string
+  rejected_date?: string
+  rejection_reason?: 'price_too_high' | 'timeline_unrealistic' | 'experience_insufficient' | 'scope_mismatch' | 'other'
+  rejection_reason_notes?: string
+  clause_preview_html?: string
+  attached_files: Array<{ id: string; filename: string; url: string; size?: number; mimeType?: string; uploadedAt?: Date }>
+  notes?: string
+  created_at: string
+  updated_at: string
+  contractor_profile?: {
+    id: string
+    full_name: string
+    email: string
+    phone_number?: string
+    address?: string
+  }
+}
+
 export default function ProjectViewPage() {
   const params = useParams()
   const router = useRouter()
   const id = params?.id as string
   const { user } = useAuth()
   const [project, setProject] = useState<Project | null>(null)
+  const [proposals, setProposals] = useState<Proposal[]>([])
   const [loading, setLoading] = useState(true)
+  const [proposalsLoading, setProposalsLoading] = useState(true)
   const [error, setError] = useState('')
   const [deleting, setDeleting] = useState(false)
+  const [updatingProposal, setUpdatingProposal] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchProject = async () => {
@@ -91,7 +130,55 @@ export default function ProjectViewPage() {
       }
     }
     
+    const fetchProposals = async () => {
+      console.log('fetchProposals called - id:', id, 'user:', user)
+      if (!id || !user) {
+        console.log('Early return - missing id or user')
+        setProposalsLoading(false)
+        return
+      }
+      
+      try {
+        const supabase = createClient()
+        const { data, error: fetchError } = await supabase
+          .from('proposals')
+          .select(`
+            *,
+            contractor_profile:users!proposals_contractor_fkey (
+              id,
+              full_name,
+              email,
+              phone_number,
+              address
+            )
+          `)
+          .eq('project', id)
+          .eq('homeowner', user.id)
+          .eq('is_deleted', 'no')
+          .in('status', ['submitted', 'viewed', 'accepted', 'rejected'])
+          .order('created_at', { ascending: false })
+        
+        if (fetchError) {
+          throw fetchError
+        }
+        
+        setProposals(data || [])
+      } catch (error) {
+        console.error('Error fetching proposals:', error)
+        console.error('Error details:', JSON.stringify(error, null, 2))
+        if (error && typeof error === 'object' && 'message' in error) {
+          const errorObj = error as { message?: string; code?: string; hint?: string }
+          console.error('Error message:', errorObj.message)
+          console.error('Error code:', errorObj.code)
+          console.error('Error hint:', errorObj.hint)
+        }
+      } finally {
+        setProposalsLoading(false)
+      }
+    }
+    
     fetchProject()
+    fetchProposals()
   }, [id, user])
 
   const getStatusColor = (status: string) => {
@@ -160,6 +247,179 @@ export default function ProjectViewPage() {
       toast.error('Failed to delete project')
     } finally {
       setDeleting(false)
+    }
+  }
+
+  const handleAcceptProposal = async (proposalId: string) => {
+    if (!user) return
+    
+    if (!confirm('Are you sure you want to accept this proposal? This will reject all other proposals for this project.')) {
+      return
+    }
+    
+    setUpdatingProposal(proposalId)
+    
+    try {
+      const supabase = createClient()
+      
+      // First, mark the selected proposal as viewed (if not already)
+      await supabase
+        .from('proposals')
+        .update({
+          status: 'viewed',
+          viewed_date: new Date().toISOString(),
+          last_updated: new Date().toISOString(),
+          last_modified_by: user.id
+        })
+        .eq('id', proposalId)
+        .eq('status', 'submitted')
+      
+      // Accept the selected proposal
+      const { error: acceptError } = await supabase
+        .from('proposals')
+        .update({
+          status: 'accepted',
+          is_selected: 'yes',
+          accepted_date: new Date().toISOString(),
+          last_updated: new Date().toISOString(),
+          last_modified_by: user.id
+        })
+        .eq('id', proposalId)
+        .eq('homeowner', user.id)
+      
+      if (acceptError) {
+        throw acceptError
+      }
+      
+      // Reject all other proposals for this project
+      const { error: rejectError } = await supabase
+        .from('proposals')
+        .update({
+          status: 'rejected',
+          rejected_date: new Date().toISOString(),
+          rejection_reason: 'other',
+          rejection_reason_notes: 'Another proposal was selected',
+          last_updated: new Date().toISOString(),
+          last_modified_by: user.id
+        })
+        .eq('project', id)
+        .neq('id', proposalId)
+        .in('status', ['submitted', 'viewed'])
+      
+      if (rejectError) {
+        throw rejectError
+      }
+      
+      // Update project status to awarded
+      await supabase
+        .from('projects')
+        .update({
+          status: 'awarded',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id)
+      
+      toast.success('Proposal accepted successfully')
+      
+      // Refresh proposals
+      const { data: updatedProposals } = await supabase
+        .from('proposals')
+        .select(`
+          *,
+          contractor_profile:users!proposals_contractor_fkey (
+            id,
+            full_name,
+            email,
+            phone_number,
+            address
+          )
+        `)
+        .eq('project', id)
+        .eq('homeowner', user.id)
+        .eq('is_deleted', 'no')
+        .in('status', ['submitted', 'viewed', 'accepted', 'rejected'])
+        .order('created_at', { ascending: false })
+      
+      setProposals(updatedProposals || [])
+      
+    } catch (error) {
+      console.error('Error accepting proposal:', error)
+      toast.error('Failed to accept proposal')
+    } finally {
+      setUpdatingProposal(null)
+    }
+  }
+
+  const handleRejectProposal = async (proposalId: string, reason?: string, notes?: string) => {
+    if (!user) return
+    
+    if (!confirm('Are you sure you want to reject this proposal?')) {
+      return
+    }
+    
+    setUpdatingProposal(proposalId)
+    
+    try {
+      const supabase = createClient()
+      
+      // First, mark the proposal as viewed (if not already)
+      await supabase
+        .from('proposals')
+        .update({
+          status: 'viewed',
+          viewed_date: new Date().toISOString(),
+          last_updated: new Date().toISOString(),
+          last_modified_by: user.id
+        })
+        .eq('id', proposalId)
+        .eq('status', 'submitted')
+      
+      // Reject the proposal
+      const { error: rejectError } = await supabase
+        .from('proposals')
+        .update({
+          status: 'rejected',
+          rejected_date: new Date().toISOString(),
+          rejection_reason: reason || 'other',
+          rejection_reason_notes: notes,
+          last_updated: new Date().toISOString(),
+          last_modified_by: user.id
+        })
+        .eq('id', proposalId)
+        .eq('homeowner', user.id)
+      
+      if (rejectError) {
+        throw rejectError
+      }
+      
+      toast.success('Proposal rejected successfully')
+      
+      // Refresh proposals
+      const { data: updatedProposals } = await supabase
+        .from('proposals')
+        .select(`
+          *,
+          contractor_profile:users!proposals_contractor_fkey (
+            id,
+            full_name,
+            email,
+            phone_number,
+            address
+          )
+        `)
+        .eq('project', id)
+        .eq('homeowner', user.id)
+        .eq('is_deleted', 'no')
+        .in('status', ['submitted', 'viewed', 'accepted', 'rejected'])
+        .order('created_at', { ascending: false })
+      
+      setProposals(updatedProposals || [])
+      
+    } catch (error) {
+      console.error('Error rejecting proposal:', error)
+      toast.error('Failed to reject proposal')
+    } finally {
+      setUpdatingProposal(null)
     }
   }
 
@@ -424,6 +684,173 @@ export default function ProjectViewPage() {
               </CardContent>
             </Card>
           )}
+
+          {/* Proposals Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span>Proposals ({proposals.length})</span>
+                {proposalsLoading && (
+                  <div className="text-sm text-muted-foreground">Loading proposals...</div>
+                )}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {proposalsLoading ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  Loading proposals...
+                </div>
+              ) : proposals.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  No proposals submitted yet.
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {proposals.map((proposal) => (
+                    <Card key={proposal.id} className="border-l-4 border-l-blue-500">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-start justify-between">
+                          <div className="space-y-1">
+                            <CardTitle className="text-lg">{proposal.title}</CardTitle>
+                            <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                              <User className="h-4 w-4" />
+                              <span>{proposal.contractor_profile?.full_name || 'Unknown Contractor'}</span>
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Badge 
+                              className={`${
+                                proposal.status === 'accepted' ? 'bg-green-500' :
+                                proposal.status === 'rejected' ? 'bg-red-500' :
+                                proposal.status === 'viewed' ? 'bg-blue-500' :
+                                'bg-gray-500'
+                              } text-white`}
+                            >
+                              {proposal.status.charAt(0).toUpperCase() + proposal.status.slice(1)}
+                            </Badge>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div>
+                          <Label className="text-sm font-medium text-muted-foreground">Description of Work</Label>
+                          <p className="mt-1 text-gray-900">{proposal.description_of_work}</p>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div className="flex items-center space-x-2">
+                            <DollarSign className="h-4 w-4 text-green-600" />
+                            <div>
+                              <Label className="text-sm font-medium text-muted-foreground">Total Amount</Label>
+                              <p className="text-lg font-bold text-green-600">
+                                ${proposal.total_amount.toLocaleString()}
+                              </p>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center space-x-2">
+                            <Clock className="h-4 w-4 text-blue-600" />
+                            <div>
+                              <Label className="text-sm font-medium text-muted-foreground">Timeline</Label>
+                              <p className="text-sm text-gray-900">
+                                {new Date(proposal.proposed_start_date).toLocaleDateString()} - {new Date(proposal.proposed_end_date).toLocaleDateString()}
+                              </p>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center space-x-2">
+                            <DollarSign className="h-4 w-4 text-orange-600" />
+                            <div>
+                              <Label className="text-sm font-medium text-muted-foreground">Deposit</Label>
+                              <p className="text-sm text-gray-900">
+                                ${proposal.deposit_amount.toLocaleString()}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {proposal.notes && (
+                          <div>
+                            <Label className="text-sm font-medium text-muted-foreground">Notes</Label>
+                            <p className="mt-1 text-gray-900">{proposal.notes}</p>
+                          </div>
+                        )}
+                        
+                        {proposal.attached_files.length > 0 && (
+                          <div>
+                            <Label className="text-sm font-medium text-muted-foreground">Attached Files</Label>
+                            <div className="mt-2 space-y-1">
+                              {proposal.attached_files.map((file, index) => (
+                                <div key={index} className="flex items-center space-x-2 text-sm">
+                                  <FileText className="h-4 w-4 text-gray-400" />
+                                  <span>{file.filename}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {proposal.status === 'submitted' || proposal.status === 'viewed' ? (
+                          <div className="flex space-x-3 pt-4 border-t">
+                            <Button
+                              onClick={() => handleAcceptProposal(proposal.id)}
+                              disabled={updatingProposal === proposal.id}
+                              className="flex-1 bg-green-600 hover:bg-green-700"
+                            >
+                              <ThumbsUp className="h-4 w-4 mr-2" />
+                              {updatingProposal === proposal.id ? 'Accepting...' : 'Accept Proposal'}
+                            </Button>
+                            <Button
+                              onClick={() => handleRejectProposal(proposal.id, 'other', 'Proposal declined by homeowner')}
+                              disabled={updatingProposal === proposal.id}
+                              variant="destructive"
+                              className="flex-1"
+                            >
+                              <ThumbsDown className="h-4 w-4 mr-2" />
+                              {updatingProposal === proposal.id ? 'Rejecting...' : 'Reject Proposal'}
+                            </Button>
+                          </div>
+                        ) : proposal.status === 'accepted' ? (
+                          <div className="pt-4 border-t">
+                            <div className="flex items-center space-x-2 text-green-600">
+                              <CheckCircle className="h-5 w-5" />
+                              <span className="font-medium">This proposal has been accepted</span>
+                            </div>
+                            {proposal.accepted_date && (
+                              <p className="text-sm text-muted-foreground mt-1">
+                                Accepted on {new Date(proposal.accepted_date).toLocaleDateString()}
+                              </p>
+                            )}
+                          </div>
+                        ) : proposal.status === 'rejected' ? (
+                          <div className="pt-4 border-t">
+                            <div className="flex items-center space-x-2 text-red-600">
+                              <AlertCircle className="h-5 w-5" />
+                              <span className="font-medium">This proposal has been rejected</span>
+                            </div>
+                            {proposal.rejected_date && (
+                              <p className="text-sm text-muted-foreground mt-1">
+                                Rejected on {new Date(proposal.rejected_date).toLocaleDateString()}
+                              </p>
+                            )}
+                            {proposal.rejection_reason_notes && (
+                              <p className="text-sm text-muted-foreground mt-1">
+                                Reason: {proposal.rejection_reason_notes}
+                              </p>
+                            )}
+                          </div>
+                        ) : null}
+                        
+                        <div className="text-xs text-muted-foreground pt-2 border-t">
+                          Submitted on {new Date(proposal.created_at).toLocaleDateString()} at {new Date(proposal.created_at).toLocaleTimeString()}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
 
         {/* Sidebar */}

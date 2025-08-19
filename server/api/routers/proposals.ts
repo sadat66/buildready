@@ -12,7 +12,7 @@ export const proposalsRouter = createTRPCRouter({
       const { data: project, error: projectError } = await ctx.supabase
         .from('projects')
 
-        .select('id, status, homeowner_id')
+        .select('id, status, homeowner')
         .eq('id', input.project)
         .single()
 
@@ -30,7 +30,7 @@ export const proposalsRouter = createTRPCRouter({
         })
       }
 
-      if (project.homeowner_id === ctx.user.id) {
+      if (project.homeowner === ctx.user.id) {
         throw new TRPCError({
           code: 'BAD_REQUEST',
           message: 'You cannot submit a proposal for your own project',
@@ -41,8 +41,8 @@ export const proposalsRouter = createTRPCRouter({
       const { data: existingProposal } = await ctx.supabase
         .from('proposals')
         .select('id')
-        .eq('project_id', input.project)
-        .eq('contractor_id', ctx.user.id)
+        .eq('project', input.project)
+        .eq('contractor', ctx.user.id)
         .eq('status', 'draft')
         .single()
 
@@ -58,9 +58,9 @@ export const proposalsRouter = createTRPCRouter({
         .insert({
           title: input.title,
           description_of_work: input.description_of_work,
-          project_id: input.project,
-          contractor_id: input.contractor,
-          homeowner_id: input.homeowner,
+          project: input.project,
+        contractor: input.contractor,
+        homeowner: input.homeowner,
           subtotal_amount: input.subtotal_amount,
           tax_included: input.tax_included,
           total_amount: input.total_amount,
@@ -74,8 +74,8 @@ export const proposalsRouter = createTRPCRouter({
           notes: input.notes,
           visibility_settings: input.visibility_settings || 'private',
           status: 'draft',
-          created_by_id: ctx.user.id,
-          last_modified_by_id: ctx.user.id,
+          created_by: ctx.user.id,
+        last_modified_by: ctx.user.id,
           last_updated: new Date(),
         })
         .select(`
@@ -89,12 +89,9 @@ export const proposalsRouter = createTRPCRouter({
               full_name
             )
           ),
-          contractor:users!proposals_contractor_id_fkey (
+          contractor:users!proposals_contractor_fkey (
             id,
-            full_name,
-            bio,
-            rating,
-            review_count
+            full_name
           )
         `)
         .single()
@@ -119,15 +116,12 @@ export const proposalsRouter = createTRPCRouter({
         .from('proposals')
         .select(`
           *,
-          contractor:users!proposals_contractor_id_fkey (
+          contractor:users!proposals_contractor_fkey (
             id,
-            full_name,
-            bio,
-            rating,
-            review_count
+            full_name
           )
         `)
-        .eq('project_id', input.projectId)
+        .eq('project', input.projectId)
         .eq('is_deleted', 'no')
         .order('created_at', { ascending: false })
 
@@ -163,15 +157,15 @@ export const proposalsRouter = createTRPCRouter({
             location,
             status,
             budget,
-            homeowner_id,
-            users!projects_homeowner_id_fkey (
+            creator,
+            users!projects_creator_fkey (
               id,
               full_name,
               location
             )
           )
         `)
-        .eq('contractor_id', ctx.user.id)
+        .eq('contractor', ctx.user.id)
         .eq('is_deleted', 'no')
 
       if (input.status) {
@@ -217,19 +211,16 @@ export const proposalsRouter = createTRPCRouter({
             budget,
             homeowner_id
           ),
-          contractor:users!proposals_contractor_id_fkey (
+          contractor:users!proposals_contractor_fkey (
             id,
-            full_name,
-            bio,
-            rating,
-            review_count
+            full_name
           )
         `)
-        .eq('homeowner_id', ctx.user.id)
+        .eq('homeowner', ctx.user.id)
         .eq('is_deleted', 'no')
 
       if (input.projectId) {
-        query = query.eq('project_id', input.projectId)
+        query = query.eq('project', input.projectId)
       }
 
       if (input.status) {
@@ -273,12 +264,9 @@ export const proposalsRouter = createTRPCRouter({
               location
             )
           ),
-          contractor:users!proposals_contractor_id_fkey (
+          contractor:users!proposals_contractor_fkey (
             id,
-            full_name,
-            bio,
-            rating,
-            review_count
+            full_name
           )
         `)
         .eq('id', input.id)
@@ -293,8 +281,8 @@ export const proposalsRouter = createTRPCRouter({
       }
 
       // Check if user has access to this proposal
-      const isContractor = data.contractor_id === ctx.user.id
-      const isHomeowner = data.homeowner_id === ctx.user.id
+      const isContractor = data.contractor === ctx.user.id
+      const isHomeowner = data.homeowner === ctx.user.id
 
       if (!isContractor && !isHomeowner) {
         throw new TRPCError({
@@ -322,7 +310,7 @@ export const proposalsRouter = createTRPCRouter({
       // Check if user has access to this proposal
       const { data: existingProposal, error: fetchError } = await ctx.supabase
         .from('proposals')
-        .select('contractor_id, homeowner_id, status')
+        .select('contractor, homeowner, status')
         .eq('id', id)
         .single()
 
@@ -333,8 +321,8 @@ export const proposalsRouter = createTRPCRouter({
         })
       }
 
-      const isContractor = existingProposal.contractor_id === ctx.user.id
-      const isHomeowner = existingProposal.homeowner_id === ctx.user.id
+      const isContractor = existingProposal.contractor === ctx.user.id
+      const isHomeowner = existingProposal.homeowner === ctx.user.id
 
       if (!isContractor && !isHomeowner) {
         throw new TRPCError({
@@ -366,7 +354,7 @@ export const proposalsRouter = createTRPCRouter({
       const updateData: any = {
         status,
         last_updated: new Date(),
-        last_modified_by_id: ctx.user.id,
+        last_modified_by: ctx.user.id,
       }
 
       // Add status-specific fields
@@ -438,7 +426,7 @@ export const proposalsRouter = createTRPCRouter({
       // Check if user owns the proposal and it's still editable
       const { data: existingProposal, error: fetchError } = await ctx.supabase
         .from('proposals')
-        .select('contractor_id, status')
+        .select('contractor, status')
         .eq('id', id)
         .single()
 
@@ -449,7 +437,7 @@ export const proposalsRouter = createTRPCRouter({
         })
       }
 
-      if (existingProposal.contractor_id !== ctx.user.id) {
+      if (existingProposal.contractor !== ctx.user.id) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'You can only update your own proposals',
@@ -466,7 +454,7 @@ export const proposalsRouter = createTRPCRouter({
       const finalUpdateData = {
         ...updateData,
         last_updated: new Date(),
-        last_modified_by_id: ctx.user.id,
+        last_modified_by: ctx.user.id,
       }
 
       const { data, error } = await ctx.supabase
@@ -517,7 +505,7 @@ export const proposalsRouter = createTRPCRouter({
         .update({
           is_deleted: 'yes',
           last_updated: new Date(),
-          last_modified_by_id: ctx.user.id,
+          last_modified_by: ctx.user.id,
         })
         .eq('id', input.id)
 
@@ -538,7 +526,7 @@ export const proposalsRouter = createTRPCRouter({
       // Check if user is the homeowner for this proposal
       const { data: existingProposal, error: fetchError } = await ctx.supabase
         .from('proposals')
-        .select('homeowner_id')
+        .select('homeowner')
         .eq('id', input.id)
         .single()
 
@@ -549,7 +537,7 @@ export const proposalsRouter = createTRPCRouter({
         })
       }
 
-      if (existingProposal.homeowner_id !== ctx.user.id) {
+      if (existingProposal.homeowner !== ctx.user.id) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'You can only mark your own proposals as viewed',
@@ -561,7 +549,7 @@ export const proposalsRouter = createTRPCRouter({
         .update({
           viewed_date: new Date(),
           last_updated: new Date(),
-          last_modified_by_id: ctx.user.id,
+          last_modified_by: ctx.user.id,
         })
         .eq('id', input.id)
 
