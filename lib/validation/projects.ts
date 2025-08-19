@@ -33,7 +33,7 @@ export const createProjectFormSchema = z.object({
     size: z.number().positive().optional(),
     mimeType: z.string().optional(),
     uploadedAt: z.date().optional(),
-  })).min(1, 'At least one project photo is required'),
+  })).default([]),
   // Optional fields (can be added later)
   certificate_of_title: z.string().url().optional().or(z.literal('')),
   substantial_completion: z.string().optional().transform(str => str ? new Date(str) : undefined),
@@ -80,7 +80,7 @@ export const createProjectFormInputSchema = z.object({
     size: z.number().positive().optional(),
     mimeType: z.string().optional(),
     uploadedAt: z.date().optional(),
-  })).min(1, 'At least one project photo is required'),
+  })).default([]),
   // Optional fields
   certificate_of_title: z.string().url().optional().or(z.literal('')),
   substantial_completion: z.string().optional(),

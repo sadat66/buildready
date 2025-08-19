@@ -1,7 +1,6 @@
 "use client";
 
 import { use } from "react";
-import { useAuth } from "@/contexts/AuthContext";
 import {
   HomeownerDashboard,
   ContractorDashboard,
@@ -15,16 +14,15 @@ interface DashboardPageProps {
 }
 
 export default function DashboardPage({ params }: DashboardPageProps) {
-  const { user } = useAuth();
   const resolvedParams = use(params) as { role: string };
   const { role } = resolvedParams;
 
   switch (role) {
     case "contractor":
-      return <ContractorDashboard userEmail={user?.email} />;
+      return <ContractorDashboard />;
 
     case "homeowner":
-      return <HomeownerDashboard userEmail={user?.email} />;
+      return <HomeownerDashboard />;
 
     case "admin":
       return <RoleSelector />;

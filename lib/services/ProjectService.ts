@@ -27,15 +27,30 @@ export interface ProjectData {
   start_date: string
   end_date: string
   expiry_date: string
-  decision_date: string
-  permit_required: boolean
   substantial_completion: string | null
   is_verified_project: boolean
-  project_photos: any[]
-  files: any[]
+  project_photos: Array<{
+    id: string
+    filename: string
+    url: string
+    size?: number
+    mimeType?: string
+    uploadedAt?: Date
+  }>
+  files: Array<{
+    id: string
+    filename: string
+    url: string
+    size?: number
+    mimeType?: string
+    uploadedAt?: Date
+  }>
   creator: string
   status: string
   proposal_count: number
+  // Optional fields that might not be in the database schema
+  decision_date?: string
+  permit_required?: boolean
 }
 
 export class ProjectService {
@@ -83,13 +98,11 @@ export class ProjectService {
         certificate_of_title: formData.certificate_of_title || null,
         project_type: formData.project_type,
         visibility_settings: formData.visibility_settings,
-        start_date: new Date(formData.start_date).toISOString(),
-        end_date: new Date(formData.end_date).toISOString(),
-        expiry_date: expiryDate.toISOString(),
-        decision_date: decisionDate.toISOString(),
-        permit_required: formData.permit_required,
+        start_date: new Date(formData.start_date).toISOString().split('T')[0], // Convert to DATE format
+        end_date: new Date(formData.end_date).toISOString().split('T')[0], // Convert to DATE format
+        expiry_date: expiryDate.toISOString().split('T')[0], // Convert to DATE format
         substantial_completion: formData.substantial_completion
-          ? new Date(formData.substantial_completion).toISOString()
+          ? new Date(formData.substantial_completion).toISOString().split('T')[0]
           : null,
         is_verified_project: formData.is_verified_project,
         project_photos: formData.project_photos || [],
@@ -97,9 +110,25 @@ export class ProjectService {
         creator: userId,
         status: "Published",
         proposal_count: 0,
+        // Add missing fields that are in the form but not in the database schema
+        decision_date: decisionDate.toISOString().split('T')[0], // Convert to DATE format
+        permit_required: formData.permit_required,
       }
 
       console.log("projectData prepared:", projectData)
+      console.log("projectData JSON:", JSON.stringify(projectData, null, 2))
+      
+      // Validate required fields
+      const requiredFields = ['project_title', 'statement_of_work', 'budget', 'category', 'pid', 'location']
+      const missingFields = requiredFields.filter(field => !projectData[field as keyof ProjectData])
+      
+      if (missingFields.length > 0) {
+        console.error("Missing required fields:", missingFields)
+        return {
+          success: false,
+          error: `Missing required fields: ${missingFields.join(', ')}`,
+        }
+      }
 
       // Check if we have a valid Supabase client
       if (!this.supabase) {
@@ -120,12 +149,16 @@ export class ProjectService {
       console.log("Supabase response - error:", error)
 
       if (error) {
-        console.error("Database error:", error)
+        console.error("Database error details:", {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code,
+          fullError: error
+        })
         return {
           success: false,
-          error: `Failed to create project: ${
-            error.message || "Unknown database error"
-          }`,
+          error: `Database error: ${error.message || "Unknown error"}${error.details ? ` - ${error.details}` : ""}${error.hint ? ` (Hint: ${error.hint})` : ""}`,
         }
       }
 

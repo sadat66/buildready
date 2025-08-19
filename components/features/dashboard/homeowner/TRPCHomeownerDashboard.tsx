@@ -6,11 +6,7 @@ import ProjectStats from './ProjectStats'
 import RecentProjects from './RecentProjects'
 import { useAuth } from '@/contexts/AuthContext'
 
-interface TRPCHomeownerDashboardProps {
-  userEmail?: string
-}
-
-export default function TRPCHomeownerDashboard({ userEmail }: TRPCHomeownerDashboardProps) {
+export default function TRPCHomeownerDashboard() {
   const { user } = useAuth()
 
   // Fetch homeowner's projects using TRPC
@@ -52,9 +48,6 @@ export default function TRPCHomeownerDashboard({ userEmail }: TRPCHomeownerDashb
   }
 
   const projectsData = projects || []
-  const proposalsCount = projectsData.reduce((total, project) => {
-    return total + (project.proposals?.length || 0)
-  }, 0)
 
   return (
     <div className="space-y-8">

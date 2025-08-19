@@ -35,8 +35,22 @@ export async function GET(request: NextRequest) {
     })
     
     if (!error && data.user) {
-      // Get user's role from user object
-      const userRole = data.user.user_role || 'homeowner'
+      // Get user's role from users table
+      let userRole = 'homeowner'; // default fallback
+      try {
+        const { data: userData, error: userError } = await supabase
+          .from('users')
+          .select('user_role')
+          .eq('id', data.user.id)
+          .single();
+        
+        if (!userError && userData?.user_role) {
+          userRole = userData.user_role;
+        }
+      } catch (roleError) {
+        console.error('Failed to fetch user role:', roleError);
+        // Use default role if we can't fetch it
+      }
       
       // Redirect to role-specific dashboard
       return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/${userRole}/dashboard`)
@@ -67,8 +81,22 @@ export async function GET(request: NextRequest) {
     const { data, error } = await supabase.auth.exchangeCodeForSession(code)
     
     if (!error && data.user) {
-      // Get user's role from user object
-      const userRole = data.user.user_role || 'homeowner'
+      // Get user's role from users table
+      let userRole = 'homeowner'; // default fallback
+      try {
+        const { data: userData, error: userError } = await supabase
+          .from('users')
+          .select('user_role')
+          .eq('id', data.user.id)
+          .single();
+        
+        if (!userError && userData?.user_role) {
+          userRole = userData.user_role;
+        }
+      } catch (roleError) {
+        console.error('Failed to fetch user role:', roleError);
+        // Use default role if we can't fetch it
+      }
       
       // Redirect to role-specific dashboard
       return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/${userRole}/dashboard`)

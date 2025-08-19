@@ -3,7 +3,7 @@
 import { FormInput, FormSelect } from "@/components/shared/form-input";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Shield, Building2, FileText, CheckCircle, Calendar } from "lucide-react";
+import { Shield, CheckCircle } from "lucide-react";
 
 interface InsuranceSectionProps {
   formData: {

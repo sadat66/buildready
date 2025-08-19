@@ -2,7 +2,7 @@
 
 import { FormInput } from "@/components/shared/form-input";
 import { Badge } from "@/components/ui/badge";
-import { Briefcase, Building2, Shield, Calendar, Award } from "lucide-react";
+import { Briefcase } from "lucide-react";
 
 interface BusinessInfoSectionProps {
   formData: {

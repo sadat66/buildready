@@ -1,7 +1,7 @@
 "use client";
 
 import { FormInput } from "@/components/shared/form-input";
-import { MapPin, Building2, Mail } from "lucide-react";
+import { MapPin } from "lucide-react";
 
 interface ServiceLocationSectionProps {
   formData: {

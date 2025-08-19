@@ -11,8 +11,9 @@ export const proposalsRouter = createTRPCRouter({
       // Check if project exists and is not completed/cancelled
       const { data: project, error: projectError } = await ctx.supabase
         .from('projects')
+
         .select('id, status, homeowner_id')
-        .eq('id', input.project.id)
+        .eq('id', input.project)
         .single()
 
       if (projectError) {
@@ -40,7 +41,7 @@ export const proposalsRouter = createTRPCRouter({
       const { data: existingProposal } = await ctx.supabase
         .from('proposals')
         .select('id')
-        .eq('project_id', input.project.id)
+        .eq('project_id', input.project)
         .eq('contractor_id', ctx.user.id)
         .eq('status', 'draft')
         .single()
@@ -57,9 +58,9 @@ export const proposalsRouter = createTRPCRouter({
         .insert({
           title: input.title,
           description_of_work: input.description_of_work,
-          project_id: input.project.id,
-          contractor_id: input.contractor.id,
-          homeowner_id: input.homeowner.id,
+          project_id: input.project,
+          contractor_id: input.contractor,
+          homeowner_id: input.homeowner,
           subtotal_amount: input.subtotal_amount,
           tax_included: input.tax_included,
           total_amount: input.total_amount,

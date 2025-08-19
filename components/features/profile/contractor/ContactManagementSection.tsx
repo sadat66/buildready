@@ -5,14 +5,10 @@ import { Users } from "lucide-react";
 
 interface ContactManagementSectionProps {
   contractor_contacts: string[];
-  onAddContact?: (email: string) => void;
-  onRemoveContact?: (index: number) => void;
 }
 
 export function ContactManagementSection({
   contractor_contacts,
-  onAddContact,
-  onRemoveContact,
 }: ContactManagementSectionProps) {
   return (
     <Card>
