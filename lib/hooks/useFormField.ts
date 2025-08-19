@@ -1,34 +1,35 @@
 'use client'
 
-import { Control, FieldPath, FieldValues, Controller, ControllerRenderProps, PathValue } from "react-hook-form"
-import { useState } from "react"
+import { useFormContext, FieldPath, FieldValues, ControllerRenderProps, PathValue } from "react-hook-form"
 
 export interface UseFormFieldProps<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
 > {
   name: TName
-  control: Control<TFieldValues>
 }
 
 export function useFormField<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
->({ name, control }: UseFormFieldProps<TFieldValues, TName>) {
-  const [value, setValue] = useState<PathValue<TFieldValues, TName> | undefined>(undefined)
+>({ name }: UseFormFieldProps<TFieldValues, TName>) {
+  const { getFieldState, formState } = useFormContext<TFieldValues>()
   
-  // Create a field object that matches ControllerRenderProps interface
+  const fieldState = getFieldState(name, formState)
+  const error = fieldState?.error?.message
+  
+  // Create a properly typed field object that matches ControllerRenderProps exactly
   const field: ControllerRenderProps<TFieldValues, TName> = {
     name,
-    value,
-    onChange: (newValue: PathValue<TFieldValues, TName>) => {
-      setValue(newValue)
+    value: formState.defaultValues?.[name] as PathValue<TFieldValues, TName>,
+    onChange: () => {
+      // This will be handled by the parent form
     },
-    onBlur: () => {},
-    ref: () => {}, // Add the missing ref property
+    onBlur: () => {
+      // This will be handled by the parent form
+    },
+    ref: () => {},
   }
-  
-  const error = undefined
 
   return {
     field,

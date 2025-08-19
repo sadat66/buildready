@@ -30,7 +30,6 @@ export default function CreateProjectForm({
   const [error, setError] = useState("");
 
   const {
-    control,
     handleSubmit,
     formState: { errors, isValid },
     setValue,
@@ -169,14 +168,13 @@ export default function CreateProjectForm({
 
       <form onSubmit={handleSubmit(onSubmit, onFormError)} className="space-y-6">
         <BasicInformationSection
-          control={control}
           watch={watch}
           setValue={setValue}
         />
 
-        <BudgetSection control={control} />
-        <TimelineSection control={control} />
-        <VisibilitySettingsSection control={control} />
+        <BudgetSection />
+        <TimelineSection />
+        <VisibilitySettingsSection />
 
         <FileUploadSection
           dragActive={dragActive}

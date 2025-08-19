@@ -1,14 +1,8 @@
 import * as React from "react"
-import { Control } from "react-hook-form"
 import { Calendar } from "lucide-react"
 import { FormField, FormInput, FormSwitch } from "@/components/shared/form-input"
-import { CreateProjectFormInputData } from "@/lib/validation/projects"
 
-interface TimelineSectionProps {
-  control: Control<CreateProjectFormInputData>
-}
-
-export function TimelineSection({ control }: TimelineSectionProps) {
+export function TimelineSection() {
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-6">
       <h3 className="text-lg font-medium flex items-center space-x-2 mb-4">
@@ -18,7 +12,7 @@ export function TimelineSection({ control }: TimelineSectionProps) {
 
       <div className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField name="start_date" control={control}>
+          <FormField name="start_date">
             {({ field, error }) => (
               <FormInput
                 {...field}
@@ -29,7 +23,7 @@ export function TimelineSection({ control }: TimelineSectionProps) {
               />
             )}
           </FormField>
-          <FormField name="end_date" control={control}>
+          <FormField name="end_date">
             {({ field, error }) => (
               <FormInput
                 {...field}
@@ -43,7 +37,7 @@ export function TimelineSection({ control }: TimelineSectionProps) {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField name="expiry_date" control={control}>
+          <FormField name="expiry_date">
             {({ field, error }) => (
               <FormInput
                 {...field}
@@ -55,7 +49,7 @@ export function TimelineSection({ control }: TimelineSectionProps) {
               />
             )}
           </FormField>
-          <FormField name="decision_date" control={control}>
+          <FormField name="decision_date">
             {({ field, error }) => (
               <FormInput
                 {...field}
@@ -70,7 +64,7 @@ export function TimelineSection({ control }: TimelineSectionProps) {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField name="substantial_completion" control={control}>
+          <FormField name="substantial_completion">
             {({ field, error }) => (
               <FormInput
                 {...field}
@@ -80,9 +74,10 @@ export function TimelineSection({ control }: TimelineSectionProps) {
               />
             )}
           </FormField>
-          <FormField name="permit_required" control={control}>
+          <FormField name="permit_required">
             {({ field, error }) => (
               <FormSwitch
+                {...field}
                 label="Permit Required"
                 helperText="Project requires building permits"
                 checked={field.value}
