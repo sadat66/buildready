@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AuthFooter, AuthHero, LoginForm } from "@/components/features/auth";
 import { useAuth } from "@/contexts/AuthContext";
+import { USER_ROLES } from "@/lib/constants";
 import LoadingSpinner from "@/components/shared/loading-spinner";
 import toast from "react-hot-toast";
 
@@ -57,7 +58,7 @@ export default function LoginPage() {
             
             if (!error && data.user) {
               // Get user's role from users table
-              let userRole = 'homeowner'; // default fallback
+              let userRole = USER_ROLES.HOMEOWNER; // default fallback
               try {
                 const { data: userData, error: userError } = await supabase
                   .from('users')
@@ -99,7 +100,7 @@ export default function LoginPage() {
               
               // Show success toast only once
               if (!hasShownToast) {
-                const tempUserRole = userRole || 'homeowner';
+                const tempUserRole = userRole || USER_ROLES.HOMEOWNER;
                 toast.success(
                   `Welcome to BuildReady! Your ${tempUserRole} account has been successfully verified.`,
                   {

@@ -1,5 +1,5 @@
  
-export type UserRole = 'homeowner' | 'contractor' | 'admin'
+import { LegalEntityType, UserRole, TradeCategory } from '@/lib/constants'
 
 export interface User {
   id: string
@@ -34,13 +34,13 @@ export interface ContractorProfile {
   insurance_general_liability?: number // monetary amount of the general liability insurance
   insurance_upload?: string // file representing proof of insurance
   is_insurance_verified: boolean // indicates whether the insurance status has been verified
-  legal_entity_type?: 'Corporation' | 'Partnership' | 'Sole Proprietorship' | 'LLC' // corporate structure
+  legal_entity_type?: LegalEntityType // corporate structure
   licenses: string[] // list of uploaded license files
   logo?: string // company's logo file
   phone_number?: string // primary business phone number
   portfolio: string[] // list of past project images or documents
   service_location?: string // central service location
-  trade_category: string[] // list specifying primary and secondary trades
+  trade_category: TradeCategory[] // list specifying primary and secondary trades
   user_id: string // linked user account
   wcb_number?: string // Workers' Compensation Board number
   work_guarantee?: number // work and materials guarantee in months

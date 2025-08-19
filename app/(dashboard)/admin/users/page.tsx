@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { User, Search, Plus, Edit, Trash2, Shield, Home, Wrench } from 'lucide-react'
+import { USER_ROLES } from '@/lib/constants'
 
 export default function AdminUsersPage() {
 
@@ -14,7 +15,7 @@ export default function AdminUsersPage() {
       id: 1,
       name: 'John Smith',
       email: 'john@example.com',
-      user_role: 'homeowner',
+      user_role: USER_ROLES.HOMEOWNER,
       status: 'active',
       joinDate: '2024-01-01',
       lastLogin: '2024-01-15',
@@ -24,7 +25,7 @@ export default function AdminUsersPage() {
       id: 2,
       name: 'Sarah Johnson',
       email: 'sarah@example.com',
-      user_role: 'homeowner',
+      user_role: USER_ROLES.HOMEOWNER,
       status: 'active',
       joinDate: '2024-01-05',
       lastLogin: '2024-01-14',
@@ -34,7 +35,7 @@ export default function AdminUsersPage() {
       id: 3,
       name: 'Mike Wilson',
       email: 'mike@example.com',
-      user_role: 'contractor',
+      user_role: USER_ROLES.CONTRACTOR,
       status: 'active',
       joinDate: '2023-12-15',
       lastLogin: '2024-01-15',
@@ -44,7 +45,7 @@ export default function AdminUsersPage() {
       id: 4,
       name: 'Lisa Brown',
       email: 'lisa@example.com',
-      user_role: 'contractor',
+      user_role: USER_ROLES.CONTRACTOR,
       status: 'pending',
       joinDate: '2024-01-10',
       lastLogin: 'Never',
@@ -54,7 +55,7 @@ export default function AdminUsersPage() {
       id: 5,
       name: 'Admin User',
       email: 'admin@example.com',
-      user_role: 'admin',
+      user_role: USER_ROLES.ADMIN,
       status: 'active',
       joinDate: '2023-01-01',
       lastLogin: '2024-01-15',
@@ -64,11 +65,11 @@ export default function AdminUsersPage() {
 
   const getRoleIcon = (role: string) => {
     switch (role) {
-      case 'admin':
+      case USER_ROLES.ADMIN:
         return <Shield className="h-4 w-4 text-red-500" />
-      case 'homeowner':
+      case USER_ROLES.HOMEOWNER:
         return <Home className="h-4 w-4 text-blue-500" />
-      case 'contractor':
+      case USER_ROLES.CONTRACTOR:
         return <Wrench className="h-4 w-4 text-green-500" />
       default:
         return <User className="h-4 w-4 text-gray-500" />
@@ -90,11 +91,11 @@ export default function AdminUsersPage() {
 
   const getRoleBadge = (role: string) => {
     switch (role) {
-      case 'admin':
+      case USER_ROLES.ADMIN:
         return <Badge className="bg-orange-100 text-orange-800">Admin</Badge>
-      case 'homeowner':
+      case USER_ROLES.HOMEOWNER:
         return <Badge className="bg-gray-100 text-gray-800">Homeowner</Badge>
-      case 'contractor':
+      case USER_ROLES.CONTRACTOR:
         return <Badge className="bg-gray-100 text-gray-800">Contractor</Badge>
       default:
         return <Badge className="bg-gray-100 text-gray-800">{role}</Badge>
@@ -133,7 +134,7 @@ export default function AdminUsersPage() {
             <div className="flex items-center space-x-2">
               <Home className="h-5 w-5 text-gray-600" />
               <div>
-                <p className="text-2xl font-bold">{users.filter(u => u.user_role === 'homeowner').length}</p>
+                <p className="text-2xl font-bold">{users.filter(u => u.user_role === USER_ROLES.HOMEOWNER).length}</p>
                 <p className="text-sm text-gray-600">Homeowners</p>
               </div>
             </div>
@@ -144,7 +145,7 @@ export default function AdminUsersPage() {
             <div className="flex items-center space-x-2">
               <Wrench className="h-5 w-5 text-gray-600" />
               <div>
-                <p className="text-2xl font-bold">{users.filter(u => u.user_role === 'contractor').length}</p>
+                <p className="text-2xl font-bold">{users.filter(u => u.user_role === USER_ROLES.CONTRACTOR).length}</p>
                 <p className="text-sm text-gray-600">Contractors</p>
               </div>
             </div>
@@ -155,7 +156,7 @@ export default function AdminUsersPage() {
             <div className="flex items-center space-x-2">
               <Shield className="h-5 w-5 text-gray-600" />
               <div>
-                <p className="text-2xl font-bold">{users.filter(u => u.user_role === 'admin').length}</p>
+                <p className="text-2xl font-bold">{users.filter(u => u.user_role === USER_ROLES.ADMIN).length}</p>
                 <p className="text-sm text-gray-600">Admins</p>
               </div>
             </div>

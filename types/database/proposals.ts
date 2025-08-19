@@ -1,5 +1,6 @@
 import { User } from './auth'
 import { Project } from './projects'
+import { VisibilitySettings, ProposalStatus, RejectionReason } from '@/lib/constants'
 
 // Base proposal interface (matches the comprehensive schema exactly)
 export interface Proposal {
@@ -29,7 +30,7 @@ export interface Proposal {
   expiry_date: Date
   
   // Status and workflow fields
-  status: 'draft' | 'submitted' | 'viewed' | 'accepted' | 'rejected' | 'withdrawn' | 'expired'
+  status: ProposalStatus
   is_selected: 'yes' | 'no'
   is_deleted: 'yes' | 'no'
   
@@ -43,7 +44,7 @@ export interface Proposal {
   
   // Rejection handling
   rejected_by?: string
-  rejection_reason?: 'price_too_high' | 'timeline_unrealistic' | 'experience_insufficient' | 'scope_mismatch' | 'other'
+  rejection_reason?: RejectionReason
   rejection_reason_notes?: string
   
   // Content and documentation
@@ -67,7 +68,7 @@ export interface Proposal {
   last_modified_by: string
   
   // Visibility and sharing
-  visibility_settings: 'private' | 'public' | 'shared'
+  visibility_settings: VisibilitySettings
 }
 
 // Additional proposal types from the schema
@@ -95,7 +96,7 @@ export interface ProposalCreate {
     uploadedAt?: Date
   }>
   notes?: string
-  visibility_settings?: 'private' | 'public' | 'shared'
+  visibility_settings?: VisibilitySettings
 }
 
 export interface ProposalUpdate {
@@ -109,7 +110,7 @@ export interface ProposalUpdate {
   proposed_start_date?: Date
   proposed_end_date?: Date
   expiry_date?: Date
-  status?: 'draft' | 'submitted' | 'viewed' | 'accepted' | 'rejected' | 'withdrawn' | 'expired'
+  status?: ProposalStatus
   is_selected?: 'yes' | 'no'
   clause_preview_html?: string
   attached_files?: Array<{
@@ -121,12 +122,12 @@ export interface ProposalUpdate {
     uploadedAt?: Date
   }>
   notes?: string
-  visibility_settings?: 'private' | 'public' | 'shared'
+  visibility_settings?: VisibilitySettings
 }
 
 export interface ProposalStatusUpdate {
   proposal_id: string
-  new_status: 'draft' | 'submitted' | 'viewed' | 'accepted' | 'rejected' | 'withdrawn' | 'expired'
+  new_status: ProposalStatus
   status_reason?: string
   updated_by: string
 }
@@ -146,7 +147,7 @@ export interface ProposalSearch {
   project?: string
   contractor?: string
   homeowner?: string
-  status?: 'draft' | 'submitted' | 'viewed' | 'accepted' | 'rejected' | 'withdrawn' | 'expired'
+  status?: ProposalStatus
   subtotal_amount_min?: number
   subtotal_amount_max?: number
   date_from?: Date

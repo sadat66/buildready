@@ -10,6 +10,7 @@ import {
   AccountDetailsStep, 
   ProgressSteps 
 } from './registration'
+import { USER_ROLES, UserRole } from '@/lib/constants'
 import { registrationSchema, type RegistrationFormData } from '@/lib/validation'
 
 interface RegistrationFormProps {
@@ -18,7 +19,7 @@ interface RegistrationFormProps {
     password: string
     first_name: string
     last_name: string
-    user_role: 'homeowner' | 'contractor'
+    user_role: UserRole
     user_agreed_to_terms: boolean
   }) => Promise<void>
   isLoading?: boolean
@@ -32,7 +33,7 @@ export function RegistrationForm({ onSubmit, isLoading = false, error }: Registr
     resolver: zodResolver(registrationSchema),
     mode: 'onBlur',
     defaultValues: {
-      user_role: 'homeowner',
+      user_role: USER_ROLES.HOMEOWNER,
       first_name: '',
       last_name: '',
       email: '',

@@ -1,13 +1,17 @@
 import { z } from 'zod'
-import { baseSchema, validationPatterns } from './base'
+import { baseSchema, validationPatterns, commonEnums } from './base'
 
-export const projectTypeEnum = z.enum(['New Build', 'Renovation', 'Maintenance', 'Repair', 'Inspection'])
+// Use the centralized project type enum from base schema
+export const projectTypeEnum = commonEnums.projectType
 
-export const projectStatusEnum = z.enum(['Draft', 'Published', 'Bidding', 'Awarded', 'In Progress', 'Completed', 'Cancelled'])
+// Use the centralized project status enum from base schema
+export const projectStatusEnum = commonEnums.projectStatus
 
-export const visibilitySettingsEnum = z.enum(['Public', 'Private', 'Invitation Only'])
+// Use the centralized visibility settings enum from base schema
+export const visibilitySettingsEnum = commonEnums.visibilitySettings
 
-export const tradeCategoryEnum = z.enum(['Electrical', 'Framing', 'HVAC', 'Plumbing', 'Roofing', 'Masonry'])
+// Use the centralized trade category enum from base schema
+export const tradeCategoryEnum = commonEnums.tradeCategory
 
 export const projectSchema = z.object({
   ...baseSchema,
@@ -19,8 +23,8 @@ export const projectSchema = z.object({
   location: validationPatterns.geospatialLocation,
   certificate_of_title: validationPatterns.optionalUrl,
   project_type: projectTypeEnum,
-  status: projectStatusEnum.default('Published'),
-  visibility_settings: visibilitySettingsEnum.default('Public'),
+  status: projectStatusEnum.default('Open for Proposals'),
+  visibility_settings: visibilitySettingsEnum.default('Public To Marketplace'),
   start_date: z.date(),
   end_date: z.date(),
   expiry_date: z.date(),

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
+import { USER_ROLES, ProposalStatus, PROPOSAL_STATUSES, RejectionReason } from '@/lib/constants'
 import { createClient } from '@/lib/supabase'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -35,7 +36,7 @@ interface ProposalWithJoins {
   proposed_start_date: string
   proposed_end_date: string
   expiry_date: string
-  status: 'draft' | 'submitted' | 'viewed' | 'accepted' | 'rejected' | 'withdrawn' | 'expired'
+  status: ProposalStatus
   is_selected: 'yes' | 'no'
   is_deleted: 'yes' | 'no'
   submitted_date?: string
@@ -45,7 +46,7 @@ interface ProposalWithJoins {
   viewed_date?: string
   last_updated: string
   rejected_by?: string
-  rejection_reason?: 'price_too_high' | 'timeline_unrealistic' | 'experience_insufficient' | 'scope_mismatch' | 'other'
+  rejection_reason?: RejectionReason
   rejection_reason_notes?: string
   clause_preview_html?: string
   attached_files?: Array<{
@@ -183,7 +184,7 @@ export default function HomeownerProposalsPage() {
     fetchData()
   }, [user])
 
-  const handleStatusUpdate = async (proposalId: string, status: 'draft' | 'submitted' | 'viewed' | 'accepted' | 'rejected' | 'withdrawn' | 'expired', feedback?: string) => {
+  const handleStatusUpdate = async (proposalId: string, status: ProposalStatus, feedback?: string) => {
     if (!user) return
     
     setActionLoading(proposalId)
@@ -197,15 +198,15 @@ export default function HomeownerProposalsPage() {
         .update({ 
           status,
           ...(feedback && { rejection_reason_notes: feedback }),
-          ...(status === 'rejected' && { rejected_date: new Date().toISOString() }),
-          ...(status === 'accepted' && { accepted_date: new Date().toISOString() })
+          ...(status === PROPOSAL_STATUSES.REJECTED && { rejected_date: new Date().toISOString() }),
+          ...(status === PROPOSAL_STATUSES.ACCEPTED && { accepted_date: new Date().toISOString() })
         })
         .eq('id', proposalId)
       
       if (updateError) throw updateError
       
-      // If accepted, update project status to awarded
-      if (status === 'accepted') {
+             // If accepted, update project status to awarded
+       if (status === PROPOSAL_STATUSES.ACCEPTED) {
         const proposal = proposals.find(p => p.id === proposalId)
         if (proposal) {
           const { error: projectError } = await supabase
@@ -224,8 +225,8 @@ export default function HomeownerProposalsPage() {
           : p
       ))
       
-      toast.success(`Proposal ${status === 'accepted' ? 'Accepted!' : 'Rejected'}. ${
-        status === 'accepted' 
+      toast.success(`Proposal ${status === PROPOSAL_STATUSES.ACCEPTED ? 'Accepted!' : 'Rejected'}. ${
+        status === PROPOSAL_STATUSES.ACCEPTED 
           ? 'The contractor has been notified and the project is now awarded.'
           : 'The contractor has been notified of your decision.'
       }`)
@@ -283,7 +284,7 @@ export default function HomeownerProposalsPage() {
     )
   }
 
-  if (!user || userRole !== 'homeowner') {
+      if (!user || userRole !== USER_ROLES.HOMEOWNER) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-lg">Access denied. Only homeowners can view project proposals.</div>
@@ -380,13 +381,13 @@ export default function HomeownerProposalsPage() {
                   </CardDescription>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge 
-                    variant={
-                      proposal.status === 'accepted' ? 'default' : 
-                      proposal.status === 'rejected' ? 'destructive' : 
-                      'secondary'
-                    }
-                  >
+                                     <Badge 
+                     variant={
+                       proposal.status === PROPOSAL_STATUSES.ACCEPTED ? 'default' : 
+                       proposal.status === PROPOSAL_STATUSES.REJECTED ? 'destructive' : 
+                       'secondary'
+                     }
+                   >
                     {proposal.status}
                   </Badge>
                 </div>
@@ -457,10 +458,10 @@ export default function HomeownerProposalsPage() {
 
               {/* Actions */}
               <div className="flex items-center justify-end gap-2 pt-4 border-t">
-                {proposal.status === 'submitted' || proposal.status === 'viewed' ? (
+                                 {proposal.status === PROPOSAL_STATUSES.SUBMITTED || proposal.status === PROPOSAL_STATUSES.VIEWED ? (
                   <>
                     <Button
-                      onClick={() => handleStatusUpdate(proposal.id, 'accepted')}
+                                             onClick={() => handleStatusUpdate(proposal.id, PROPOSAL_STATUSES.ACCEPTED)}
                       disabled={actionLoading === proposal.id}
                       className="bg-green-600 hover:bg-green-700"
                     >
@@ -468,7 +469,7 @@ export default function HomeownerProposalsPage() {
                       Accept
                     </Button>
                     <Button
-                      onClick={() => handleStatusUpdate(proposal.id, 'rejected')}
+                                             onClick={() => handleStatusUpdate(proposal.id, PROPOSAL_STATUSES.REJECTED)}
                       disabled={actionLoading === proposal.id}
                       variant="destructive"
                     >
@@ -476,12 +477,12 @@ export default function HomeownerProposalsPage() {
                       Reject
                     </Button>
                   </>
-                ) : proposal.status === 'accepted' ? (
+                                 ) : proposal.status === PROPOSAL_STATUSES.ACCEPTED ? (
                   <Badge variant="default" className="bg-green-100 text-green-800">
                     <CheckCircle className="h-4 w-4 mr-2" />
                     Accepted
                   </Badge>
-                ) : proposal.status === 'rejected' ? (
+                                 ) : proposal.status === PROPOSAL_STATUSES.REJECTED ? (
                   <Badge variant="destructive">
                     <XCircle className="h-4 w-4 mr-2" />
                     Rejected

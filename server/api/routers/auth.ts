@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { USER_ROLE_VALUES, USER_ROLES } from '@/lib/constants'
 import { createTRPCRouter, publicProcedure, protectedProcedure } from '~/server/api/trpc'
 import { TRPCError } from '@trpc/server'
 import { createClient } from '@supabase/supabase-js'
@@ -12,7 +13,7 @@ export const authRouter = createTRPCRouter({
         password: z.string().min(6),
         first_name: z.string().min(1),
         last_name: z.string().min(1),
-        user_role: z.enum(['homeowner', 'contractor']),
+        user_role: z.enum(USER_ROLE_VALUES),
         user_agreed_to_terms: z.boolean().default(false),
       })
     )
@@ -86,7 +87,7 @@ export const authRouter = createTRPCRouter({
           }
 
           // If user is a contractor, create a contractor profile
-          if (input.user_role === 'contractor' && data.user.id) {
+          if (input.user_role === USER_ROLES.CONTRACTOR && data.user.id) {
             const { error: profileError } = await supabase
               .from('contractor_profiles')
               .insert({

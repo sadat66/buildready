@@ -16,3 +16,9 @@ export interface GeospatialLocation {
   postalCode: string
   country?: string
 }
+
+// Re-export types from constants for convenience
+export type { ProjectType, ProjectStatus, VisibilitySettings, AccessMethod, ViewStatus, ProposalStatus, RejectionReason, AgreementStatus, TierLevel } from '@/lib/constants'
+export type { TradeCategory } from '@/lib/constants'
+export type { UserRole } from '@/lib/constants'
+export type { LegalEntityType } from '@/lib/constants'

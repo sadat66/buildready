@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
+import { USER_ROLES } from '@/lib/constants'
 import { createClient } from '@/lib/supabase'
 import { proposalService } from '@/lib/services'
 import { Project } from '@/types'
@@ -103,7 +104,7 @@ export default function SubmitProposalPage() {
       }
     }
     
-    if (!loading && user && userRole === 'contractor') {
+    if (!loading && user && userRole === USER_ROLES.CONTRACTOR) {
       fetchProject()
     } else if (!loading) {
       console.log('Not fetching project - authentication check failed:', { user: !!user, userRole, loading })
@@ -239,7 +240,7 @@ export default function SubmitProposalPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!user || userRole !== 'contractor') {
+    if (!user || userRole !== USER_ROLES.CONTRACTOR) {
       setError('Only contractors can submit proposals')
       return
     }
@@ -318,7 +319,7 @@ export default function SubmitProposalPage() {
     )
   }
 
-  if (!user || userRole !== 'contractor') {
+      if (!user || userRole !== USER_ROLES.CONTRACTOR) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-lg">Access denied. Only contractors can submit proposals.</div>

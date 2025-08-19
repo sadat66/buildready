@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
+import { USER_ROLES } from '@/lib/constants'
 import { createClient } from '@/lib/supabase'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -183,7 +184,7 @@ export default function ContractorProposalsPage() {
     )
   }
 
-  if (!user || userRole !== 'contractor') {
+      if (!user || userRole !== USER_ROLES.CONTRACTOR) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-lg">Access denied. Only contractors can view their proposals.</div>

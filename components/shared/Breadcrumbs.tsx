@@ -4,6 +4,7 @@ import { ChevronRight, Home } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
+import { USER_ROLES } from '@/lib/constants'
 
 interface BreadcrumbItem {
   label: string
@@ -26,7 +27,7 @@ export default function Breadcrumbs({ items, className = '' }: BreadcrumbsProps)
   if (breadcrumbItems.length === 0) return null
 
   // Get the user's role and determine dashboard path
-  const userRole = user?.user_metadata?.role || 'homeowner'
+      const userRole = user?.user_metadata?.role || USER_ROLES.HOMEOWNER
   const dashboardPath = `/${userRole}/dashboard`
 
   return (
@@ -75,7 +76,7 @@ function generateBreadcrumbsFromPath(pathname: string): BreadcrumbItem[] {
     currentPath += `/${segment}`
     
     // Skip certain segments that don't need breadcrumbs
-    if (['dashboard', 'homeowner', 'contractor', 'admin'].includes(segment)) {
+    if (['dashboard', USER_ROLES.HOMEOWNER, USER_ROLES.CONTRACTOR, USER_ROLES.ADMIN].includes(segment)) {
       return
     }
     
