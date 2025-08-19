@@ -8,6 +8,7 @@ import { ExtendedUser } from "@/contexts/AuthContext";
 import { CreateProjectFormInputData, createProjectFormInputSchema } from "@/lib/validation/projects";
 import { useFileHandling } from "@/lib/hooks";
 import { ProjectService } from "@/lib/services";
+import { VISIBILITY_SETTINGS } from "@/lib/constants";
 import { BasicInformationSection } from "./BasicInformationSection";
 import { BudgetSection } from "./BudgetSection";
 import { TimelineSection } from "./TimelineSection";
@@ -55,7 +56,7 @@ export default function CreateProjectForm({
       },
       certificate_of_title: "",
       project_type: "Renovation",
-      visibility_settings: "Public",
+      visibility_settings: VISIBILITY_SETTINGS.PUBLIC_TO_MARKETPLACE,
       start_date: new Date().toISOString().split('T')[0],
       end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       expiry_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],

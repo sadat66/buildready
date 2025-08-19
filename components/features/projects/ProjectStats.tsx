@@ -8,6 +8,7 @@ import {
   Clock
 } from 'lucide-react'
 import { Project } from '@/types'
+import { PROJECT_STATUSES } from '@/lib/constants'
 
 interface ProjectStatsProps {
   projects: Project[]
@@ -16,11 +17,11 @@ interface ProjectStatsProps {
 export default function ProjectStats({ projects }: ProjectStatsProps) {
   const stats = {
     total: projects.length,
-    published: projects.filter(p => p.status === 'Published').length,
-    bidding: projects.filter(p => p.status === 'Bidding').length,
-    awarded: projects.filter(p => p.status === 'Awarded').length,
-    completed: projects.filter(p => p.status === 'Completed').length,
-    cancelled: projects.filter(p => p.status === 'Cancelled').length,
+    published: projects.filter(p => p.status === PROJECT_STATUSES.OPEN_FOR_PROPOSALS).length,
+    bidding: projects.filter(p => p.status === PROJECT_STATUSES.IN_PROGRESS).length,
+    awarded: projects.filter(p => p.status === PROJECT_STATUSES.PROPOSAL_SELECTED).length,
+    completed: projects.filter(p => p.status === PROJECT_STATUSES.COMPLETED).length,
+    cancelled: projects.filter(p => p.status === PROJECT_STATUSES.CANCELLED).length,
     totalBudget: projects.reduce((sum, p) => sum + (p.budget || 0), 0),
     withLocation: projects.filter(p => p.location?.address).length,
     upcomingDeadlines: projects.filter(p => {

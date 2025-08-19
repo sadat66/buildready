@@ -10,6 +10,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { api } from "@/components/providers/TRPCProvider";
 import toast from "react-hot-toast";
+import { UserRole } from "@/lib/constants";
 
 export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -54,7 +55,7 @@ export default function RegisterPage() {
     password: string;
     first_name: string;
     last_name: string;
-    user_role: "homeowner" | "contractor";
+    user_role: UserRole;
     user_agreed_to_terms: boolean;
   }) => {
     setIsLoading(true);
