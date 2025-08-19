@@ -9,7 +9,7 @@
     "lint": "next lint",
     "lint:fix": "next lint --fix",
     "type-check": "tsc --noEmit",
-    "db:migrate": "tsx lib/database/migrate.ts migrate",
+    "db:migrate": "tsx lib/database/migrate.ts",
     "db:rollback": "tsx lib/database/migrate.ts rollback",
     "db:seed": "tsx lib/database/seed.ts",
     "db:reset": "tsx lib/database/reset.ts",
