@@ -209,8 +209,8 @@ export class ProjectService {
         PROJECT_STATUSES.CANCELLED
       ]
       let insertSuccess = false
-      let finalError: any = null
-      let finalData: any = null
+      let finalError: { message?: string; details?: string; hint?: string; code?: string } | null = null
+      let finalData: unknown = null
       
       console.log("=== STATUS DEBUG ===")
       console.log("Available statuses:", possibleStatuses)
@@ -247,7 +247,7 @@ export class ProjectService {
           }
         } catch (err) {
           console.log(`Status "${status}" threw error:`, err)
-          finalError = err
+          finalError = err as { message?: string; details?: string; hint?: string; code?: string }
         }
       }
       
@@ -297,7 +297,7 @@ export class ProjectService {
       console.log("Project created successfully in database")
       return { 
         success: true, 
-        projectId: data?.[0]?.id 
+        projectId: (data as Array<{ id: string }>)?.[0]?.id 
       }
     } catch (error) {
       console.error("Unexpected error in ProjectService:", error)
