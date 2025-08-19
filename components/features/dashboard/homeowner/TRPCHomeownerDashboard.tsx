@@ -56,7 +56,7 @@ export default function TRPCHomeownerDashboard() {
         stats={{
           total: projectsData.length,
           open: projectsData.filter(p => ['Published', 'Bidding'].includes(p.status)).length,
-          awarded: projectsData.filter(p => ['Awarded', 'In Progress'].includes(p.status)).length,
+          accepted: projectsData.filter(p => ['Awarded', 'In Progress'].includes(p.status)).length,
           completed: projectsData.filter(p => p.status === 'Completed').length
         }}
       />
