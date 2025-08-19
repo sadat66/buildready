@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAuth } from '@/contexts/AuthContext'
+import { USER_ROLES, UserRole } from '@/lib/constants'
 import { Loader2, Building2, Home } from 'lucide-react'
 
 // Homeowner onboarding schema
@@ -55,7 +56,7 @@ const specialties = [
 ]
 
 export function OnboardingForm() {
-  const [userType, setUserType] = useState<'homeowner' | 'contractor' | null>(null)
+  const [userType, setUserType] = useState<UserRole | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
   const { user, createUserProfile, fetchUserProfile } = useAuth()
@@ -73,7 +74,7 @@ export function OnboardingForm() {
 
     setIsLoading(true)
     try {
-      const result = await createUserProfile(user.id, 'homeowner', data)
+              const result = await createUserProfile(user.id, USER_ROLES.HOMEOWNER, data)
       if (result.error) {
         toast.error(result.error)
         return
@@ -94,7 +95,7 @@ export function OnboardingForm() {
 
     setIsLoading(true)
     try {
-      const result = await createUserProfile(user.id, 'contractor', data)
+              const result = await createUserProfile(user.id, USER_ROLES.CONTRACTOR, data)
       if (result.error) {
         toast.error(result.error)
         return
@@ -124,9 +125,9 @@ export function OnboardingForm() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Card 
                 className={`cursor-pointer transition-all hover:shadow-lg ${
-                  userType === 'homeowner' ? 'ring-2 ring-orange-500 bg-orange-50' : ''
-                }`}
-                onClick={() => setUserType('homeowner')}
+                                  userType === USER_ROLES.HOMEOWNER ? 'ring-2 ring-orange-500 bg-orange-50' : ''
+              }`}
+              onClick={() => setUserType(USER_ROLES.HOMEOWNER)}
               >
                 <CardContent className="p-6 text-center">
                   <Home className="w-12 h-12 mx-auto mb-4 text-gray-900" />
@@ -139,9 +140,9 @@ export function OnboardingForm() {
 
               <Card 
                 className={`cursor-pointer transition-all hover:shadow-lg ${
-                  userType === 'contractor' ? 'ring-2 ring-orange-500 bg-orange-50' : ''
-                }`}
-                onClick={() => setUserType('contractor')}
+                                  userType === USER_ROLES.CONTRACTOR ? 'ring-2 ring-orange-500 bg-orange-50' : ''
+              }`}
+              onClick={() => setUserType(USER_ROLES.CONTRACTOR)}
               >
                 <CardContent className="p-6 text-center">
                   <Building2 className="w-12 h-12 mx-auto mb-4 text-gray-900" />
@@ -163,14 +164,14 @@ export function OnboardingForm() {
       <Card className="w-full max-w-2xl">
         <CardHeader className="text-center">
           <CardTitle className="text-3xl font-bold">
-            {userType === 'homeowner' ? 'Homeowner Profile' : 'Contractor Profile'}
+            {userType === USER_ROLES.HOMEOWNER ? 'Homeowner Profile' : 'Contractor Profile'}
           </CardTitle>
           <CardDescription>
             Complete your profile to get started
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {userType === 'homeowner' ? (
+          {userType === USER_ROLES.HOMEOWNER ? (
             <form onSubmit={homeownerForm.handleSubmit(onSubmitHomeowner)} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">

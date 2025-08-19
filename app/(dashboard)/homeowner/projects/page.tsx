@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
+import { USER_ROLES } from '@/lib/constants'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
@@ -64,13 +65,13 @@ export default function HomeownerProjectsPage() {
         `)
         
         // Get user role from user object
-        const userRole = user.user_role || 'homeowner'
+        const userRole = user.user_role || USER_ROLES.HOMEOWNER
         
         // If homeowner, show only their projects
         // If contractor, show all open projects
-        if (userRole === 'homeowner') {
+        if (userRole === USER_ROLES.HOMEOWNER) {
           query = query.eq('creator', user.id)
-        } else if (userRole === 'contractor') {
+        } else if (userRole === USER_ROLES.CONTRACTOR) {
           query = query.eq('status', 'Published')
         }
         
@@ -133,7 +134,7 @@ export default function HomeownerProjectsPage() {
         />
       </div>
 
-      <ProjectsPage projects={projects} userRole={user?.user_role || 'homeowner'} />
+      <ProjectsPage projects={projects} userRole={user?.user_role || USER_ROLES.HOMEOWNER} />
     </div>
   )
 }

@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { USER_ROLES, PROPOSAL_STATUSES } from '@/lib/constants'
 import { createTRPCRouter, protectedProcedure, publicProcedureWithSupabase } from '~/server/api/trpc'
 import { TRPCError } from '@trpc/server'
 import { contractorProfileCreateSchema, contractorProfileUpdateSchema } from '~/lib/database/schemas/contractor_profiles'
@@ -69,7 +70,7 @@ export const usersRouter = createTRPCRouter({
       })
     }
 
-    if (user.user_role !== 'contractor') {
+    if (user.user_role !== USER_ROLES.CONTRACTOR) {
       throw new TRPCError({
         code: 'FORBIDDEN',
         message: 'Only contractors can access contractor profiles',
@@ -114,7 +115,7 @@ export const usersRouter = createTRPCRouter({
         })
       }
 
-      if (user.user_role !== 'contractor') {
+      if (user.user_role !== USER_ROLES.CONTRACTOR) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'Only contractors can create contractor profiles',
@@ -178,7 +179,7 @@ export const usersRouter = createTRPCRouter({
         })
       }
 
-      if (user.user_role !== 'contractor') {
+      if (user.user_role !== USER_ROLES.CONTRACTOR) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'Only contractors can update contractor profiles',
@@ -261,7 +262,7 @@ export const usersRouter = createTRPCRouter({
           user_role,
           created_at
         `)
-        .eq('user_role', 'contractor')
+        .eq('user_role', USER_ROLES.CONTRACTOR)
 
       // Apply filters
       if (input.query) {
@@ -328,8 +329,8 @@ export const usersRouter = createTRPCRouter({
     const proposalCounts = {
       total: proposalStats.length,
       pending: proposalStats.filter(p => p.status === 'pending').length,
-      accepted: proposalStats.filter(p => p.status === 'accepted').length,
-      rejected: proposalStats.filter(p => p.status === 'rejected').length,
+      accepted: proposalStats.filter(p => p.status === PROPOSAL_STATUSES.ACCEPTED).length,
+      rejected: proposalStats.filter(p => p.status === PROPOSAL_STATUSES.REJECTED).length,
     }
 
     return {

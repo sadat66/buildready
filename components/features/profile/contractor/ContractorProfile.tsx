@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase";
 import toast from "react-hot-toast";
 import Breadcrumbs from "@/components/shared/Breadcrumbs";
 import { useAuth } from "@/contexts/AuthContext";
+import { LegalEntityType } from "@/lib/constants/business";
 
 // Import modular components
 import { PersonalInfoSection } from "./PersonalInfoSection";
@@ -34,7 +35,7 @@ export function ContractorProfile() {
   const [contractorFormData, setContractorFormData] = useState({
     business_name: "",
     bio: "",
-    legal_entity_type: "" as "Corporation" | "Partnership" | "Sole Proprietorship" | "LLC" | "",
+          legal_entity_type: "" as LegalEntityType | "",
     gst_hst_number: "",
     wcb_number: "",
     service_location: "",
@@ -126,7 +127,7 @@ export function ContractorProfile() {
       setContractorFormData({
         business_name: (contractorProfile.business_name as string) || "",
         bio: (contractorProfile.bio as string) || "",
-        legal_entity_type: (contractorProfile.legal_entity_type as "Corporation" | "Partnership" | "Sole Proprietorship" | "LLC" | "") || "",
+        legal_entity_type: (contractorProfile.legal_entity_type as LegalEntityType | "") || "",
         gst_hst_number: (contractorProfile.gst_hst_number as string) || "",
         wcb_number: (contractorProfile.wcb_number as string) || "",
         service_location: (contractorProfile.service_location as string) || "",

@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
+import { USER_ROLES } from '@/lib/constants'
 
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url)
@@ -36,7 +37,7 @@ export async function GET(request: NextRequest) {
     
     if (!error && data.user) {
       // Get user's role from users table
-      let userRole = 'homeowner'; // default fallback
+      let userRole = USER_ROLES.HOMEOWNER; // default fallback
       try {
         const { data: userData, error: userError } = await supabase
           .from('users')
@@ -82,7 +83,7 @@ export async function GET(request: NextRequest) {
     
     if (!error && data.user) {
       // Get user's role from users table
-      let userRole = 'homeowner'; // default fallback
+      let userRole = USER_ROLES.HOMEOWNER; // default fallback
       try {
         const { data: userData, error: userError } = await supabase
           .from('users')

@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { createTRPCRouter, protectedProcedure, publicProcedureWithSupabase } from '~/server/api/trpc'
 import { TRPCError } from '@trpc/server'
 import { proposalSchema, proposalCreateSchema, proposalUpdateSchema } from '~/lib/database/schemas/proposals'
+import { VISIBILITY_SETTINGS, PROPOSAL_STATUSES, REJECTION_REASONS } from '~/lib/constants'
 
 export const proposalsRouter = createTRPCRouter({
   // Create a new proposal
@@ -43,7 +44,7 @@ export const proposalsRouter = createTRPCRouter({
         .select('id')
         .eq('project_id', input.project)
         .eq('contractor_id', ctx.user.id)
-        .eq('status', 'draft')
+        .eq('status', PROPOSAL_STATUSES.DRAFT)
         .single()
 
       if (existingProposal) {
@@ -72,8 +73,8 @@ export const proposalsRouter = createTRPCRouter({
           clause_preview_html: input.clause_preview_html,
           attached_files: input.attached_files || [],
           notes: input.notes,
-          visibility_settings: input.visibility_settings || 'private',
-          status: 'draft',
+          visibility_settings: input.visibility_settings || VISIBILITY_SETTINGS.PRIVATE,
+          status: PROPOSAL_STATUSES.DRAFT,
           created_by_id: ctx.user.id,
           last_modified_by_id: ctx.user.id,
           last_updated: new Date(),
@@ -145,7 +146,7 @@ export const proposalsRouter = createTRPCRouter({
   getMy: protectedProcedure
     .input(
       z.object({
-        status: z.enum(['draft', 'submitted', 'viewed', 'accepted', 'rejected', 'withdrawn', 'expired']).optional(),
+        status: z.enum([PROPOSAL_STATUSES.DRAFT, PROPOSAL_STATUSES.SUBMITTED, PROPOSAL_STATUSES.VIEWED, PROPOSAL_STATUSES.ACCEPTED, PROPOSAL_STATUSES.REJECTED, PROPOSAL_STATUSES.WITHDRAWN, PROPOSAL_STATUSES.EXPIRED]).optional(),
         limit: z.number().min(1).max(50).default(10),
         offset: z.number().min(0).default(0),
       })
@@ -197,7 +198,7 @@ export const proposalsRouter = createTRPCRouter({
     .input(
       z.object({
         projectId: z.string().uuid().optional(),
-        status: z.enum(['draft', 'submitted', 'viewed', 'accepted', 'rejected', 'withdrawn', 'expired']).optional(),
+        status: z.enum([PROPOSAL_STATUSES.DRAFT, PROPOSAL_STATUSES.SUBMITTED, PROPOSAL_STATUSES.VIEWED, PROPOSAL_STATUSES.ACCEPTED, PROPOSAL_STATUSES.REJECTED, PROPOSAL_STATUSES.WITHDRAWN, PROPOSAL_STATUSES.EXPIRED]).optional(),
         limit: z.number().min(1).max(50).default(10),
         offset: z.number().min(0).default(0),
       })
@@ -311,8 +312,8 @@ export const proposalsRouter = createTRPCRouter({
     .input(
       z.object({
         id: z.string().uuid(),
-        status: z.enum(['draft', 'submitted', 'viewed', 'accepted', 'rejected', 'withdrawn', 'expired']),
-        rejection_reason: z.enum(['price_too_high', 'timeline_unrealistic', 'experience_insufficient', 'scope_mismatch', 'other']).optional(),
+        status: z.enum([PROPOSAL_STATUSES.DRAFT, PROPOSAL_STATUSES.SUBMITTED, PROPOSAL_STATUSES.VIEWED, PROPOSAL_STATUSES.ACCEPTED, PROPOSAL_STATUSES.REJECTED, PROPOSAL_STATUSES.WITHDRAWN, PROPOSAL_STATUSES.EXPIRED]),
+        rejection_reason: z.enum([REJECTION_REASONS.INCOMPLETE_PROPOSAL, REJECTION_REASONS.TOO_EXPENSIVE, REJECTION_REASONS.TIMELINE_TOO_LONG, REJECTION_REASONS.OUT_OF_SCOPE_ITEMS, REJECTION_REASONS.OTHER]).optional(),
         rejection_reason_notes: z.string().optional(),
       })
     )
@@ -344,7 +345,7 @@ export const proposalsRouter = createTRPCRouter({
       }
 
       // Only contractors can submit/withdraw, only homeowners can accept/reject
-      if (status === 'submitted' || status === 'withdrawn') {
+      if (status === PROPOSAL_STATUSES.SUBMITTED || status === PROPOSAL_STATUSES.WITHDRAWN) {
         if (!isContractor) {
           throw new TRPCError({
             code: 'FORBIDDEN',
@@ -353,7 +354,7 @@ export const proposalsRouter = createTRPCRouter({
         }
       }
 
-      if (status === 'accepted' || status === 'rejected') {
+      if (status === PROPOSAL_STATUSES.ACCEPTED || status === PROPOSAL_STATUSES.REJECTED) {
         if (!isHomeowner) {
           throw new TRPCError({
             code: 'FORBIDDEN',
@@ -370,11 +371,11 @@ export const proposalsRouter = createTRPCRouter({
       }
 
       // Add status-specific fields
-      if (status === 'submitted') {
+      if (status === PROPOSAL_STATUSES.SUBMITTED) {
         updateData.submitted_date = new Date()
-      } else if (status === 'accepted') {
+      } else if (status === PROPOSAL_STATUSES.ACCEPTED) {
         updateData.accepted_date = new Date()
-      } else if (status === 'rejected') {
+      } else if (status === PROPOSAL_STATUSES.REJECTED) {
         updateData.rejected_date = new Date()
         updateData.rejected_by_id = ctx.user.id
         if (rejection_reason) {
@@ -383,7 +384,7 @@ export const proposalsRouter = createTRPCRouter({
         if (rejection_reason_notes) {
           updateData.rejection_reason_notes = rejection_reason_notes
         }
-      } else if (status === 'withdrawn') {
+      } else if (status === PROPOSAL_STATUSES.WITHDRAWN) {
         updateData.withdrawn_date = new Date()
       }
 
@@ -429,7 +430,7 @@ export const proposalsRouter = createTRPCRouter({
           uploadedAt: z.date().optional(),
         })).optional(),
         notes: z.string().optional(),
-        visibility_settings: z.enum(['private', 'public', 'shared']).optional(),
+                  visibility_settings: z.enum([VISIBILITY_SETTINGS.PRIVATE, VISIBILITY_SETTINGS.SHARED_WITH_TARGET_USER, VISIBILITY_SETTINGS.SHARED_WITH_PARTICIPANT, VISIBILITY_SETTINGS.PUBLIC_TO_INVITEES, VISIBILITY_SETTINGS.PUBLIC_TO_MARKETPLACE, VISIBILITY_SETTINGS.ADMIN_ONLY]).optional(),
       })
     )
     .mutation(async ({ input, ctx }) => {
@@ -456,7 +457,7 @@ export const proposalsRouter = createTRPCRouter({
         })
       }
 
-      if (!['draft', 'submitted'].includes(existingProposal.status)) {
+      if (![PROPOSAL_STATUSES.DRAFT, PROPOSAL_STATUSES.SUBMITTED].includes(existingProposal.status)) {
         throw new TRPCError({
           code: 'BAD_REQUEST',
           message: 'Can only update draft or submitted proposals',

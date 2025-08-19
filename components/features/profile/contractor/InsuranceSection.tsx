@@ -4,6 +4,7 @@ import { FormInput, FormSelect } from "@/components/shared/form-input";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Shield, CheckCircle } from "lucide-react";
+import { LEGAL_ENTITY_TYPE_VALUES } from "@/lib/constants/business";
 
 interface InsuranceSectionProps {
   formData: {
@@ -43,12 +44,7 @@ export function InsuranceSection({ formData, onInputChange }: InsuranceSectionPr
               placeholder="Select legal entity type"
               value={formData.legal_entity_type}
               onValueChange={(value) => onInputChange("legal_entity_type", value)}
-              options={[
-                { value: "Corporation", label: "Corporation" },
-                { value: "Partnership", label: "Partnership" },
-                { value: "Sole Proprietorship", label: "Sole Proprietorship" },
-                { value: "LLC", label: "LLC" }
-              ]}
+              options={LEGAL_ENTITY_TYPE_VALUES.map(type => ({ value: type, label: type }))}
               containerClassName="space-y-2"
             />
           </div>

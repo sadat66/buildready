@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { createTRPCRouter, protectedProcedure, publicProcedureWithSupabase } from '~/server/api/trpc'
 import { TRPCError } from '@trpc/server'
+import { VISIBILITY_SETTINGS } from '~/lib/constants'
 
 const projectSchema = z.object({
   project_title: z.string().min(1, 'Project title is required'),
@@ -17,7 +18,7 @@ const projectSchema = z.object({
     postalCode: z.string().min(1, 'Postal code is required'),
   }),
   project_type: z.enum(['New Build', 'Renovation', 'Maintenance', 'Repair', 'Inspection']),
-  visibility_settings: z.enum(['Public', 'Private', 'Invitation Only']),
+        visibility_settings: z.enum([VISIBILITY_SETTINGS.PRIVATE, VISIBILITY_SETTINGS.SHARED_WITH_TARGET_USER, VISIBILITY_SETTINGS.SHARED_WITH_PARTICIPANT, VISIBILITY_SETTINGS.PUBLIC_TO_INVITEES, VISIBILITY_SETTINGS.PUBLIC_TO_MARKETPLACE, VISIBILITY_SETTINGS.ADMIN_ONLY]),
   start_date: z.date(),
   end_date: z.date(),
   expiry_date: z.date(),

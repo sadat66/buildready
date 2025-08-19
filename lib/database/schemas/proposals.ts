@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { baseSchema, commonEnums, validationPatterns } from './base'
+import { PROPOSAL_STATUSES, VISIBILITY_SETTINGS } from '@/lib/constants'
 
 export const proposalSchema = z.object({
   ...baseSchema,
@@ -25,7 +26,7 @@ export const proposalSchema = z.object({
   expiry_date: validationPatterns.date,
   
   // Status and workflow fields
-  status: commonEnums.proposalStatus.default('draft'),
+  status: commonEnums.proposalStatus.default(PROPOSAL_STATUSES.DRAFT),
   is_selected: validationPatterns.yesNo.default('no'),
   is_deleted: validationPatterns.yesNo.default('no'),
   
@@ -47,6 +48,9 @@ export const proposalSchema = z.object({
   attached_files: z.array(validationPatterns.fileReference).default([]),
   notes: validationPatterns.optionalString,
   
+  // Trade category for matching and licensing requirements
+  trade_category: commonEnums.tradeCategory,
+  
   // Relationships and references
   agreement: validationPatterns.uuid.optional(),
   proposals: z.array(validationPatterns.uuid).default([]),
@@ -56,7 +60,7 @@ export const proposalSchema = z.object({
   last_modified_by: validationPatterns.uuid,
   
   // Visibility and sharing
-  visibility_settings: commonEnums.visibilitySettings.default('private'),
+  visibility_settings: commonEnums.visibilitySettings.default(VISIBILITY_SETTINGS.PRIVATE),
 })
 
 export const proposalCreateSchema = proposalSchema.omit({

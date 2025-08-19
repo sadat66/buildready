@@ -1,4 +1,15 @@
 import { z } from 'zod'
+import { LEGAL_ENTITY_TYPE_VALUES } from '@/lib/constants/business'
+import { USER_ROLE_VALUES } from '@/lib/constants/users'
+import { TRADE_CATEGORY_VALUES } from '@/lib/constants/trades'
+import { PROJECT_TYPE_VALUES, PROJECT_STATUS_VALUES } from '@/lib/constants/projects'
+import { VISIBILITY_SETTINGS_VALUES } from '@/lib/constants/visibility'
+import { ACCESS_METHOD_VALUES } from '@/lib/constants/access'
+import { VIEW_STATUS_VALUES } from '@/lib/constants/views'
+import { PROPOSAL_STATUS_VALUES } from '@/lib/constants/proposals'
+import { REJECTION_REASON_VALUES } from '@/lib/constants/rejections'
+import { AGREEMENT_STATUS_VALUES } from '@/lib/constants/agreements'
+import { TIER_LEVEL_VALUES } from '@/lib/constants/tiers'
 
 export const baseSchema = {
   id: z.string().uuid(),
@@ -13,11 +24,18 @@ export const commonFields = {
 } as const
 
 export const commonEnums = {
-  userRole: z.enum(['homeowner', 'contractor', 'admin']),
-  proposalStatus: z.enum(['draft', 'submitted', 'viewed', 'accepted', 'rejected', 'withdrawn', 'expired']),
-  legalEntityType: z.enum(['Corporation', 'Partnership', 'Sole Proprietorship', 'LLC']),
-  rejectionReason: z.enum(['price_too_high', 'timeline_unrealistic', 'experience_insufficient', 'scope_mismatch', 'other']),
-  visibilitySettings: z.enum(['private', 'public', 'shared']),
+  userRole: z.enum(USER_ROLE_VALUES),
+  proposalStatus: z.enum(PROPOSAL_STATUS_VALUES),
+  legalEntityType: z.enum(LEGAL_ENTITY_TYPE_VALUES),
+  tradeCategory: z.enum(TRADE_CATEGORY_VALUES),
+  projectType: z.enum(PROJECT_TYPE_VALUES),
+  projectStatus: z.enum(PROJECT_STATUS_VALUES),
+  rejectionReason: z.enum(REJECTION_REASON_VALUES),
+  agreementStatus: z.enum(AGREEMENT_STATUS_VALUES),
+  tierLevel: z.enum(TIER_LEVEL_VALUES),
+  visibilitySettings: z.enum(VISIBILITY_SETTINGS_VALUES),
+  accessMethod: z.enum(ACCESS_METHOD_VALUES),
+  viewStatus: z.enum(VIEW_STATUS_VALUES),
 } as const
 
 export const validationPatterns = {
@@ -64,4 +82,8 @@ export type FileReference = z.infer<typeof validationPatterns.fileReference>
 export type YesNo = z.infer<typeof validationPatterns.yesNo>
 export type ProposalStatus = z.infer<typeof commonEnums.proposalStatus>
 export type RejectionReason = z.infer<typeof commonEnums.rejectionReason>
+export type AgreementStatus = z.infer<typeof commonEnums.agreementStatus>
+export type TierLevel = z.infer<typeof commonEnums.tierLevel>
 export type VisibilitySettings = z.infer<typeof commonEnums.visibilitySettings>
+export type AccessMethod = z.infer<typeof commonEnums.accessMethod>
+export type ViewStatus = z.infer<typeof commonEnums.viewStatus>

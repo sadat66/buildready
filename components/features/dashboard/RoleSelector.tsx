@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Home, Briefcase, Shield } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { USER_ROLES } from '@/lib/constants'
 
 interface RoleSelectorProps {
   onRoleSelect?: (role: string) => void
@@ -23,7 +24,7 @@ export default function RoleSelector({ onRoleSelect }: RoleSelectorProps) {
 
   const roles = [
     {
-      id: 'homeowner',
+      id: USER_ROLES.HOMEOWNER,
       title: 'Homeowner',
       description: 'Post projects and manage home improvements',
       icon: Home,
@@ -37,7 +38,7 @@ export default function RoleSelector({ onRoleSelect }: RoleSelectorProps) {
       ]
     },
     {
-      id: 'contractor',
+      id: USER_ROLES.CONTRACTOR,
       title: 'Contractor',
       description: 'Find projects and submit proposals',
       icon: Briefcase,
@@ -51,7 +52,7 @@ export default function RoleSelector({ onRoleSelect }: RoleSelectorProps) {
       ]
     },
     {
-      id: 'admin',
+      id: USER_ROLES.ADMIN,
       title: 'Administrator',
       description: 'Manage platform and oversee operations',
       icon: Shield,

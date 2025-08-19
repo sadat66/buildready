@@ -1,5 +1,6 @@
 import { User } from "./auth";
 import { FileReference, GeospatialLocation } from "../common";
+import { ProjectType, ProjectStatus, VisibilitySettings } from "@/lib/constants";
 
 export interface Project {
   id: string;
@@ -11,21 +12,9 @@ export interface Project {
   location: GeospatialLocation;
   location_geom?: any;
   certificate_of_title?: string | null;
-  project_type:
-    | "New Build"
-    | "Renovation"
-    | "Maintenance"
-    | "Repair"
-    | "Inspection";
-  status:
-    | "Draft"
-    | "Published"
-    | "Bidding"
-    | "Awarded"
-    | "In Progress"
-    | "Completed"
-    | "Cancelled";
-  visibility_settings: "Public" | "Private" | "Invitation Only";
+  project_type: ProjectType;
+  status: ProjectStatus;
+  visibility_settings: VisibilitySettings;
   start_date: Date;
   end_date: Date;
   expiry_date: Date;
