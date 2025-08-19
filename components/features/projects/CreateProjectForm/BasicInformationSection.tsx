@@ -1,18 +1,11 @@
 import * as React from "react"
-import { UseFormWatch, UseFormSetValue } from "react-hook-form"
+import { useFormContext } from "react-hook-form"
 import { FormField, FormInput, FormTextarea, FormSelect, FormBadge, FormFieldLocation, FormMultiSelect } from "@/components/shared/form-input"
 import { CreateProjectFormInputData } from "@/lib/validation/projects"
-import { TRADE_CATEGORY_VALUES } from "@/lib/constants"
+import { TRADE_CATEGORY_VALUES, PROJECT_TYPE_VALUES } from "@/lib/constants"
  
-interface BasicInformationSectionProps {
-  watch: UseFormWatch<CreateProjectFormInputData>
-  setValue: UseFormSetValue<CreateProjectFormInputData>
-}
-
-export function BasicInformationSection({ 
-  watch, 
-  setValue
-}: BasicInformationSectionProps) {
+export function BasicInformationSection() {
+  const { watch, setValue } = useFormContext<CreateProjectFormInputData>()
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-6">
       <h3 className="text-lg font-medium mb-4">Basic Information</h3>
@@ -52,46 +45,18 @@ export function BasicInformationSection({
               onChange={field.onChange}
               required
               error={error}
-
             />
           )}
         </FormField>
 
-        {watch("category") && watch("category").length > 0 && (
-          <div className="flex flex-wrap gap-2 mt-2">
-            {watch("category").map((cat: string, index: number) => (
-              <FormBadge
-                key={index}
-                label={cat}
-                variant="secondary"
-                removable
-                onRemove={() => {
-                  const newCategories = watch("category").filter(
-                    (_: string, i: number) => i !== index
-                  )
-                  setValue("category", newCategories)
-                }}
-              />
-            ))}
-          </div>
-        )}
-
         <FormField name="project_type">
           {({ field, error }) => (
             <FormSelect
-              {...field}
               label="Project Type"
               placeholder="Select project type"
-              options={[
-                { value: "New Build", label: "New Build" },
-                { value: "Renovation", label: "Renovation" },
-                { value: "Repair", label: "Repair" },
-                { value: "Addition", label: "Addition" },
-                { value: "Demolition", label: "Demolition" },
-                { value: "Landscaping", label: "Landscaping" },
-                { value: "Specialty", label: "Specialty" },
-                { value: "Other", label: "Other" }
-              ]}
+              options={PROJECT_TYPE_VALUES.map(value => ({ value, label: value }))}
+              value={field.value}
+              onValueChange={field.onChange}
               required
               error={error}
             />

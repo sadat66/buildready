@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Project } from '@/types'
+import { PROJECT_STATUSES } from "@/lib/constants"
 
 interface ProjectCardProps {
   projects: Project[]
@@ -21,14 +22,14 @@ export default function ProjectCard({ projects, onProjectClick }: ProjectCardPro
 
   const getStatusConfig = (status: string) => {
     const statusConfig = {
-      open: { label: 'Open', variant: 'default' as const, color: 'bg-gray-100 text-gray-800' },
-      bidding: { label: 'Bidding', variant: 'secondary' as const, color: 'bg-orange-100 text-orange-800' },
-      awarded: { label: 'Awarded', variant: 'outline' as const, color: 'bg-orange-100 text-orange-800' },
-      completed: { label: 'Completed', variant: 'outline' as const, color: 'bg-gray-900 text-white' },
-      cancelled: { label: 'Cancelled', variant: 'destructive' as const, color: 'bg-gray-100 text-gray-800' },
+      [PROJECT_STATUSES.OPEN_FOR_PROPOSALS]: { label: PROJECT_STATUSES.OPEN_FOR_PROPOSALS, variant: 'default' as const, color: 'bg-gray-100 text-gray-800' },
+      [PROJECT_STATUSES.PROPOSAL_SELECTED]: { label: PROJECT_STATUSES.PROPOSAL_SELECTED, variant: 'secondary' as const, color: 'bg-orange-100 text-orange-800' },
+      [PROJECT_STATUSES.IN_PROGRESS]: { label: PROJECT_STATUSES.IN_PROGRESS, variant: 'outline' as const, color: 'bg-orange-100 text-orange-800' },
+      [PROJECT_STATUSES.COMPLETED]: { label: PROJECT_STATUSES.COMPLETED, variant: 'outline' as const, color: 'bg-gray-900 text-white' },
+      [PROJECT_STATUSES.CANCELLED]: { label: PROJECT_STATUSES.CANCELLED, variant: 'destructive' as const, color: 'bg-gray-100 text-gray-800' },
     }
     
-    return statusConfig[status as keyof typeof statusConfig] || statusConfig.open
+    return statusConfig[status as keyof typeof statusConfig] || statusConfig[PROJECT_STATUSES.OPEN_FOR_PROPOSALS]
   }
 
   const formatDate = (date: Date | string) => {

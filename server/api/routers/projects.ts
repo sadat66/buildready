@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { createTRPCRouter, protectedProcedure, publicProcedureWithSupabase } from '~/server/api/trpc'
 import { TRPCError } from '@trpc/server'
-import { VISIBILITY_SETTINGS } from '~/lib/constants'
+import { VISIBILITY_SETTINGS, PROJECT_TYPES, PROJECT_STATUSES } from '~/lib/constants'
 
 const projectSchema = z.object({
   project_title: z.string().min(1, 'Project title is required'),
@@ -17,7 +17,7 @@ const projectSchema = z.object({
     province: z.string().min(1, 'Province is required'),
     postalCode: z.string().min(1, 'Postal code is required'),
   }),
-  project_type: z.enum(['New Build', 'Renovation', 'Maintenance', 'Repair', 'Inspection']),
+  project_type: z.enum(Object.values(PROJECT_TYPES)),
         visibility_settings: z.enum([VISIBILITY_SETTINGS.PRIVATE, VISIBILITY_SETTINGS.SHARED_WITH_TARGET_USER, VISIBILITY_SETTINGS.SHARED_WITH_PARTICIPANT, VISIBILITY_SETTINGS.PUBLIC_TO_INVITEES, VISIBILITY_SETTINGS.PUBLIC_TO_MARKETPLACE, VISIBILITY_SETTINGS.ADMIN_ONLY]),
   start_date: z.date(),
   end_date: z.date(),
@@ -57,7 +57,7 @@ export const projectsRouter = createTRPCRouter({
         .insert({
           ...input,
           creator: ctx.user.id,
-          status: 'Published',
+          status: PROJECT_STATUSES.OPEN_FOR_PROPOSALS,
           proposal_count: 0,
         })
         .select()
@@ -82,7 +82,7 @@ export const projectsRouter = createTRPCRouter({
         location: z.string().optional(),
         minBudget: z.number().optional(),
         maxBudget: z.number().optional(),
-        status: z.enum(['Draft', 'Published', 'Bidding', 'Awarded', 'In Progress', 'Completed', 'Cancelled']).optional(),
+        status: z.enum(Object.values(PROJECT_STATUSES)).optional(),
         search: z.string().optional(),
         limit: z.number().min(1).max(50).default(10),
         offset: z.number().min(0).default(0),
@@ -193,7 +193,7 @@ export const projectsRouter = createTRPCRouter({
   getMy: protectedProcedure
     .input(
       z.object({
-        status: z.enum(['Draft', 'Published', 'Bidding', 'Awarded', 'In Progress', 'Completed', 'Cancelled']).optional(),
+        status: z.enum(Object.values(PROJECT_STATUSES)).optional(),
         limit: z.number().min(1).max(50).default(10),
         offset: z.number().min(0).default(0),
       })
@@ -240,7 +240,7 @@ export const projectsRouter = createTRPCRouter({
       z.object({
         id: z.string().uuid(),
         ...projectSchema.partial().shape,
-        status: z.enum(['Draft', 'Published', 'Bidding', 'Awarded', 'In Progress', 'Completed', 'Cancelled']).optional(),
+        status: z.enum(Object.values(PROJECT_STATUSES)).optional(),
       })
     )
     .mutation(async ({ input, ctx }) => {

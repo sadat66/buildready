@@ -5,6 +5,7 @@ import { LoadingSpinner } from '@/components/shared'
 import ProjectStats from './ProjectStats'
 import RecentProjects from './RecentProjects'
 import { useAuth } from '@/contexts/AuthContext'
+import { PROJECT_STATUSES } from "@/lib/constants"
 
 export default function TRPCHomeownerDashboard() {
   const { user } = useAuth()
@@ -56,7 +57,7 @@ export default function TRPCHomeownerDashboard() {
         stats={{
           total: projectsData.length,
           open: projectsData.filter(p => ['Published', 'Bidding'].includes(p.status)).length,
-          awarded: projectsData.filter(p => ['Awarded', 'In Progress'].includes(p.status)).length,
+          accepted: projectsData.filter(p => ['Awarded', 'In Progress'].includes(p.status)).length,
           completed: projectsData.filter(p => p.status === 'Completed').length
         }}
       />

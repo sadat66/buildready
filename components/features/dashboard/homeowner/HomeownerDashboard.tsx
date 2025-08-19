@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase'
 import { Project } from '@/types'
+import { PROJECT_STATUSES } from "@/lib/constants"
 
 import ProjectStats from './ProjectStats'
 import RecentProjects from './RecentProjects'
@@ -134,7 +135,7 @@ export default function HomeownerDashboard() {
               total: projects.length,
               open: projects.filter(p => ['Published', 'Bidding'].includes(p.status)).length,
               accepted: acceptedProposalsCount,
-              completed: projects.filter(p => p.status === 'Completed').length
+              completed: projects.filter(p => p.status === PROJECT_STATUSES.COMPLETED).length
             }}
           />
 
