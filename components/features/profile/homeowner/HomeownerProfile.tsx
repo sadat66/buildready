@@ -8,15 +8,12 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase";
 import toast from "react-hot-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 import RandomAvatar from "@/components/ui/random-avatar";
-import { ExtendedUser } from "@/contexts/AuthContext";
 
-interface HomeownerProfileProps {
-  user: ExtendedUser;
-}
-
-export function HomeownerProfile({ user }: HomeownerProfileProps) {
+export function HomeownerProfile() {
+  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
@@ -55,6 +52,17 @@ export function HomeownerProfile({ user }: HomeownerProfileProps) {
 
     fetchUserData();
   }, [user]);
+
+  // Check for authentication after all hooks are declared
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="max-w-md w-full bg-white rounded-lg shadow-md p-6">
+          <div className="text-center">Authentication required. Please sign in.</div>
+        </div>
+      </div>
+    );
+  }
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
