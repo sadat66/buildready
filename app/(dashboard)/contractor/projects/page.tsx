@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Building, MapPin, Calendar, DollarSign, Search } from 'lucide-react'
+import { USER_ROLES, PROJECT_STATUSES } from '@/lib/constants'
 
 export default function ContractorProjectsPage() {
   const { user, userRole, loading } = useAuth()
@@ -224,7 +225,7 @@ export default function ContractorProjectsPage() {
                   </span>
                 </div>
                 <Badge 
-                  variant={project.status === 'Published' ? 'default' : project.status === 'Bidding' ? 'secondary' : 'outline'} 
+                  variant={project.status === PROJECT_STATUSES.OPEN_FOR_PROPOSALS ? 'default' : project.status === PROJECT_STATUSES.DRAFT ? 'secondary' : 'outline'} 
                   className="text-xs capitalize"
                 >
                   {project.status}
