@@ -75,7 +75,7 @@ interface ProposalWithJoins {
     status: string
     budget: number
   }
-  contractor_details: {
+  contractor_profile?: {
     id: string
     full_name: string
     email: string
@@ -129,27 +129,27 @@ export default function HomeownerProposalsPage() {
           console.log('Fetching proposals for projects:', projectIdList)
           
           // Fetch proposals for these projects
-          const { data: proposalsData, error: proposalsError } = await supabase
-            .from('proposals')
-            .select(`
-              *,
-              project:projects!proposals_project_fkey (
-                id,
-                project_title,
-                statement_of_work,
-                category,
-                location,
-                status,
-                budget
-              ),
-              contractor:users!proposals_contractor_fkey (
-                id,
-                full_name,
-                email,
-                phone_number,
-                address
-              )
-            `)
+        const { data: proposalsData, error: proposalsError } = await supabase
+          .from('proposals')
+          .select(`
+            *,
+            project:projects!proposals_project_fkey (
+              id,
+              project_title,
+              statement_of_work,
+              category,
+              location,
+              status,
+              budget
+            ),
+            contractor_profile:users!proposals_contractor_fkey (
+              id,
+              full_name,
+              email,
+              phone_number,
+              address
+            )
+          `)
             .in('project', projectIdList)
             .eq('is_deleted', 'no')
             .in('status', ['submitted', 'viewed', 'accepted', 'rejected'])
@@ -244,7 +244,7 @@ export default function HomeownerProposalsPage() {
 
   const filteredProposals = proposals.filter(proposal => {
     const matchesSearch = proposal.project_details?.project_title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         proposal.contractor_details?.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         proposal.contractor_profile?.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          proposal.description_of_work?.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesStatus = statusFilter === 'all' || proposal.status === statusFilter
     const matchesProject = projectFilter === 'all' || proposal.project_details?.id === projectFilter
@@ -376,7 +376,7 @@ export default function HomeownerProposalsPage() {
                   </CardTitle>
                   <CardDescription className="text-sm mt-2">
                     Proposal from <span className="font-medium">
-                      {proposal.contractor_details?.full_name || 'Unknown Contractor'}
+                      {proposal.contractor_profile?.full_name || 'Unknown Contractor'}
                     </span>
                   </CardDescription>
                 </div>
