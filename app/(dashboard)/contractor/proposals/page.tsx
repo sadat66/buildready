@@ -34,10 +34,12 @@ export default function ContractorProposalsPage() {
       location: string
       status: string
       budget: number | null
-      creator: {
-        id: string
-        full_name: string
-      }
+      creator: string
+    }
+    homeowner_details?: {
+      id: string
+      full_name: string
+      email: string
     }
     contractor?: {
       id: string
@@ -122,14 +124,33 @@ export default function ContractorProposalsPage() {
 
         if (fetchError) {
           console.error('Join query error:', fetchError)
-          console.error('Error details:', JSON.stringify(fetchError, null, 2))
-          // Fall back to simple data if join fails
-          setProposals(simpleData || [])
-          setError(`Join query failed: ${fetchError.message || 'Unknown error'}`)
+          setError(fetchError.message || 'Failed to fetch proposals')
           return
         }
 
-        setProposals(data || [])
+        // Manually fetch homeowner details for each proposal
+        const proposalsWithHomeowners = await Promise.all(
+          (data || []).map(async (proposal) => {
+            if (proposal.homeowner) {
+              const { data: homeownerData, error: homeownerError } = await supabase
+                .from('users')
+                .select('id, full_name, email')
+                .eq('id', proposal.homeowner)
+                .single()
+              
+              if (!homeownerError && homeownerData) {
+                return {
+                  ...proposal,
+                  homeowner_details: homeownerData
+                }
+              }
+            }
+            return proposal
+          })
+        )
+
+        console.log('Final proposals with homeowner data:', proposalsWithHomeowners)
+         setProposals(proposalsWithHomeowners)
         console.log('Successfully set proposals:', data?.length || 0, 'items')
       } catch (err) {
         console.error('Unexpected error:', err)
@@ -300,7 +321,7 @@ export default function ContractorProposalsPage() {
                     <User className="w-4 h-4 text-gray-500" />
                     <div>
                       <p className="text-sm text-gray-600">Homeowner</p>
-                      <p className="font-semibold">{proposal.project?.creator?.full_name || 'Unknown'}</p>
+                      <p className="font-semibold">{proposal.homeowner_details?.full_name || 'Unknown'}</p>
                     </div>
                   </div>
                   

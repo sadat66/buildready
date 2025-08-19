@@ -78,10 +78,11 @@ interface ProposalData {
     status: string
     budget: number | null
     creator: string
-    users?: {
-      id: string
-      full_name: string
-    }
+  }
+  homeowner_details?: {
+    id: string
+    full_name: string
+    email: string
   }
 }
 
@@ -126,11 +127,7 @@ export default function ProposalViewPage({ params }: ProposalViewPageProps) {
               location,
               status,
               budget,
-              creator,
-              users!projects_creator_fkey (
-                id,
-                full_name
-              )
+              creator
             )
           `)
           .eq('id', resolvedParams.id)
@@ -144,10 +141,25 @@ export default function ProposalViewPage({ params }: ProposalViewPageProps) {
           return
         }
 
+        // Manually fetch homeowner details
+        let homeowner_details = null
+        if (data.homeowner) {
+          const { data: homeownerData, error: homeownerError } = await supabase
+            .from('users')
+            .select('id, full_name, email')
+            .eq('id', data.homeowner)
+            .single()
+          
+          if (!homeownerError && homeownerData) {
+            homeowner_details = homeownerData
+          }
+        }
+
         // Transform the data to match our ProposalData interface
         const transformedData: ProposalData = {
           ...data,
-          project_details: data.project
+          project_details: data.project,
+          homeowner_details
         }
 
         setProposal(transformedData)
@@ -296,7 +308,7 @@ export default function ProposalViewPage({ params }: ProposalViewPageProps) {
                   <div className="flex items-center gap-2">
                     <User className="w-4 h-4 text-gray-500" />
                     <span className="text-sm">
-                      <span className="font-medium">Homeowner:</span> {proposal.project_details?.users?.full_name || 'Unknown'}
+                      <span className="font-medium">Homeowner:</span> {proposal.homeowner_details?.full_name || 'Unknown'}
                     </span>
                   </div>
               </div>
