@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
-import { USER_ROLES } from '@/lib/constants'
+import { USER_ROLES, VISIBILITY_SETTINGS } from '@/lib/constants'
 import { createClient } from '@/lib/supabase'
 import { proposalService } from '@/lib/services'
 import { Project } from '@/types'
@@ -52,7 +52,7 @@ export default function SubmitProposalPage() {
     notes: '',
     
     // Visibility settings
-    visibility_settings: 'private' as 'private' | 'public' | 'shared',
+    visibility_settings: VISIBILITY_SETTINGS.PRIVATE,
   })
 
   useEffect(() => {
