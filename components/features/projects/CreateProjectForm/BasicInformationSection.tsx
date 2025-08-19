@@ -1,7 +1,8 @@
 import * as React from "react"
 import { UseFormWatch, UseFormSetValue } from "react-hook-form"
-import { FormField, FormInput, FormTextarea, FormSelect, FormBadge, FormFieldLocation } from "@/components/shared/form-input"
+import { FormField, FormInput, FormTextarea, FormSelect, FormBadge, FormFieldLocation, FormMultiSelect } from "@/components/shared/form-input"
 import { CreateProjectFormInputData } from "@/lib/validation/projects"
+import { TRADE_CATEGORY_VALUES } from "@/lib/constants"
  
 interface BasicInformationSectionProps {
   watch: UseFormWatch<CreateProjectFormInputData>
@@ -43,19 +44,15 @@ export function BasicInformationSection({
 
         <FormField name="category">
           {({ field, error }) => (
-            <FormSelect
-              {...field}
+            <FormMultiSelect
               label="Category"
-              placeholder="Select category"
-              options={[
-                { value: "renovation", label: "Renovation" },
-                { value: "new_construction", label: "New Construction" },
-                { value: "repair", label: "Repair" },
-                { value: "maintenance", label: "Maintenance" },
-                { value: "other", label: "Other" }
-              ]}
+              placeholder="Select categories"
+              options={TRADE_CATEGORY_VALUES.map(value => ({ value, label: value }))}
+              value={field.value}
+              onChange={field.onChange}
               required
               error={error}
+
             />
           )}
         </FormField>
@@ -86,10 +83,14 @@ export function BasicInformationSection({
               label="Project Type"
               placeholder="Select project type"
               options={[
-                { value: "residential", label: "Residential" },
-                { value: "commercial", label: "Commercial" },
-                { value: "industrial", label: "Industrial" },
-                { value: "mixed_use", label: "Mixed Use" }
+                { value: "New Build", label: "New Build" },
+                { value: "Renovation", label: "Renovation" },
+                { value: "Repair", label: "Repair" },
+                { value: "Addition", label: "Addition" },
+                { value: "Demolition", label: "Demolition" },
+                { value: "Landscaping", label: "Landscaping" },
+                { value: "Specialty", label: "Specialty" },
+                { value: "Other", label: "Other" }
               ]}
               required
               error={error}

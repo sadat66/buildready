@@ -41,6 +41,10 @@ export default function ContractorProposalsPage() {
       full_name: string
       email: string
     }
+    contractor?: {
+      id: string
+      full_name: string
+    }
   }>>([])
   const [proposalsLoading, setProposalsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -102,7 +106,14 @@ export default function ContractorProposalsPage() {
               location,
               status,
               budget,
-              creator
+              creator:users (
+                id,
+                full_name
+              )
+            ),
+            contractor:users!proposals_contractor_fkey (
+              id,
+              full_name
             )
           `)
           .eq('contractor', user.id)
