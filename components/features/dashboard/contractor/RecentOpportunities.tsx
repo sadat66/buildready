@@ -3,7 +3,7 @@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { CalendarDays, DollarSign, MapPin, Plus, Eye, Building2, Sparkles, Clock, TrendingUp } from "lucide-react"
+import { CalendarDays, DollarSign, MapPin, Plus, Eye, Building2, TrendingUp } from "lucide-react"
 import Link from "next/link"
 import { Project } from '@/types'
 

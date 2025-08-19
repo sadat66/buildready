@@ -34,7 +34,7 @@ interface Proposal {
 export default function ContractorDashboard() {
   const { user } = useAuth()
   const [projects, setProjects] = useState<Project[]>([])
-  const [proposals, setProposals] = useState<any[]>([])
+  const [proposals, setProposals] = useState<Proposal[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
