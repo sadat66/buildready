@@ -51,6 +51,9 @@ export default function ContractorDashboard() {
         
         console.log('Fetching contractor dashboard data for user:', currentUser.id)
         
+        // Debug: Log the current user ID
+        console.log('Current user ID for proposals query:', currentUser.id)
+        
         // Fetch available projects
         const { data: projectsData, error: projectsError } = await supabase
           .from('projects')
@@ -118,6 +121,8 @@ export default function ContractorDashboard() {
               ...proposal,
               project: Array.isArray(proposal.project) ? proposal.project[0] : proposal.project
             }))
+            console.log('Proposals fetched successfully:', transformedProposals.length, 'proposals')
+            console.log('Sample proposal data:', transformedProposals[0])
             setProposals(transformedProposals as Proposal[])
           }
         } catch (proposalsError) {
