@@ -7,3 +7,19 @@ export { default as ProjectFilters } from './ProjectFilters'
 export { default as ProjectsPage } from './ProjectsPage'
 export { default as CreateProjectForm } from './CreateProjectForm'
 export type { ProjectFilters as ProjectFiltersType } from './ProjectFilters'
+
+// ProjectView components
+export { default as ProjectView } from './ProjectView/index'
+export { ProjectViewHeader } from './ProjectView/ProjectViewHeader'
+export { ProjectViewTabs } from './ProjectView/ProjectViewTabs'
+export { ProjectViewOverview } from './ProjectView/ProjectViewOverview'
+export { ProjectViewProposals } from './ProjectView/ProjectViewProposals'
+export { ProjectViewReviews } from './ProjectView/ProjectViewReviews'
+export { ProjectViewMessages } from './ProjectView/ProjectViewMessages'
+export { ProjectViewTimeline } from './ProjectView/ProjectViewTimeline'
+export { ProjectViewDocuments } from './ProjectView/ProjectViewDocuments'
+export { ProjectViewSidebar } from './ProjectView/ProjectViewSidebar'
+export { ProjectViewActions } from './ProjectView/ProjectViewActions'
+
+// ProjectView types
+export type { TabType } from './ProjectView/index'

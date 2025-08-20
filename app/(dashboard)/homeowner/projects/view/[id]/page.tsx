@@ -3,20 +3,10 @@
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, MapPin, Calendar, CheckCircle, AlertCircle, Edit, Trash2, Camera, Paperclip, FileText, User, DollarSign, Clock, ThumbsUp, ThumbsDown } from 'lucide-react'
-import Link from 'next/link'
+import { ProjectView } from '@/components/features/projects'
 import { createClient } from '@/lib/supabase'
-import dynamic from 'next/dynamic'
 import toast from 'react-hot-toast'
-import { Label } from '@/components/ui/label'
-
-const LocationMap = dynamic(() => import('@/components/features/projects').then(mod => ({ default: mod.LocationMap })), {
-  ssr: false,
-  loading: () => <div className="h-48 bg-gray-100 rounded-lg flex items-center justify-center">Loading map...</div>
-})
+import { USER_ROLES } from '@/lib/constants'
 
 interface Project {
   id: string
@@ -30,8 +20,8 @@ interface Project {
     city: string
     province: string
     postalCode: string
-    latitude?: number | null
-    longitude?: number | null
+    latitude?: number
+    longitude?: number
   }
   project_type: string
   status: string
@@ -131,9 +121,7 @@ export default function ProjectViewPage() {
     }
     
     const fetchProposals = async () => {
-      console.log('fetchProposals called - id:', id, 'user:', user)
       if (!id || !user) {
-        console.log('Early return - missing id or user')
         setProposalsLoading(false)
         return
       }
@@ -165,13 +153,6 @@ export default function ProjectViewPage() {
         setProposals(data || [])
       } catch (error) {
         console.error('Error fetching proposals:', error)
-        console.error('Error details:', JSON.stringify(error, null, 2))
-        if (error && typeof error === 'object' && 'message' in error) {
-          const errorObj = error as { message?: string; code?: string; hint?: string }
-          console.error('Error message:', errorObj.message)
-          console.error('Error code:', errorObj.code)
-          console.error('Error hint:', errorObj.hint)
-        }
       } finally {
         setProposalsLoading(false)
       }
@@ -181,42 +162,8 @@ export default function ProjectViewPage() {
     fetchProposals()
   }, [id, user])
 
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'draft': return 'bg-gray-500'
-      case 'published': return 'bg-gray-500'
-      case 'bidding': return 'bg-orange-500'
-      case 'awarded': return 'bg-orange-500'
-      case 'in progress': return 'bg-orange-500'
-      case 'completed': return 'bg-gray-900'
-      case 'cancelled': return 'bg-gray-500'
-      default: return 'bg-gray-500'
-    }
-  }
-
-  const getStatusText = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'draft': return 'Draft'
-      case 'published': return 'Published'
-      case 'bidding': return 'Bidding in Progress'
-      case 'awarded': return 'Awarded to Contractor'
-      case 'in progress': return 'In Progress'
-      case 'completed': return 'Project Completed'
-      case 'cancelled': return 'Project Cancelled'
-      default: return status
-    }
-  }
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    })
-  }
-
-  const formatBudget = (budget: number) => {
-    return `$${budget.toLocaleString()}`
+  const handleEditProject = () => {
+    router.push(`/homeowner/projects/edit/${project?.id}`)
   }
 
   const handleDeleteProject = async () => {
@@ -423,10 +370,18 @@ export default function ProjectViewPage() {
     }
   }
 
+  const handleViewProposal = (proposalId: string) => {
+    // Navigate to proposal detail view
+    router.push(`/homeowner/proposals/${proposalId}`)
+  }
+
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="text-center">Loading project...</div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Loading project...</p>
+        </div>
       </div>
     )
   }
@@ -438,495 +393,58 @@ export default function ProjectViewPage() {
           {error || 'Project not found'}
         </div>
         <div className="text-center mt-4">
-          <Link href="/homeowner/projects">
-            <Button variant="outline">Back to Projects</Button>
-          </Link>
+          <button 
+            onClick={() => router.push('/homeowner/projects')}
+            className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+          >
+            Back to Projects
+          </button>
         </div>
       </div>
     )
   }
 
+  // Transform project data to match the expected interface
+  const transformedProject = {
+    ...project,
+    start_date: new Date(project.start_date),
+    end_date: new Date(project.end_date),
+    expiry_date: new Date(project.expiry_date),
+    decision_date: project.decision_date ? new Date(project.decision_date) : null,
+    substantial_completion: project.substantial_completion ? new Date(project.substantial_completion) : null,
+    created_at: new Date(project.created_at),
+    updated_at: new Date(project.updated_at)
+  }
+
+  // Transform proposals data to match the expected interface
+  const transformedProposals = proposals.map(proposal => ({
+    ...proposal,
+    createdAt: new Date(proposal.created_at),
+    updatedAt: new Date(proposal.updated_at),
+    proposed_start_date: new Date(proposal.proposed_start_date),
+    proposed_end_date: new Date(proposal.proposed_end_date),
+    expiry_date: new Date(proposal.expiry_date),
+    deposit_due_on: new Date(proposal.deposit_due_on),
+    submitted_date: proposal.submitted_date ? new Date(proposal.submitted_date) : undefined,
+    accepted_date: proposal.accepted_date ? new Date(proposal.accepted_date) : undefined,
+    rejected_date: proposal.rejected_date ? new Date(proposal.rejected_date) : undefined,
+    last_updated: new Date(proposal.updated_at)
+  }))
+
   return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">{project.project_title}</h1>
-          <p className="text-muted-foreground">
-            Project ID: {project.pid} • Created {formatDate(project.created_at)}
-          </p>
-        </div>
-        <div className="flex items-center space-x-4">
-          <Link href={`/homeowner/projects/edit/${project.id}`}>
-            <Button variant="outline">
-              <Edit className="h-4 w-4 mr-2" />
-              Edit Project
-            </Button>
-          </Link>
-          <Button 
-            variant="destructive" 
-            onClick={handleDeleteProject}
-            disabled={deleting}
-          >
-            <Trash2 className="h-4 w-4 mr-2" />
-            {deleting ? 'Deleting...' : 'Delete Project'}
-          </Button>
-          <Link href="/homeowner/projects">
-            <Button variant="outline">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Projects
-            </Button>
-          </Link>
-        </div>
-      </div>
-
-      {/* Status and Actions */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Badge 
-              className={`${getStatusColor(project.status)} text-white px-3 py-1`}
-            >
-              {getStatusText(project.status)}
-            </Badge>
-            <Badge variant="outline" className="px-3 py-1">
-              {project.visibility_settings}
-            </Badge>
-            {project.is_verified_project && (
-              <Badge className="bg-gray-900 text-white px-3 py-1">
-                <CheckCircle className="h-3 w-3 mr-1" />
-                Verified
-              </Badge>
-            )}
-          </div>
-          <div className="text-sm text-muted-foreground">
-            {project.proposal_count} proposal{project.proposal_count !== 1 ? 's' : ''} received
-          </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Main Content */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Project Details */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Project Details</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label className="text-sm font-medium text-muted-foreground">Statement of Work</Label>
-                <p className="mt-1 text-gray-900">{project.statement_of_work}</p>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-sm font-medium text-muted-foreground">Project Type</Label>
-                  <p className="mt-1 text-gray-900">{project.project_type}</p>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium text-muted-foreground">Trade Categories</Label>
-                  <div className="mt-1 flex flex-wrap gap-1">
-                    {project.category.map((cat, index) => (
-                      <Badge key={index} variant="secondary" className="text-xs">
-                        {cat}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <Label className="text-sm font-medium text-muted-foreground">Budget</Label>
-                <p className="mt-1 text-2xl font-bold text-green-600">
-                  {formatBudget(project.budget)}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Location */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <MapPin className="h-5 w-5" />
-                <span>Location</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label className="text-sm font-medium text-muted-foreground">Address</Label>
-                <p className="mt-1 text-gray-900">{project.location?.address}</p>
-              </div>
-              
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <Label className="text-sm font-medium text-muted-foreground">City</Label>
-                  <p className="mt-1 text-gray-900">{project.location?.city}</p>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium text-muted-foreground">Province</Label>
-                  <p className="mt-1 text-gray-900">{project.location?.province}</p>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium text-muted-foreground">Postal Code</Label>
-                  <p className="mt-1 text-gray-900">{project.location?.postalCode}</p>
-                </div>
-              </div>
-
-              {project.location?.latitude && project.location?.longitude && (
-                <div>
-                  <Label className="text-sm font-medium text-muted-foreground">Map</Label>
-                  <div className="mt-2">
-                    <LocationMap
-                      onLocationSelect={() => {}} // Read-only
-                      className="h-64"
-                    />
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Timeline */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Calendar className="h-5 w-5" />
-                <span>Timeline</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-sm font-medium text-muted-foreground">Start Date</Label>
-                  <p className="mt-1 text-gray-900">{formatDate(project.start_date)}</p>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium text-muted-foreground">End Date</Label>
-                  <p className="mt-1 text-gray-900">{formatDate(project.end_date)}</p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-sm font-medium text-muted-foreground">Proposal Deadline</Label>
-                  <p className="mt-1 text-gray-900">{formatDate(project.expiry_date)}</p>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium text-muted-foreground">Decision Date</Label>
-                  <p className="mt-1 text-gray-900">{formatDate(project.decision_date)}</p>
-                </div>
-              </div>
-
-              {project.substantial_completion && (
-                <div>
-                  <Label className="text-sm font-medium text-muted-foreground">Substantial Completion</Label>
-                  <p className="mt-1 text-gray-900">{formatDate(project.substantial_completion)}</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Files and Photos */}
-          {(project.project_photos.length > 0 || project.files.length > 0) && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Project Files</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {project.project_photos.length > 0 && (
-                  <div>
-                    <Label className="flex items-center space-x-2 text-sm font-medium text-muted-foreground">
-                      <Camera className="h-4 w-4" />
-                      <span>Photos ({project.project_photos.length})</span>
-                    </Label>
-                    <div className="mt-2 grid grid-cols-2 md:grid-cols-4 gap-3">
-                      {project.project_photos.map((photo, index) => (
-                        <div key={index} className="aspect-square bg-gray-100 rounded-lg overflow-hidden border">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={typeof photo === 'string' ? photo : photo.url || ''}
-                            alt={`Project photo ${index + 1}`}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {project.files.length > 0 && (
-                  <div>
-                    <Label className="flex items-center space-x-2 text-sm font-medium text-muted-foreground">
-                      <Paperclip className="h-4 w-4" />
-                      <span>Documents ({project.files.length})</span>
-                    </Label>
-                    <div className="mt-2 space-y-2">
-                      {project.files.map((file, index) => (
-                        <div key={index} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                          <FileText className="h-5 w-5 text-gray-400" />
-                          <div>
-                            <p className="text-sm font-medium text-gray-700">
-                              {typeof file === 'string' ? file : file.filename || ''}
-                            </p>
-                            {file.size && (
-                              <p className="text-xs text-gray-500">
-                                {(file.size / 1024 / 1024).toFixed(2)} MB
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Proposals Section */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span>Proposals ({proposals.length})</span>
-                {proposalsLoading && (
-                  <div className="text-sm text-muted-foreground">Loading proposals...</div>
-                )}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {proposalsLoading ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  Loading proposals...
-                </div>
-              ) : proposals.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  No proposals submitted yet.
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {proposals.map((proposal) => (
-                    <Card key={proposal.id} className="border-l-4 border-l-blue-500">
-                      <CardHeader className="pb-3">
-                        <div className="flex items-start justify-between">
-                          <div className="space-y-1">
-                            <CardTitle className="text-lg">{proposal.title}</CardTitle>
-                            <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                              <User className="h-4 w-4" />
-                              <span>{proposal.contractor_profile?.full_name || 'Unknown Contractor'}</span>
-                            </div>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <Badge 
-                              className={`${
-                                proposal.status === 'accepted' ? 'bg-green-500' :
-                                proposal.status === 'rejected' ? 'bg-red-500' :
-                                proposal.status === 'viewed' ? 'bg-blue-500' :
-                                'bg-gray-500'
-                              } text-white`}
-                            >
-                              {proposal.status.charAt(0).toUpperCase() + proposal.status.slice(1)}
-                            </Badge>
-                          </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <div>
-                          <Label className="text-sm font-medium text-muted-foreground">Description of Work</Label>
-                          <p className="mt-1 text-gray-900">{proposal.description_of_work}</p>
-                        </div>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          <div className="flex items-center space-x-2">
-                            <DollarSign className="h-4 w-4 text-green-600" />
-                            <div>
-                              <Label className="text-sm font-medium text-muted-foreground">Total Amount</Label>
-                              <p className="text-lg font-bold text-green-600">
-                                ${proposal.total_amount.toLocaleString()}
-                              </p>
-                            </div>
-                          </div>
-                          
-                          <div className="flex items-center space-x-2">
-                            <Clock className="h-4 w-4 text-blue-600" />
-                            <div>
-                              <Label className="text-sm font-medium text-muted-foreground">Timeline</Label>
-                              <p className="text-sm text-gray-900">
-                                {new Date(proposal.proposed_start_date).toLocaleDateString()} - {new Date(proposal.proposed_end_date).toLocaleDateString()}
-                              </p>
-                            </div>
-                          </div>
-                          
-                          <div className="flex items-center space-x-2">
-                            <DollarSign className="h-4 w-4 text-orange-600" />
-                            <div>
-                              <Label className="text-sm font-medium text-muted-foreground">Deposit</Label>
-                              <p className="text-sm text-gray-900">
-                                ${proposal.deposit_amount.toLocaleString()}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        {proposal.notes && (
-                          <div>
-                            <Label className="text-sm font-medium text-muted-foreground">Notes</Label>
-                            <p className="mt-1 text-gray-900">{proposal.notes}</p>
-                          </div>
-                        )}
-                        
-                        {proposal.attached_files.length > 0 && (
-                          <div>
-                            <Label className="text-sm font-medium text-muted-foreground">Attached Files</Label>
-                            <div className="mt-2 space-y-1">
-                              {proposal.attached_files.map((file, index) => (
-                                <div key={index} className="flex items-center space-x-2 text-sm">
-                                  <FileText className="h-4 w-4 text-gray-400" />
-                                  <span>{file.filename}</span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                        
-                        {proposal.status === 'submitted' || proposal.status === 'viewed' ? (
-                          <div className="flex space-x-3 pt-4 border-t">
-                            <Button
-                              onClick={() => handleAcceptProposal(proposal.id)}
-                              disabled={updatingProposal === proposal.id}
-                              className="flex-1 bg-green-600 hover:bg-green-700"
-                            >
-                              <ThumbsUp className="h-4 w-4 mr-2" />
-                              {updatingProposal === proposal.id ? 'Accepting...' : 'Accept Proposal'}
-                            </Button>
-                            <Button
-                              onClick={() => handleRejectProposal(proposal.id, 'other', 'Proposal declined by homeowner')}
-                              disabled={updatingProposal === proposal.id}
-                              variant="destructive"
-                              className="flex-1"
-                            >
-                              <ThumbsDown className="h-4 w-4 mr-2" />
-                              {updatingProposal === proposal.id ? 'Rejecting...' : 'Reject Proposal'}
-                            </Button>
-                          </div>
-                        ) : proposal.status === 'accepted' ? (
-                          <div className="pt-4 border-t">
-                            <div className="flex items-center space-x-2 text-green-600">
-                              <CheckCircle className="h-5 w-5" />
-                              <span className="font-medium">This proposal has been accepted</span>
-                            </div>
-                            {proposal.accepted_date && (
-                              <p className="text-sm text-muted-foreground mt-1">
-                                Accepted on {new Date(proposal.accepted_date).toLocaleDateString()}
-                              </p>
-                            )}
-                          </div>
-                        ) : proposal.status === 'rejected' ? (
-                          <div className="pt-4 border-t">
-                            <div className="flex items-center space-x-2 text-red-600">
-                              <AlertCircle className="h-5 w-5" />
-                              <span className="font-medium">This proposal has been rejected</span>
-                            </div>
-                            {proposal.rejected_date && (
-                              <p className="text-sm text-muted-foreground mt-1">
-                                Rejected on {new Date(proposal.rejected_date).toLocaleDateString()}
-                              </p>
-                            )}
-                            {proposal.rejection_reason_notes && (
-                              <p className="text-sm text-muted-foreground mt-1">
-                                Reason: {proposal.rejection_reason_notes}
-                              </p>
-                            )}
-                          </div>
-                        ) : null}
-                        
-                        <div className="text-xs text-muted-foreground pt-2 border-t">
-                          Submitted on {new Date(proposal.created_at).toLocaleDateString()} at {new Date(proposal.created_at).toLocaleTimeString()}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Sidebar */}
-        <div className="space-y-6">
-          {/* Project Info */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Project Info</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label className="text-sm font-medium text-muted-foreground">Status</Label>
-                <Badge className={`${getStatusColor(project.status)} text-white mt-1`}>
-                  {getStatusText(project.status)}
-                </Badge>
-              </div>
-
-              <div>
-                <Label className="text-sm font-medium text-muted-foreground">Visibility</Label>
-                <p className="mt-1 text-gray-900">{project.visibility_settings}</p>
-              </div>
-
-              <div>
-                <Label className="text-sm font-medium text-muted-foreground">Proposals</Label>
-                <p className="mt-1 text-gray-900">{project.proposal_count} received</p>
-              </div>
-
-              {project.permit_required && (
-                <div className="flex items-center space-x-2">
-                  <AlertCircle className="h-4 w-4 text-orange-500" />
-                  <span className="text-sm text-orange-700">Permits Required</span>
-                </div>
-              )}
-
-              {project.certificate_of_title && (
-                <div>
-                  <Label className="text-sm font-medium text-muted-foreground">Certificate of Title</Label>
-                  <a 
-                    href={project.certificate_of_title} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="mt-1 text-blue-600 hover:text-blue-800 text-sm block"
-                  >
-                    View Certificate
-                  </a>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Actions */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Actions</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Link href={`/homeowner/projects/edit/${project.id}`} className="w-full">
-                <Button className="w-full" variant="outline">
-                  <Edit className="h-4 w-4 mr-2" />
-                  Edit Project
-                </Button>
-              </Link>
-              
-              <Button 
-                variant="destructive" 
-                className="w-full"
-                onClick={handleDeleteProject}
-                disabled={deleting}
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                {deleting ? 'Deleting...' : 'Delete Project'}
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    </div>
+    <ProjectView
+      project={transformedProject}
+      proposals={transformedProposals}
+      user={user}
+      userRole={USER_ROLES.HOMEOWNER}
+      onEditProject={handleEditProject}
+      onDeleteProject={handleDeleteProject}
+      onAcceptProposal={handleAcceptProposal}
+      onRejectProposal={handleRejectProposal}
+      onViewProposal={handleViewProposal}
+      loading={loading}
+      proposalsLoading={proposalsLoading}
+      updatingProposal={updatingProposal}
+    />
   )
 }
