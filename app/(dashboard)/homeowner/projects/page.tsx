@@ -72,7 +72,7 @@ export default function HomeownerProjectsPage() {
         if (userRole === USER_ROLES.HOMEOWNER) {
           query = query.eq('creator', user.id)
         } else if (userRole === USER_ROLES.CONTRACTOR) {
-          query = query.eq('status', 'Published')
+          query = query.eq('status', 'Open for Proposals')
         }
         
         const { data, error: fetchError } = await query.order('created_at', { ascending: false })

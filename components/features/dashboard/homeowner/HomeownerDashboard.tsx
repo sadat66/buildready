@@ -152,7 +152,7 @@ export default function HomeownerDashboard() {
           <ProjectStats 
             stats={{
               total: projects.length,
-              open: projects.filter(p => ['Published', 'Bidding'].includes(p.status)).length,
+              open: projects.filter(p => ['Draft', 'Open for Proposals'].includes(p.status)).length,
               accepted: acceptedProposalsCount,
               completed: projects.filter(p => p.status === PROJECT_STATUSES.COMPLETED).length
             }}

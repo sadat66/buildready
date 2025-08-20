@@ -27,8 +27,7 @@ interface RecentProjectsProps {
 function getStatusBadgeStyle(status: string) {
   const badgeStyles = {
     'Draft': 'bg-gray-100 text-gray-800 border-gray-300',
-    'Published': 'bg-gray-100 text-gray-800 border-gray-300',
-    'Bidding': 'bg-gray-100 text-gray-800 border-gray-300',
+    'Open for Proposals': 'bg-gray-100 text-gray-800 border-gray-300',
     'Awarded': 'bg-orange-100 text-orange-800 border-orange-300',
     'In Progress': 'bg-orange-100 text-orange-800 border-orange-300',
     'Completed': 'bg-gray-900 text-white border-gray-900',
@@ -40,8 +39,7 @@ function getStatusBadgeStyle(status: string) {
 function getStatusIcon(status: string) {
   const icons = {
     'Draft': Clock,
-    'Published': Clock,
-    'Bidding': TrendingUp,
+    'Open for Proposals': Clock,
     'Awarded': Star,
     'In Progress': TrendingUp,
     'Completed': Star,

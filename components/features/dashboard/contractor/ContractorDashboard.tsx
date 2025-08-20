@@ -73,7 +73,7 @@ export default function ContractorDashboard() {
             created_at,
             updated_at
           `)
-          .in('status', ['Published', 'Bidding', 'Open'])
+          .in('status', ['Draft', 'Open for Proposals'])
           .order('created_at', { ascending: false })
         
         if (projectsError) {

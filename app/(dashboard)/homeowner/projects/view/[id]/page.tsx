@@ -184,8 +184,7 @@ export default function ProjectViewPage() {
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'draft': return 'bg-gray-500'
-      case 'published': return 'bg-gray-500'
-      case 'bidding': return 'bg-orange-500'
+      case 'open for proposals': return 'bg-gray-500'
       case 'awarded': return 'bg-orange-500'
       case 'in progress': return 'bg-orange-500'
       case 'completed': return 'bg-gray-900'
@@ -197,8 +196,7 @@ export default function ProjectViewPage() {
   const getStatusText = (status: string) => {
     switch (status.toLowerCase()) {
       case 'draft': return 'Draft'
-      case 'published': return 'Published'
-      case 'bidding': return 'Bidding in Progress'
+      case 'open for proposals': return 'Open for Proposals'
       case 'awarded': return 'Awarded to Contractor'
       case 'in progress': return 'In Progress'
       case 'completed': return 'Project Completed'

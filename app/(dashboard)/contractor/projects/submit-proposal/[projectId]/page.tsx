@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
-import { USER_ROLES, VISIBILITY_SETTINGS } from '@/lib/constants'
+import { USER_ROLES, VISIBILITY_SETTINGS, TRADE_CATEGORIES } from '@/lib/constants'
 import { createClient } from '@/lib/supabase'
 import { proposalService } from '@/lib/services'
 import { Project } from '@/types'
@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Calendar, DollarSign, FileText, Upload, ArrowLeft } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -51,6 +52,9 @@ export default function SubmitProposalPage() {
     attached_files: [] as File[],
     notes: '',
     
+    // Trade category
+    trade_category: 'General Contractor',
+    
     // Visibility settings
     visibility_settings: VISIBILITY_SETTINGS.PRIVATE,
   })
@@ -85,7 +89,7 @@ export default function SubmitProposalPage() {
             )
           `)
           .eq('id', projectId)
-          .in('status', ['Published', 'Bidding'])
+          .in('status', ['Draft', 'Open for Proposals'])
           .single()
           
         console.log('Project fetch result:', { data, error: fetchError })
@@ -281,6 +285,7 @@ export default function SubmitProposalPage() {
         clause_preview_html: formData.clause_preview_html || '',
         attached_files: fileReferences,
         notes: formData.notes || '',
+        trade_category: formData.trade_category,
         visibility_settings: formData.visibility_settings,
         created_by: user.id
       }
@@ -425,6 +430,25 @@ export default function SubmitProposalPage() {
                 rows={4}
                 required
               />
+            </div>
+            
+            <div>
+              <Label htmlFor="trade_category">Trade Category</Label>
+              <Select
+                value={formData.trade_category}
+                onValueChange={(value) => handleInputChange('trade_category', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select your trade category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(TRADE_CATEGORIES).map(([key, value]) => (
+                    <SelectItem key={key} value={value}>
+                      {value}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </CardContent>
         </Card>
@@ -597,16 +621,21 @@ export default function SubmitProposalPage() {
             
             <div>
               <Label htmlFor="visibility_settings">Proposal Visibility</Label>
-              <select
-                id="visibility_settings"
+              <Select
                 value={formData.visibility_settings}
-                onChange={(e) => handleInputChange('visibility_settings', e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-md"
+                onValueChange={(value) => handleInputChange('visibility_settings', value)}
               >
-                <option value="private">Private (Only visible to homeowner)</option>
-                <option value="shared">Shared (Visible to project stakeholders)</option>
-                <option value="public">Public (Visible in portfolio)</option>
-              </select>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select visibility setting" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(VISIBILITY_SETTINGS).map(([key, value]) => (
+                    <SelectItem key={key} value={value}>
+                      {value}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </CardContent>
         </Card>

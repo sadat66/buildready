@@ -360,7 +360,7 @@ export class ProjectService {
             email
           )
         `)
-        .in("status", [PROJECT_STATUSES.DRAFT])
+        .in("status", [PROJECT_STATUSES.DRAFT, PROJECT_STATUSES.OPEN_FOR_PROPOSALS])
         .eq("visibility_settings", "Public To Marketplace")
         .gte("expiry_date", new Date().toISOString())
         .order("created_at", { ascending: false })
