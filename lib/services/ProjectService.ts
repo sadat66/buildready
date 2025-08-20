@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase"
 import { CreateProjectFormInputData } from "@/lib/validation/projects"
-import { PROJECT_STATUSES } from "@/lib/constants"
+import { PROJECT_STATUSES, VISIBILITY_SETTINGS } from "@/lib/constants"
 
 export interface CreateProjectResult {
   success: boolean
@@ -56,6 +56,32 @@ export interface ProjectData {
 
 export class ProjectService {
   private supabase = createClient()
+ 
+  private determineInitialStatus(visibilitySettings: string, formData: CreateProjectFormInputData): string {
+     if (visibilitySettings === VISIBILITY_SETTINGS.PUBLIC_TO_MARKETPLACE) {
+      return PROJECT_STATUSES.OPEN_FOR_PROPOSALS;
+    }
+    
+     if (visibilitySettings === VISIBILITY_SETTINGS.PUBLIC_TO_INVITEES) {
+      return PROJECT_STATUSES.OPEN_FOR_PROPOSALS;
+    }
+    
+     if (visibilitySettings === VISIBILITY_SETTINGS.SHARED_WITH_PARTICIPANT) {
+      return PROJECT_STATUSES.OPEN_FOR_PROPOSALS;
+    }
+    
+     if (visibilitySettings === VISIBILITY_SETTINGS.SHARED_WITH_TARGET_USER) {
+      return PROJECT_STATUSES.OPEN_FOR_PROPOSALS;
+    }
+    
+     if (visibilitySettings === VISIBILITY_SETTINGS.PRIVATE || 
+        visibilitySettings === VISIBILITY_SETTINGS.ADMIN_ONLY) {
+      return PROJECT_STATUSES.DRAFT;
+    }
+    
+     console.warn(`Unknown visibility setting: ${visibilitySettings}, defaulting to DRAFT`);
+    return PROJECT_STATUSES.DRAFT;
+  }
 
   async createProject(
     formData: CreateProjectFormInputData,
@@ -66,8 +92,7 @@ export class ProjectService {
       console.log("formData:", formData)
       console.log("userId:", userId)
 
-      // Validate that decision_date comes after expiry_date
-      const expiryDate = new Date(formData.expiry_date)
+       const expiryDate = new Date(formData.expiry_date)
       const decisionDate = new Date(formData.decision_date)
 
       if (decisionDate <= expiryDate) {
@@ -78,8 +103,11 @@ export class ProjectService {
         }
       }
 
-      // Extract location data from the form
-      const locationData = formData.location
+       const locationData = formData.location
+
+      // Determine the initial status based on visibility settings
+      const initialStatus = this.determineInitialStatus(formData.visibility_settings, formData)
+      console.log(`Determined initial status: ${initialStatus} based on visibility: ${formData.visibility_settings}`)
 
       // Prepare project data for database insertion
       const projectData: ProjectData = {
@@ -109,7 +137,7 @@ export class ProjectService {
         project_photos: formData.project_photos || [],
         files: formData.files || [],
         creator: userId,
-        status: PROJECT_STATUSES.DRAFT,
+        status: initialStatus, // Use dynamically determined status instead of hardcoded DRAFT
         proposal_count: 0,
         // Add missing fields that are in the form but not in the database schema
         decision_date: decisionDate.toISOString().split('T')[0], // Convert to DATE format
@@ -199,67 +227,16 @@ export class ProjectService {
       console.log("Project data budget type:", typeof projectData.budget)
       console.log("=== END BUDGET DEBUG ===")
       
-      // Try different status values if the first one fails
-      const possibleStatuses = [
-        PROJECT_STATUSES.DRAFT,
-        PROJECT_STATUSES.OPEN_FOR_PROPOSALS,
-        PROJECT_STATUSES.PROPOSAL_SELECTED,
-        PROJECT_STATUSES.IN_PROGRESS,
-        PROJECT_STATUSES.COMPLETED,
-        PROJECT_STATUSES.CANCELLED
-      ]
-      let insertSuccess = false
-      let finalError: { message?: string; details?: string; hint?: string; code?: string } | null = null
-      let finalData: unknown = null
+      // Insert the project with the determined status
+      console.log("=== DATABASE INSERT DEBUG ===")
+      console.log("Full insert data:", projectData)
+      console.log("Insert data JSON:", JSON.stringify(projectData, null, 2))
+      console.log("=== END DATABASE INSERT DEBUG ===")
       
-      console.log("=== STATUS DEBUG ===")
-      console.log("Available statuses:", possibleStatuses)
-      console.log("First status to try:", possibleStatuses[0])
-      console.log("=== END STATUS DEBUG ===")
-      
-      for (const status of possibleStatuses) {
-        try {
-          console.log(`Trying to insert with status: "${status}"`)
-          console.log("=== DATABASE INSERT DEBUG ===")
-          console.log("Full insert data:", { ...projectData, status })
-          console.log("Insert data JSON:", JSON.stringify({ ...projectData, status }, null, 2))
-          console.log("=== END DATABASE INSERT DEBUG ===")
-          
-          const { error, data } = await this.supabase
-            .from("projects")
-            .insert({ ...projectData, status })
-            .select()
-          
-          if (error) {
-            console.log(`Status "${status}" failed:`, error.message)
-            console.log(`Status "${status}" error details:`, {
-              message: error.message,
-              details: error.details,
-              hint: error.hint,
-              code: error.code
-            })
-            finalError = error
-          } else {
-            console.log(`Status "${status}" succeeded!`)
-            insertSuccess = true
-            finalData = data
-            break
-          }
-        } catch (err) {
-          console.log(`Status "${status}" threw error:`, err)
-          finalError = err as { message?: string; details?: string; hint?: string; code?: string }
-        }
-      }
-      
-      if (!insertSuccess) {
-        console.error("All status values failed. Final error:", finalError)
-        return {
-          success: false,
-          error: `Database error: ${finalError?.message || "All status values failed"}`,
-        }
-      }
-      
-      const { error, data } = { error: finalError, data: finalData }
+      const { error, data } = await this.supabase
+        .from("projects")
+        .insert(projectData)
+        .select()
 
       console.log("Supabase response - data:", data)
       console.log("Supabase response - error:", error)
