@@ -15,6 +15,8 @@ export { FormFieldTextarea } from './FormField'
 export { FormFieldSelect } from './FormField'
 export { FormFieldSwitch } from './FormField'
 export { FormFieldLocation } from './FormField'
+export { FormPhotoInput } from './FormPhotoInput'
+export { FormDocumentInput } from './FormDocumentInput'
 export { LocationInput } from './LocationInput'
 
 // Re-export useFormField from lib/hooks for convenience
