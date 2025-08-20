@@ -6,7 +6,6 @@ import { useForm, Resolver, FieldErrors, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ExtendedUser } from "@/contexts/AuthContext";
 import { CreateProjectFormInputData, createProjectFormInputSchema } from "@/lib/validation/projects";
-import { useFileHandling } from "@/lib/hooks";
 import { ProjectService } from "@/lib/services";
 import { VISIBILITY_SETTINGS, PROJECT_TYPES } from "@/lib/constants";
 import { BasicInformationSection } from "./BasicInformationSection";
@@ -64,22 +63,7 @@ export default function CreateProjectForm({
     },
   });
 
-  const { handleSubmit, formState: { errors, isValid }, setValue, watch } = form;
-
-  const {
-    dragActive,
-    selectedPhotos,
-    selectedFiles,
-    uploadStates,
-    isUploading,
-    handleFileChange,
-    removeFile,
-    handleDrag,
-    handleDrop,
-    resetUploadState,
-    handleUpload,
-    forceUploadIdleFiles,
-  } = useFileHandling(setValue, { autoUpload: true });
+  const { handleSubmit, formState: { errors, isValid }, watch } = form;
 
   const projectService = new ProjectService();
 
@@ -87,37 +71,11 @@ export default function CreateProjectForm({
     console.log('Form submitted with data:', data)
     console.log('Project photos:', data.project_photos)
     console.log('Files:', data.files)
-    console.log('Upload states:', uploadStates)
-    console.log('Is uploading:', isUploading)
     
     // Debug form state
     console.log('Form errors:', errors)
     console.log('Form is valid:', isValid)
     console.log('Current form values:', watch())
-    
-    // Check if uploads are still in progress
-    if (isUploading) {
-      setError("Please wait for file uploads to complete before submitting");
-      return;
-    }
-    
-    // Check if there are any files that haven't been uploaded yet
-    const hasUnuploadedFiles = uploadStates.photos.some(state => state.status === 'idle') || 
-                               uploadStates.documents.some(state => state.status === 'idle')
-    
-    // Check if there are any failed uploads
-    const hasFailedUploads = uploadStates.photos.some(state => state.status === 'error') || 
-                             uploadStates.documents.some(state => state.status === 'error')
-    
-    if (hasUnuploadedFiles) {
-      setError("Please wait for all files to finish uploading before submitting");
-      return;
-    }
-    
-    if (hasFailedUploads) {
-      setError("Some files failed to upload. Please remove failed files or try again.");
-      return;
-    }
     
     if ((user.user_metadata?.role || "homeowner") !== "homeowner") {
       setError("Only homeowners can create projects");
@@ -172,19 +130,9 @@ export default function CreateProjectForm({
           <TimelineSection />
           <VisibilitySettingsSection />
 
-          <FileUploadSection
-            dragActive={dragActive}
-            selectedPhotos={selectedPhotos}
-            selectedFiles={selectedFiles}
-            handleDrag={handleDrag}
-            handleDrop={handleDrop}
-            handleFileChange={handleFileChange}
-            removeFile={removeFile}
-          />
+          <FileUploadSection />
 
-
-        
-        <FormActions loading={loading || isUploading} />
+          <FormActions loading={loading} />
         </form>
       </FormProvider>
     </div>
