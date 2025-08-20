@@ -23,6 +23,7 @@ export interface FormSelectProps {
   placeholder?: string
   options: FormSelectOption[]
   value?: string
+  onChange?: (value: string) => void
   onValueChange?: (value: string) => void
   disabled?: boolean
 }
@@ -37,6 +38,7 @@ const FormSelect = React.forwardRef<HTMLButtonElement, FormSelectProps>(
     placeholder = "Select an option",
     options,
     value,
+    onChange,
     onValueChange,
     disabled = false
   }, ref) => {
@@ -52,7 +54,10 @@ const FormSelect = React.forwardRef<HTMLButtonElement, FormSelectProps>(
         )}
         <Select 
           value={value} 
-          onValueChange={onValueChange}
+          onValueChange={(val) => {
+            onValueChange?.(val);
+            onChange?.(val);
+          }}
           disabled={disabled}
         >
           <SelectTrigger 

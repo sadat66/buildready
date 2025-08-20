@@ -80,20 +80,7 @@ const FormMultiSelect = React.forwardRef<HTMLButtonElement, FormMultiSelectProps
       onChange?.(newValues)
     }
     
-    const handleClearAll = () => {
-      if (disabled) return
-      onChange?.([])
-    }
-    
     const selectedOptions = options.filter(option => value?.includes(option.value))
-    const displayText = React.useMemo(() => {
-      if (!value || value.length === 0) return placeholder
-      if (value.length === 1) {
-        const option = options.find(opt => opt.value === value[0])
-        return option?.label || value[0]
-      }
-      return `${value.length} selected`
-    }, [value, options, placeholder])
     
     return (
       <div className={cn("space-y-2", containerClassName)}>
@@ -125,25 +112,32 @@ const FormMultiSelect = React.forwardRef<HTMLButtonElement, FormMultiSelectProps
                     {selectedOptions.slice(0, maxDisplayItems).map((option) => (
                       <Badge 
                         key={option.value} 
-                        variant="secondary" 
-                        className="text-xs px-2 py-1 bg-blue-50 text-blue-700 border-blue-200"
+                        variant="outline" 
+                        className="!text-sm !px-2 !py-1 !border-input !bg-background !text-foreground"
                       >
                         {option.label}
-                        <button
-                          type="button"
+                        <span
+                          role="button"
+                          tabIndex={0}
                           onClick={(e) => {
                             e.stopPropagation()
                             handleRemoveItem(option.value)
                           }}
-                          className="ml-1 rounded-full outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault()
+                              handleRemoveItem(option.value)
+                            }
+                          }}
+                          className="ml-1 rounded-full outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 cursor-pointer hover:bg-gray-100 p-0.5"
                         >
                           <X className="h-3 w-3" />
                           <span className="sr-only">Remove {option.label}</span>
-                        </button>
+                        </span>
                       </Badge>
                     ))}
                     {selectedOptions.length > maxDisplayItems && (
-                      <Badge variant="outline" className="text-xs px-2 py-1">
+                      <Badge variant="outline" className="!text-sm !px-2 py-1 !border-input !bg-background !text-foreground">
                         +{selectedOptions.length - maxDisplayItems} more
                       </Badge>
                     )}
@@ -167,39 +161,10 @@ const FormMultiSelect = React.forwardRef<HTMLButtonElement, FormMultiSelectProps
               <CommandList>
                 <CommandEmpty>No options found.</CommandEmpty>
                 
-                {selectedOptions.length > 0 && (
-                  <CommandGroup heading={`Selected (${selectedOptions.length})`}>
-                    {selectedOptions.map((option) => (
-                      <CommandItem
-                        key={`selected-${option.value}`}
-                        value={option.value}
-                        onSelect={() => handleSelect(option.value)}
-                        className="flex items-center justify-between"
-                      >
-                        <div className="flex items-center">
-                          <Check className="mr-2 h-4 w-4 text-blue-600" />
-                          {option.label}
-                        </div>
-                        <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700">
-                          Selected
-                        </Badge>
-                      </CommandItem>
-                    ))}
-                    
-                    {selectedOptions.length > 0 && (
-                      <CommandItem
-                        value="clear-all"
-                        onSelect={() => handleClearAll()}
-                        className="flex items-center text-red-600 hover:text-red-700 hover:bg-red-50"
-                      >
-                        <X className="mr-2 h-4 w-4" />
-                        Clear all selections
-                      </CommandItem>
-                    )}
-                  </CommandGroup>
-                )}
+
                 
                 <CommandGroup heading="Available">
+                  {/* Only showing unselected options - selected items are shown as badges on the trigger button */}
                   {options
                     .filter(option => !value?.includes(option.value))
                     .map((option) => (

@@ -21,6 +21,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Project } from '@/types'
+import { PROJECT_STATUSES } from "@/lib/constants"
 
 interface ProjectTableProps {
   projects: Project[]
@@ -154,13 +155,13 @@ export default function ProjectTable({ projects, onProjectClick }: ProjectTableP
         cell: ({ row }) => {
           const status = row.original.status
           const statusConfig = {
-            Published: { label: 'Published', variant: 'default' as const, color: 'bg-gray-100 text-gray-800' },
-            'In Progress': { label: 'In Progress', variant: 'secondary' as const, color: 'bg-orange-100 text-orange-800' },
-            Completed: { label: 'Completed', variant: 'outline' as const, color: 'bg-gray-900 text-white' },
-            Cancelled: { label: 'Cancelled', variant: 'destructive' as const, color: 'bg-gray-100 text-gray-800' },
+            [PROJECT_STATUSES.OPEN_FOR_PROPOSALS]: { label: PROJECT_STATUSES.OPEN_FOR_PROPOSALS, variant: 'default' as const, color: 'bg-gray-100 text-gray-800' },
+            [PROJECT_STATUSES.IN_PROGRESS]: { label: PROJECT_STATUSES.IN_PROGRESS, variant: 'secondary' as const, color: 'bg-orange-100 text-orange-800' },
+            [PROJECT_STATUSES.COMPLETED]: { label: PROJECT_STATUSES.COMPLETED, variant: 'outline' as const, color: 'bg-gray-900 text-white' },
+            [PROJECT_STATUSES.CANCELLED]: { label: PROJECT_STATUSES.CANCELLED, variant: 'destructive' as const, color: 'bg-gray-100 text-gray-800' },
           }
           
-          const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.Published
+          const config = statusConfig[status as keyof typeof statusConfig] || statusConfig[PROJECT_STATUSES.OPEN_FOR_PROPOSALS]
           
           return (
             <Badge variant={config.variant} className={config.color}>

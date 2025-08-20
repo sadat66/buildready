@@ -5,6 +5,7 @@ import { LoadingSpinner } from '@/components/shared'
 import ProjectStats from './ProjectStats'
 import RecentProjects from './RecentProjects'
 import { useAuth } from '@/contexts/AuthContext'
+import { PROJECT_STATUSES } from "@/lib/constants"
 
 export default function TRPCHomeownerDashboard() {
   const { user } = useAuth()

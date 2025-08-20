@@ -1,5 +1,6 @@
 import * as React from "react"
 import { FormField, FormSelect, FormSwitch } from "@/components/shared/form-input"
+import { VISIBILITY_SETTINGS_VALUES } from "@/lib/constants"
 
 export function VisibilitySettingsSection() {
   return (
@@ -10,14 +11,11 @@ export function VisibilitySettingsSection() {
         <FormField name="visibility_settings">
           {({ field, error }) => (
             <FormSelect
-              {...field}
               label="Visibility Settings"
               placeholder="Select visibility"
-              options={[
-                { value: "public", label: "Public" },
-                { value: "private", label: "Private" },
-                { value: "invite_only", label: "Invite Only" }
-              ]}
+              options={VISIBILITY_SETTINGS_VALUES.map(value => ({ value, label: value }))}
+              value={field.value}
+              onValueChange={field.onChange}
               required
               error={error}
             />

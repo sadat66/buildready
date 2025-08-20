@@ -12,6 +12,8 @@ import { Switch } from '@/components/ui/switch'
 import { ArrowLeft, MapPin, Calendar, DollarSign, Save } from 'lucide-react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
+import { VISIBILITY_SETTINGS_VALUES } from '@/lib/constants'
+import { PROJECT_TYPES, PROJECT_TYPE_VALUES, type ProjectType } from '@/lib/constants/projects'
 import dynamic from 'next/dynamic'
 
 const LocationMap = dynamic(() => import('@/components/features/projects').then(mod => ({ default: mod.LocationMap })), {
@@ -28,19 +30,9 @@ const tradeCategories = [
   'Masonry'
 ] as const
 
-const projectTypes = [
-  'New Build',
-  'Renovation',
-  'Maintenance',
-  'Repair',
-  'Inspection'
-] as const
+const projectTypes = PROJECT_TYPE_VALUES
 
-const visibilitySettings = [
-  'Public',
-  'Private',
-  'Invitation Only'
-] as const
+const visibilitySettings = VISIBILITY_SETTINGS_VALUES
 
 export default function EditProjectPage() {
   const params = useParams()
@@ -52,7 +44,33 @@ export default function EditProjectPage() {
   const [error, setError] = useState('')
   
   // Form state - Updated to match new schema
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    project_title: string
+    statement_of_work: string
+    category: string[]
+    location: {
+      address: string
+      city: string
+      province: string
+      postalCode: string
+      latitude: number | undefined
+      longitude: number | undefined
+    }
+    budget: number
+    pid: string
+    project_type: ProjectType
+    visibility_settings: typeof VISIBILITY_SETTINGS_VALUES[number]
+    start_date: string
+    end_date: string
+    expiry_date: string
+    decision_date: string
+    substantial_completion: string
+    permit_required: boolean
+    is_verified_project: boolean
+    certificate_of_title: string
+    project_photos: Array<{ id: string; filename: string; url: string; size: number; mimeType: string; uploadedAt: Date }>
+    files: Array<{ id: string; filename: string; url: string; size: number; mimeType: string; uploadedAt: Date }>
+  }>({
     project_title: '',
     statement_of_work: '',
     category: [] as string[],
@@ -66,8 +84,8 @@ export default function EditProjectPage() {
     },
     budget: 0,
     pid: '',
-    project_type: 'Renovation' as 'New Build' | 'Renovation' | 'Maintenance' | 'Repair' | 'Inspection',
-    visibility_settings: 'Public' as 'Public' | 'Private' | 'Invitation Only',
+    project_type: PROJECT_TYPES.RENOVATION,
+    visibility_settings: 'Public To Marketplace' as typeof VISIBILITY_SETTINGS_VALUES[number],
     start_date: '',
     end_date: '',
     expiry_date: '',
@@ -116,8 +134,8 @@ export default function EditProjectPage() {
             },
             budget: data.budget || 0,
             pid: data.pid || '',
-            project_type: data.project_type || 'Renovation',
-            visibility_settings: data.visibility_settings || 'Public',
+            project_type: data.project_type || PROJECT_TYPES.RENOVATION,
+            visibility_settings: data.visibility_settings || 'Public To Marketplace',
             start_date: data.start_date ? new Date(data.start_date).toISOString().split('T')[0] : '',
             end_date: data.end_date ? new Date(data.end_date).toISOString().split('T')[0] : '',
             expiry_date: data.expiry_date ? new Date(data.expiry_date).toISOString().split('T')[0] : '',

@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase"
 import { CreateProjectFormInputData } from "@/lib/validation/projects"
+import { PROJECT_STATUSES } from "@/lib/constants"
 
 export interface CreateProjectResult {
   success: boolean
@@ -85,7 +86,7 @@ export class ProjectService {
         project_title: formData.project_title,
         statement_of_work: formData.statement_of_work,
         budget: formData.budget,
-        category: formData.category,
+        category: Array.isArray(formData.category) ? formData.category : [formData.category],
         pid: formData.pid,
         location: {
           address: locationData.address,
@@ -108,7 +109,7 @@ export class ProjectService {
         project_photos: formData.project_photos || [],
         files: formData.files || [],
         creator: userId,
-        status: "Published",
+        status: PROJECT_STATUSES.DRAFT,
         proposal_count: 0,
         // Add missing fields that are in the form but not in the database schema
         decision_date: decisionDate.toISOString().split('T')[0], // Convert to DATE format
@@ -117,6 +118,29 @@ export class ProjectService {
 
       console.log("projectData prepared:", projectData)
       console.log("projectData JSON:", JSON.stringify(projectData, null, 2))
+      
+      // Log each field individually to debug type issues
+      console.log("Field types check:")
+      console.log("- project_title:", typeof projectData.project_title, projectData.project_title)
+      console.log("- statement_of_work:", typeof projectData.statement_of_work, projectData.statement_of_work)
+      console.log("- budget:", typeof projectData.budget, projectData.budget)
+      console.log("- category:", typeof projectData.category, Array.isArray(projectData.category), projectData.category)
+      console.log("- pid:", typeof projectData.pid, projectData.pid)
+      console.log("- location:", typeof projectData.location, projectData.location)
+      console.log("- project_type:", typeof projectData.project_type, projectData.project_type)
+      console.log("- status:", typeof projectData.status, projectData.status)
+      console.log("- start_date:", typeof projectData.start_date, projectData.start_date)
+      console.log("- end_date:", typeof projectData.end_date, projectData.end_date)
+      console.log("- expiry_date:", typeof projectData.expiry_date, projectData.expiry_date)
+      
+      // Validate category field specifically
+      if (!Array.isArray(projectData.category) || projectData.category.length === 0) {
+        console.error("Category validation failed:", projectData.category)
+        return {
+          success: false,
+          error: "Category must be a non-empty array",
+        }
+      }
       
       // Validate required fields
       const requiredFields = ['project_title', 'statement_of_work', 'budget', 'category', 'pid', 'location']
@@ -140,10 +164,102 @@ export class ProjectService {
       }
 
       console.log("Attempting to insert into projects table...")
-      const { error, data } = await this.supabase
-        .from("projects")
-        .insert(projectData)
-        .select()
+      
+      // Debug: Check what visibility settings value is being sent
+      console.log("=== VISIBILITY SETTINGS DEBUG ===")
+      console.log("Form visibility_settings:", formData.visibility_settings)
+      console.log("Form visibility_settings type:", typeof formData.visibility_settings)
+      console.log("Form visibility_settings length:", formData.visibility_settings?.length)
+      console.log("Project data visibility_settings:", projectData.visibility_settings)
+      console.log("Available visibility settings:", [
+        'Private',
+        'Shared With Target User', 
+        'Shared With Participant',
+        'Public To Invitees',
+        'Public To Marketplace',
+        'AdminOnly'
+      ])
+      
+      // Check for potential case/format issues
+      console.log("=== CASE/FORMAT DEBUG ===")
+      console.log("Form value lowercase:", formData.visibility_settings?.toLowerCase())
+      console.log("Form value uppercase:", formData.visibility_settings?.toUpperCase())
+      console.log("Form value with spaces normalized:", formData.visibility_settings?.replace(/\s+/g, ' '))
+      console.log("Form value without spaces:", formData.visibility_settings?.replace(/\s/g, ''))
+      console.log("=== END CASE/FORMAT DEBUG ===")
+      
+      console.log("=== END VISIBILITY SETTINGS DEBUG ===")
+      
+      // Debug: Check budget value
+      console.log("=== BUDGET DEBUG ===")
+      console.log("Form budget:", formData.budget)
+      console.log("Form budget type:", typeof formData.budget)
+      console.log("Form budget length:", formData.budget?.toString().length)
+      console.log("Project data budget:", projectData.budget)
+      console.log("Project data budget type:", typeof projectData.budget)
+      console.log("=== END BUDGET DEBUG ===")
+      
+      // Try different status values if the first one fails
+      const possibleStatuses = [
+        PROJECT_STATUSES.DRAFT,
+        PROJECT_STATUSES.OPEN_FOR_PROPOSALS,
+        PROJECT_STATUSES.PROPOSAL_SELECTED,
+        PROJECT_STATUSES.IN_PROGRESS,
+        PROJECT_STATUSES.COMPLETED,
+        PROJECT_STATUSES.CANCELLED
+      ]
+      let insertSuccess = false
+      let finalError: { message?: string; details?: string; hint?: string; code?: string } | null = null
+      let finalData: unknown = null
+      
+      console.log("=== STATUS DEBUG ===")
+      console.log("Available statuses:", possibleStatuses)
+      console.log("First status to try:", possibleStatuses[0])
+      console.log("=== END STATUS DEBUG ===")
+      
+      for (const status of possibleStatuses) {
+        try {
+          console.log(`Trying to insert with status: "${status}"`)
+          console.log("=== DATABASE INSERT DEBUG ===")
+          console.log("Full insert data:", { ...projectData, status })
+          console.log("Insert data JSON:", JSON.stringify({ ...projectData, status }, null, 2))
+          console.log("=== END DATABASE INSERT DEBUG ===")
+          
+          const { error, data } = await this.supabase
+            .from("projects")
+            .insert({ ...projectData, status })
+            .select()
+          
+          if (error) {
+            console.log(`Status "${status}" failed:`, error.message)
+            console.log(`Status "${status}" error details:`, {
+              message: error.message,
+              details: error.details,
+              hint: error.hint,
+              code: error.code
+            })
+            finalError = error
+          } else {
+            console.log(`Status "${status}" succeeded!`)
+            insertSuccess = true
+            finalData = data
+            break
+          }
+        } catch (err) {
+          console.log(`Status "${status}" threw error:`, err)
+          finalError = err as { message?: string; details?: string; hint?: string; code?: string }
+        }
+      }
+      
+      if (!insertSuccess) {
+        console.error("All status values failed. Final error:", finalError)
+        return {
+          success: false,
+          error: `Database error: ${finalError?.message || "All status values failed"}`,
+        }
+      }
+      
+      const { error, data } = { error: finalError, data: finalData }
 
       console.log("Supabase response - data:", data)
       console.log("Supabase response - error:", error)
@@ -156,16 +272,32 @@ export class ProjectService {
           code: error.code,
           fullError: error
         })
+        
+        // Provide more detailed error information
+        let errorMessage = "Database error"
+        if (error.message) {
+          errorMessage += `: ${error.message}`
+        }
+        if (error.details) {
+          errorMessage += ` (Details: ${error.details})`
+        }
+        if (error.hint) {
+          errorMessage += ` (Hint: ${error.hint})`
+        }
+        if (error.code) {
+          errorMessage += ` (Code: ${error.code})`
+        }
+        
         return {
           success: false,
-          error: `Database error: ${error.message || "Unknown error"}${error.details ? ` - ${error.details}` : ""}${error.hint ? ` (Hint: ${error.hint})` : ""}`,
+          error: errorMessage,
         }
       }
 
       console.log("Project created successfully in database")
       return { 
         success: true, 
-        projectId: data?.[0]?.id 
+        projectId: (data as Array<{ id: string }>)?.[0]?.id 
       }
     } catch (error) {
       console.error("Unexpected error in ProjectService:", error)
@@ -228,8 +360,8 @@ export class ProjectService {
             email
           )
         `)
-        .in("status", ["Published", "Bidding"])
-        .eq("visibility_settings", "Public")
+        .in("status", [PROJECT_STATUSES.DRAFT])
+        .eq("visibility_settings", "Public To Marketplace")
         .gte("expiry_date", new Date().toISOString())
         .order("created_at", { ascending: false })
 
@@ -266,6 +398,43 @@ export class ProjectService {
     } catch (error) {
       console.error("Error fetching contractor projects:", error)
       return { success: false, error: "Failed to fetch contractor projects" }
+    }
+  }
+
+  // Debug method to check what status values are allowed by the database
+  async checkDatabaseConstraints() {
+    try {
+      console.log("Checking database constraints...")
+      
+      // Try to get the table information
+      const { data: tableInfo, error: tableError } = await this.supabase
+        .from('information_schema.table_constraints')
+        .select('*')
+        .eq('table_name', 'projects')
+        .eq('constraint_type', 'CHECK')
+      
+      if (tableError) {
+        console.error("Error fetching table constraints:", tableError)
+      } else {
+        console.log("Table constraints:", tableInfo)
+      }
+
+      // Try to get existing projects to see what status values are currently used
+      const { data: existingProjects, error: projectsError } = await this.supabase
+        .from("projects")
+        .select("status")
+        .limit(10)
+      
+      if (projectsError) {
+        console.error("Error fetching existing projects:", projectsError)
+      } else {
+        console.log("Existing project statuses:", existingProjects)
+      }
+
+      return { success: true }
+    } catch (error) {
+      console.error("Error checking database constraints:", error)
+      return { success: false, error: "Failed to check constraints" }
     }
   }
 }

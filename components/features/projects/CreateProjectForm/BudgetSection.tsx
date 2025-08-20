@@ -19,6 +19,11 @@ export function BudgetSection() {
             type="number"
             required
             error={error}
+            onChange={(e) => {
+              const value = e.target.value;
+              const numValue = value === '' ? 0 : parseFloat(value);
+              field.onChange(isNaN(numValue) ? 0 : numValue);
+            }}
           />
         )}
       </FormField>
