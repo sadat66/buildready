@@ -20,7 +20,7 @@ interface ProjectViewTabsProps {
 export function ProjectViewTabs({ activeTab, onTabChange, userRole, availableTabs, proposalCount, project }: ProjectViewTabsProps) {
   const getTabIcon = (tab: TabType) => {
     switch (tab) {
-      case 'overview': return <Eye className="h-4 w-4" />
+      case 'details': return <Eye className="h-4 w-4" />
       case 'proposals': return <FileText className="h-4 w-4" />
       case 'messages': return <MessageSquare className="h-4 w-4" />
       default: return <Eye className="h-4 w-4" />
@@ -29,20 +29,20 @@ export function ProjectViewTabs({ activeTab, onTabChange, userRole, availableTab
 
   const getTabLabel = (tab: TabType) => {
     switch (tab) {
-      case 'overview': return 'Overview'
+      case 'details': return 'Details'
       case 'proposals':
         if (userRole === USER_ROLES.HOMEOWNER) {
           return `Proposals ${proposalCount > 0 ? `(${proposalCount})` : ''}`
         }
         return userRole === USER_ROLES.CONTRACTOR ? 'My Proposals' : 'Proposals'
       case 'messages': return 'Messages'
-      default: return 'Overview'
+      default: return 'details'
     }
   }
 
   const getTabDescription = (tab: TabType) => {
     switch (tab) {
-      case 'overview': return 'Project details, photos, and requirements'
+      case 'details': return 'Project details, photos, and requirements'
       case 'proposals':
         if (userRole === USER_ROLES.HOMEOWNER) {
           return 'Review and manage contractor proposals'
@@ -74,9 +74,7 @@ export function ProjectViewTabs({ activeTab, onTabChange, userRole, availableTab
   }
 
   return (
-    <div className="border-b border-gray-200 bg-white rounded-t-lg">
-      <div className="px-6">
-        <nav className="flex space-x-8" aria-label="Tabs">
+         <nav className="flex space-x-8 my-6 border-b border-gray-200 " aria-label="Tabs">
           {availableTabs.map((tab) => (
             <button
               key={tab}
@@ -96,7 +94,5 @@ export function ProjectViewTabs({ activeTab, onTabChange, userRole, availableTab
             </button>
           ))}
         </nav>
-      </div>
-    </div>
-  )
+    )
 }

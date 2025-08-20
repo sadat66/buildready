@@ -3,82 +3,15 @@
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
-import { ProjectView } from '@/components/features/projects'
+import { HomeownerProjectView } from '@/components/features/projects'
 import { createClient } from '@/lib/supabase'
 import toast from 'react-hot-toast'
 import { USER_ROLES } from '@/lib/constants'
+import { Project } from '@/types/database/projects'
+import { Proposal } from '@/types/database/proposals'
+import { User } from '@/types/database/auth'
 
-interface Project {
-  id: string
-  project_title: string
-  statement_of_work: string
-  budget: number
-  category: string[]
-  pid: string
-  location: {
-    address: string
-    city: string
-    province: string
-    postalCode: string
-    latitude?: number
-    longitude?: number
-  }
-  project_type: string
-  status: string
-  visibility_settings: string
-  start_date: string
-  end_date: string
-  expiry_date: string
-  decision_date: string
-  substantial_completion: string | null
-  permit_required: boolean
-  is_verified_project: boolean
-  certificate_of_title: string | null
-  project_photos: Array<{ id: string; filename: string; url: string; size: number; mimeType: string; uploadedAt: Date }>
-  files: Array<{ id: string; filename: string; url: string; size: number; mimeType: string; uploadedAt: Date }>
-  creator: string
-  proposal_count: number
-  created_at: string
-  updated_at: string
-}
-
-interface Proposal {
-  id: string
-  title: string
-  description_of_work: string
-  project: string
-  contractor: string
-  homeowner: string
-  subtotal_amount: number
-  tax_included: 'yes' | 'no'
-  total_amount: number
-  deposit_amount: number
-  deposit_due_on: string
-  proposed_start_date: string
-  proposed_end_date: string
-  expiry_date: string
-  status: 'draft' | 'submitted' | 'viewed' | 'accepted' | 'rejected' | 'withdrawn' | 'expired'
-  is_selected: 'yes' | 'no'
-  submitted_date?: string
-  accepted_date?: string
-  rejected_date?: string
-  rejection_reason?: 'price_too_high' | 'timeline_unrealistic' | 'experience_insufficient' | 'scope_mismatch' | 'other'
-  rejection_reason_notes?: string
-  clause_preview_html?: string
-  attached_files: Array<{ id: string; filename: string; url: string; size?: number; mimeType?: string; uploadedAt?: Date }>
-  notes?: string
-  created_at: string
-  updated_at: string
-  contractor_profile?: {
-    id: string
-    full_name: string
-    email: string
-    phone_number?: string
-    address?: string
-  }
-}
-
-export default function ProjectViewPage() {
+export default function HomeownerProjectViewPage() {
   const params = useParams()
   const router = useRouter()
   const id = params?.id as string
@@ -92,7 +25,7 @@ export default function ProjectViewPage() {
   const [updatingProposal, setUpdatingProposal] = useState<string | null>(null)
 
   useEffect(() => {
-    const fetchProject = async () => {
+    const fetchHomeownerProject = async () => {
       if (!id || !user) {
         setLoading(false)
         return
@@ -111,16 +44,35 @@ export default function ProjectViewPage() {
           throw fetchError
         }
         
-        setProject(data)
+        if (data) {
+          // Transform the data to match the expected Project interface
+          const transformedProject: Project = {
+            ...data,
+            start_date: new Date(data.start_date),
+            end_date: new Date(data.end_date),
+            expiry_date: new Date(data.expiry_date),
+            decision_date: data.decision_date ? new Date(data.decision_date) : undefined,
+            substantial_completion: data.substantial_completion ? new Date(data.substantial_completion) : undefined,
+            created_at: new Date(data.created_at),
+            updated_at: new Date(data.updated_at),
+            // Ensure required fields are present with defaults if missing
+            project_photos: data.project_photos || [],
+            files: data.files || [],
+            proposal_count: data.proposal_count || 0,
+            is_verified_project: data.is_verified_project || false,
+            permit_required: data.permit_required || false
+          }
+          setProject(transformedProject)
+        }
       } catch (error) {
-        console.error('Error fetching project:', error)
-        setError('Failed to load project details')
+        console.error('Error fetching homeowner project:', error)
+        setError('Failed to load your project details')
       } finally {
         setLoading(false)
       }
     }
     
-    const fetchProposals = async () => {
+    const fetchHomeownerProposals = async () => {
       if (!id || !user) {
         setProposalsLoading(false)
         return
@@ -150,26 +102,52 @@ export default function ProjectViewPage() {
           throw fetchError
         }
         
-        setProposals(data || [])
+        if (data) {
+          // Transform the data to match the expected Proposal interface
+          const transformedProposals: Proposal[] = data.map(proposal => ({
+            ...proposal,
+            createdAt: new Date(proposal.created_at),
+            updatedAt: new Date(proposal.updated_at),
+            proposed_start_date: new Date(proposal.proposed_start_date),
+            proposed_end_date: new Date(proposal.proposed_end_date),
+            expiry_date: new Date(proposal.expiry_date),
+            deposit_due_on: new Date(proposal.deposit_due_on),
+            submitted_date: proposal.submitted_date ? new Date(proposal.submitted_date) : undefined,
+            accepted_date: proposal.accepted_date ? new Date(proposal.accepted_date) : undefined,
+            rejected_date: proposal.rejected_date ? new Date(proposal.rejected_date) : undefined,
+            withdrawn_date: proposal.withdrawn_date ? new Date(proposal.withdrawn_date) : undefined,
+            viewed_date: proposal.viewed_date ? new Date(proposal.viewed_date) : undefined,
+            last_updated: new Date(proposal.updated_at),
+            // Ensure required fields are present with defaults if missing
+            attached_files: proposal.attached_files || [],
+            proposals: proposal.proposals || [],
+            visibility_settings: proposal.visibility_settings || 'private',
+            created_by: proposal.created_by || proposal.contractor,
+            last_modified_by: proposal.last_modified_by || proposal.contractor
+          }))
+          setProposals(transformedProposals)
+        }
       } catch (error) {
-        console.error('Error fetching proposals:', error)
+        console.error('Error fetching homeowner proposals:', error)
       } finally {
         setProposalsLoading(false)
       }
     }
     
-    fetchProject()
-    fetchProposals()
+    fetchHomeownerProject()
+    fetchHomeownerProposals()
   }, [id, user])
 
-  const handleEditProject = () => {
-    router.push(`/homeowner/projects/edit/${project?.id}`)
+  const handleEditHomeownerProject = () => {
+    if (project) {
+      router.push(`/homeowner/projects/edit/${project.id}`)
+    }
   }
 
-  const handleDeleteProject = async () => {
+  const handleDeleteHomeownerProject = async () => {
     if (!project || !user) return
     
-    if (!confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
+    if (!confirm('Are you sure you want to delete this project? This action cannot be undone and will remove all associated proposals.')) {
       return
     }
     
@@ -187,20 +165,20 @@ export default function ProjectViewPage() {
         throw deleteError
       }
       
-      toast.success('Project deleted successfully')
+      toast.success('Your project has been deleted successfully')
       router.push('/homeowner/projects')
     } catch (error) {
-      console.error('Error deleting project:', error)
-      toast.error('Failed to delete project')
+      console.error('Error deleting homeowner project:', error)
+      toast.error('Failed to delete your project')
     } finally {
       setDeleting(false)
     }
   }
 
-  const handleAcceptProposal = async (proposalId: string) => {
+  const handleAcceptContractorProposal = async (proposalId: string) => {
     if (!user) return
     
-    if (!confirm('Are you sure you want to accept this proposal? This will reject all other proposals for this project.')) {
+    if (!confirm('Are you sure you want to accept this contractor\'s proposal? This will automatically reject all other proposals for this project.')) {
       return
     }
     
@@ -245,7 +223,7 @@ export default function ProjectViewPage() {
           status: 'rejected',
           rejected_date: new Date().toISOString(),
           rejection_reason: 'other',
-          rejection_reason_notes: 'Another proposal was selected',
+          rejection_reason_notes: 'Another proposal was selected by the homeowner',
           last_updated: new Date().toISOString(),
           last_modified_by: user.id
         })
@@ -266,7 +244,7 @@ export default function ProjectViewPage() {
         })
         .eq('id', id)
       
-      toast.success('Proposal accepted successfully')
+      toast.success('Contractor proposal accepted successfully! Your project is now awarded.')
       
       // Refresh proposals
       const { data: updatedProposals } = await supabase
@@ -287,20 +265,42 @@ export default function ProjectViewPage() {
         .in('status', ['submitted', 'viewed', 'accepted', 'rejected'])
         .order('created_at', { ascending: false })
       
-      setProposals(updatedProposals || [])
+      if (updatedProposals) {
+        const transformedProposals: Proposal[] = updatedProposals.map(proposal => ({
+          ...proposal,
+          createdAt: new Date(proposal.created_at),
+          updatedAt: new Date(proposal.updated_at),
+          proposed_start_date: new Date(proposal.proposed_start_date),
+          proposed_end_date: new Date(proposal.proposed_end_date),
+          expiry_date: new Date(proposal.expiry_date),
+          deposit_due_on: new Date(proposal.deposit_due_on),
+          submitted_date: proposal.submitted_date ? new Date(proposal.submitted_date) : undefined,
+          accepted_date: proposal.accepted_date ? new Date(proposal.accepted_date) : undefined,
+          rejected_date: proposal.rejected_date ? new Date(proposal.rejected_date) : undefined,
+          withdrawn_date: proposal.withdrawn_date ? new Date(proposal.withdrawn_date) : undefined,
+          viewed_date: proposal.viewed_date ? new Date(proposal.viewed_date) : undefined,
+          last_updated: new Date(proposal.updated_at),
+          attached_files: proposal.attached_files || [],
+          proposals: proposal.proposals || [],
+          visibility_settings: proposal.visibility_settings || 'private',
+          created_by: proposal.created_by || proposal.contractor,
+          last_modified_by: proposal.last_modified_by || proposal.contractor
+        }))
+        setProposals(transformedProposals)
+      }
       
     } catch (error) {
-      console.error('Error accepting proposal:', error)
-      toast.error('Failed to accept proposal')
+      console.error('Error accepting contractor proposal:', error)
+      toast.error('Failed to accept the contractor proposal')
     } finally {
       setUpdatingProposal(null)
     }
   }
 
-  const handleRejectProposal = async (proposalId: string, reason?: string, notes?: string) => {
+  const handleRejectContractorProposal = async (proposalId: string, reason?: string, notes?: string) => {
     if (!user) return
     
-    if (!confirm('Are you sure you want to reject this proposal?')) {
+    if (!confirm('Are you sure you want to reject this contractor\'s proposal?')) {
       return
     }
     
@@ -339,7 +339,7 @@ export default function ProjectViewPage() {
         throw rejectError
       }
       
-      toast.success('Proposal rejected successfully')
+      toast.success('Contractor proposal rejected successfully')
       
       // Refresh proposals
       const { data: updatedProposals } = await supabase
@@ -360,18 +360,40 @@ export default function ProjectViewPage() {
         .in('status', ['submitted', 'viewed', 'accepted', 'rejected'])
         .order('created_at', { ascending: false })
       
-      setProposals(updatedProposals || [])
+      if (updatedProposals) {
+        const transformedProposals: Proposal[] = updatedProposals.map(proposal => ({
+          ...proposal,
+          createdAt: new Date(proposal.created_at),
+          updatedAt: new Date(proposal.updated_at),
+          proposed_start_date: new Date(proposal.proposed_start_date),
+          proposed_end_date: new Date(proposal.proposed_end_date),
+          expiry_date: new Date(proposal.expiry_date),
+          deposit_due_on: new Date(proposal.deposit_due_on),
+          submitted_date: proposal.submitted_date ? new Date(proposal.submitted_date) : undefined,
+          accepted_date: proposal.accepted_date ? new Date(proposal.accepted_date) : undefined,
+          rejected_date: proposal.rejected_date ? new Date(proposal.rejected_date) : undefined,
+          withdrawn_date: proposal.withdrawn_date ? new Date(proposal.withdrawn_date) : undefined,
+          viewed_date: proposal.viewed_date ? new Date(proposal.viewed_date) : undefined,
+          last_updated: new Date(proposal.updated_at),
+          attached_files: proposal.attached_files || [],
+          proposals: proposal.proposals || [],
+          visibility_settings: proposal.visibility_settings || 'private',
+          created_by: proposal.created_by || proposal.contractor,
+          last_modified_by: proposal.last_modified_by || proposal.contractor
+        }))
+        setProposals(transformedProposals)
+      }
       
     } catch (error) {
-      console.error('Error rejecting proposal:', error)
-      toast.error('Failed to reject proposal')
+      console.error('Error rejecting contractor proposal:', error)
+      toast.error('Failed to reject the contractor proposal')
     } finally {
       setUpdatingProposal(null)
     }
   }
 
-  const handleViewProposal = (proposalId: string) => {
-    // Navigate to proposal detail view
+  const handleViewContractorProposal = (proposalId: string) => {
+    // Navigate to proposal detail view for homeowner
     router.push(`/homeowner/proposals/${proposalId}`)
   }
 
@@ -380,68 +402,41 @@ export default function ProjectViewPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">Loading project...</p>
+          <p className="mt-4 text-muted-foreground">Loading your project details...</p>
         </div>
       </div>
     )
   }
 
-  if (error || !project) {
+  if (error || !project || !user) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center text-red-600">
-          {error || 'Project not found'}
+          {error || 'Project not found or you don\'t have access to view it'}
         </div>
         <div className="text-center mt-4">
           <button 
             onClick={() => router.push('/homeowner/projects')}
             className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
           >
-            Back to Projects
+            Back to Your Projects
           </button>
         </div>
       </div>
     )
   }
 
-  // Transform project data to match the expected interface
-  const transformedProject = {
-    ...project,
-    start_date: new Date(project.start_date),
-    end_date: new Date(project.end_date),
-    expiry_date: new Date(project.expiry_date),
-    decision_date: project.decision_date ? new Date(project.decision_date) : null,
-    substantial_completion: project.substantial_completion ? new Date(project.substantial_completion) : null,
-    created_at: new Date(project.created_at),
-    updated_at: new Date(project.updated_at)
-  }
-
-  // Transform proposals data to match the expected interface
-  const transformedProposals = proposals.map(proposal => ({
-    ...proposal,
-    createdAt: new Date(proposal.created_at),
-    updatedAt: new Date(proposal.updated_at),
-    proposed_start_date: new Date(proposal.proposed_start_date),
-    proposed_end_date: new Date(proposal.proposed_end_date),
-    expiry_date: new Date(proposal.expiry_date),
-    deposit_due_on: new Date(proposal.deposit_due_on),
-    submitted_date: proposal.submitted_date ? new Date(proposal.submitted_date) : undefined,
-    accepted_date: proposal.accepted_date ? new Date(proposal.accepted_date) : undefined,
-    rejected_date: proposal.rejected_date ? new Date(proposal.rejected_date) : undefined,
-    last_updated: new Date(proposal.updated_at)
-  }))
-
   return (
-    <ProjectView
-      project={transformedProject}
-      proposals={transformedProposals}
-      user={user}
+    <HomeownerProjectView
+      project={project} 
+      proposals={proposals}
+      user={user as unknown as User}
       userRole={USER_ROLES.HOMEOWNER}
-      onEditProject={handleEditProject}
-      onDeleteProject={handleDeleteProject}
-      onAcceptProposal={handleAcceptProposal}
-      onRejectProposal={handleRejectProposal}
-      onViewProposal={handleViewProposal}
+      onEditProject={handleEditHomeownerProject}
+      onDeleteProject={handleDeleteHomeownerProject}
+      onAcceptProposal={handleAcceptContractorProposal}
+      onRejectProposal={handleRejectContractorProposal}
+      onViewProposal={handleViewContractorProposal}
       loading={loading}
       proposalsLoading={proposalsLoading}
       updatingProposal={updatingProposal}

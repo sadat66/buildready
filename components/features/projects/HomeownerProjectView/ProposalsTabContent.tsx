@@ -29,7 +29,7 @@ import {
 import { cn } from "@/lib/utils";
 import { USER_ROLES, PROJECT_STATUSES } from "@/lib/constants";
 
-interface ProjectViewProposalsProps {
+interface ProposalsTabContentProps {
   proposals: Proposal[];
   project: Project;
   user: User;
@@ -46,18 +46,18 @@ interface ProjectViewProposalsProps {
   updatingProposal?: string | null;
 }
 
-export function ProjectViewProposals({
-  proposals,
+export function ProposalsTabContent({
+  proposals,  
   project,
   user,
-  userRole,
+  userRole, 
   onAcceptProposal,
   onRejectProposal,
   onViewProposal,
   onSubmitProposal,
   loading = false,
   updatingProposal = null,
-}: ProjectViewProposalsProps) {
+}: ProposalsTabContentProps) {
   const [selectedProposals, setSelectedProposals] = useState<string[]>([]);
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [sortBy, setSortBy] = useState<"date" | "price" | "rating">("date");
