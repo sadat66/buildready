@@ -46,11 +46,11 @@ export default function ProjectStats({ stats }: ProjectStatsProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       {statItems.map((item, index) => (
-        <div key={index} className="bg-white border border-gray-100 rounded-lg p-6 hover:shadow-lg transition-all duration-200 shadow-md">
+        <div key={index} className="bg-white border border-gray-100 rounded-lg p-6 hover:shadow-lg transition-all duration-200 shadow-md shadow-orange-100/50">
           <div className="flex items-start justify-between mb-4">
             <h3 className="text-sm font-medium text-gray-600">{item.title}</h3>
             <div className="flex items-center space-x-1">
-              <item.icon className="h-7 w-7 text-gray-500" />
+              <item.icon className="h-7 w-7 text-orange-500" />
             </div>
           </div>
           
@@ -62,7 +62,7 @@ export default function ProjectStats({ stats }: ProjectStatsProps) {
           
           <div className="space-y-1">
             <div className="flex items-center space-x-1">
-              <item.icon className="h-3 w-3 text-gray-400" />
+              <item.icon className="h-3 w-3 text-orange-400" />
               <span className="text-xs font-medium text-gray-700">{item.description}</span>
             </div>
             <p className="text-xs text-gray-500">{item.subtitle}</p>

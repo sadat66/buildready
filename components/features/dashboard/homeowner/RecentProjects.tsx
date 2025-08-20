@@ -13,16 +13,21 @@ import { CalendarDays, DollarSign, MapPin, Plus, Eye, Edit, Building2, Sparkles,
 import Link from "next/link"
 import { Project } from '@/types'
 import ProjectTable from '@/components/features/projects/ProjectTable'
+import { createClient } from '@/lib/supabase'
+import { useAuth } from '@/contexts/AuthContext'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import toast from 'react-hot-toast'
 
 interface RecentProjectsProps {
   projects: Project[]
+  onProjectDeleted?: () => void
 }
 
 function getStatusBadgeStyle(status: string) {
   const badgeStyles = {
     'Draft': 'bg-gray-100 text-gray-800 border-gray-300',
-    'Published': 'bg-gray-100 text-gray-800 border-gray-300',
-    'Bidding': 'bg-gray-100 text-gray-800 border-gray-300',
+    'Open for Proposals': 'bg-gray-100 text-gray-800 border-gray-300',
     'Awarded': 'bg-orange-100 text-orange-800 border-orange-300',
     'In Progress': 'bg-orange-100 text-orange-800 border-orange-300',
     'Completed': 'bg-gray-900 text-white border-gray-900',
@@ -34,8 +39,7 @@ function getStatusBadgeStyle(status: string) {
 function getStatusIcon(status: string) {
   const icons = {
     'Draft': Clock,
-    'Published': Clock,
-    'Bidding': TrendingUp,
+    'Open for Proposals': Clock,
     'Awarded': Star,
     'In Progress': TrendingUp,
     'Completed': Star,
@@ -78,10 +82,49 @@ function getRecentProjects(projects: Project[], days: number = 30) {
   })
 }
 
-export default function RecentProjects({ projects }: RecentProjectsProps) {
+export default function RecentProjects({ projects, onProjectDeleted }: RecentProjectsProps) {
   // Filter projects from the last 30 days
   const recentProjects = getRecentProjects(projects, 30)
   const displayProjects = recentProjects.slice(0, 5)
+  const { user } = useAuth()
+  const router = useRouter()
+  const [deletingProjectId, setDeletingProjectId] = useState<string | null>(null)
+
+  const handleDeleteProject = async (project: Project) => {
+    if (!user) return
+    
+    // Remove confirmation dialog - delete immediately
+    setDeletingProjectId(project.id)
+    
+    try {
+      const supabase = createClient()
+      const { error: deleteError } = await supabase
+        .from('projects')
+        .delete()
+        .eq('id', project.id)
+        .eq('creator', user.id)
+      
+      if (deleteError) {
+        throw deleteError
+      }
+      
+      // Show success message and notify parent to refresh data
+      toast.success('Project deleted successfully')
+      
+      // Call the callback to refresh data in parent component
+      if (onProjectDeleted) {
+        onProjectDeleted()
+      }
+      
+      // Also try to refresh the router as backup
+      router.refresh()
+    } catch (error) {
+      console.error('Error deleting project:', error)
+      toast.error('Failed to delete project')
+    } finally {
+      setDeletingProjectId(null)
+    }
+  }
 
      return (
      <div className="space-y-6">
@@ -90,25 +133,20 @@ export default function RecentProjects({ projects }: RecentProjectsProps) {
           {/* Main Header */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-6">
             <div className="space-y-2 w-full sm:w-auto">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                  <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600" />
-                </div>
-                <div className="text-center sm:text-left">
-                  <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
-                    Recent Projects
-                  </h2>
-                  <p className="text-gray-600 text-sm sm:text-lg mt-1">
-                    Track your latest project activities and progress
-                  </p>
-                </div>
+              <div className="text-left">
+                <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
+                  Recent Projects
+                </h2>
+                <p className="text-gray-600 text-sm sm:text-lg mt-1">
+                  Track your latest project activities and progress
+                </p>
               </div>
             </div>
             
             <Link href="/homeowner/projects/create">
-              <Button className="gap-2 bg-gray-600 hover:bg-gray-700 text-white">
-                <Plus className="h-4 w-4" />
-                Create Project
+              <Button className="gap-2 bg-orange-600 hover:bg-orange-700 text-white">
+                <Plus className="h-5 w-5" />
+                Post Project
               </Button>
             </Link>
           </div>
@@ -127,12 +165,6 @@ export default function RecentProjects({ projects }: RecentProjectsProps) {
                : "No projects to display from the last 30 days."
              }
            </p>
-           <Link href="/homeowner/projects/create">
-             <Button className="gap-2 bg-gray-600 hover:bg-gray-700 text-white transition-all duration-300 px-4 py-2 text-sm">
-               <Plus className="h-4 w-4" />
-               Create Project
-             </Button>
-           </Link>
          </div>
        ) : (
          <div className="space-y-6">
@@ -203,10 +235,16 @@ export default function RecentProjects({ projects }: RecentProjectsProps) {
                                  Edit
                                </Link>
                              </DropdownMenuItem>
-                             <DropdownMenuItem className="text-red-600 focus:text-red-600">
-                               <XCircle className="h-4 w-4 mr-2" />
-                               Delete
-                             </DropdownMenuItem>
+                             <DropdownMenuItem 
+                                className="text-red-600 focus:text-red-600"
+                                onClick={(e) => {
+                                  e.preventDefault()
+                                  handleDeleteProject(project)
+                                }}
+                              >
+                                <XCircle className="h-4 w-4 mr-2" />
+                                Delete
+                              </DropdownMenuItem>
                            </DropdownMenuContent>
                          </DropdownMenu>
                        </div>
@@ -225,16 +263,20 @@ export default function RecentProjects({ projects }: RecentProjectsProps) {
                   // Navigate to project view page
                   window.location.href = `/homeowner/projects/view/${project.id}`
                 }}
+                onEditProject={(project) => {
+                  // Navigate to project edit page
+                  window.location.href = `/homeowner/projects/edit/${project.id}`
+                }}
+                onDeleteProject={(project) => {
+                  handleDeleteProject(project)
+                }}
               />
             </div>
           
-          {/* View All button at bottom right */}
-          <div className="flex justify-end pt-4">
-            <Link href="/homeowner/projects">
-              <Button className="gap-2 bg-gray-600 hover:bg-gray-700 text-white">
-                <Eye className="h-4 w-4" />
-                View All
-              </Button>
+          {/* View All link centered below the table */}
+          <div className="flex justify-center pt-6">
+            <Link href="/homeowner/projects" className="text-orange-600 hover:text-orange-700 font-medium text-sm transition-colors">
+              View All Projects
             </Link>
           </div>
         </div>

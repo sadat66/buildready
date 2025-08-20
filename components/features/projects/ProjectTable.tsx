@@ -26,11 +26,13 @@ import { PROJECT_STATUSES } from "@/lib/constants"
 interface ProjectTableProps {
   projects: Project[]
   onProjectClick?: (project: Project) => void
+  onEditProject?: (project: Project) => void
+  onDeleteProject?: (project: Project) => void
 }
 
 const columnHelper = createColumnHelper<Project>()
 
-export default function ProjectTable({ projects, onProjectClick }: ProjectTableProps) {
+export default function ProjectTable({ projects, onProjectClick, onEditProject, onDeleteProject }: ProjectTableProps) {
   const [sorting, setSorting] = useState<SortingState>([])
 
   const columns = useMemo(
@@ -155,16 +157,42 @@ export default function ProjectTable({ projects, onProjectClick }: ProjectTableP
         cell: ({ row }) => {
           const status = row.original.status
           const statusConfig = {
-            [PROJECT_STATUSES.OPEN_FOR_PROPOSALS]: { label: PROJECT_STATUSES.OPEN_FOR_PROPOSALS, variant: 'default' as const, color: 'bg-gray-100 text-gray-800' },
-            [PROJECT_STATUSES.IN_PROGRESS]: { label: PROJECT_STATUSES.IN_PROGRESS, variant: 'secondary' as const, color: 'bg-orange-100 text-orange-800' },
-            [PROJECT_STATUSES.COMPLETED]: { label: PROJECT_STATUSES.COMPLETED, variant: 'outline' as const, color: 'bg-gray-900 text-white' },
-            [PROJECT_STATUSES.CANCELLED]: { label: PROJECT_STATUSES.CANCELLED, variant: 'destructive' as const, color: 'bg-gray-100 text-gray-800' },
+            [PROJECT_STATUSES.DRAFT]: { 
+              label: PROJECT_STATUSES.DRAFT, 
+              variant: 'outline' as const, 
+              color: 'bg-gray-50 text-gray-700 border-gray-300' 
+            },
+            [PROJECT_STATUSES.OPEN_FOR_PROPOSALS]: { 
+              label: PROJECT_STATUSES.OPEN_FOR_PROPOSALS, 
+              variant: 'default' as const, 
+              color: 'bg-blue-100 text-blue-800 border-blue-300' 
+            },
+            [PROJECT_STATUSES.PROPOSAL_SELECTED]: { 
+              label: PROJECT_STATUSES.PROPOSAL_SELECTED, 
+              variant: 'secondary' as const, 
+              color: 'bg-green-100 text-green-800 border-green-300' 
+            },
+            [PROJECT_STATUSES.IN_PROGRESS]: { 
+              label: PROJECT_STATUSES.IN_PROGRESS, 
+              variant: 'secondary' as const, 
+              color: 'bg-orange-100 text-orange-800 border-orange-300' 
+            },
+            [PROJECT_STATUSES.COMPLETED]: { 
+              label: PROJECT_STATUSES.COMPLETED, 
+              variant: 'outline' as const, 
+              color: 'bg-gray-900 text-white border-gray-900' 
+            },
+            [PROJECT_STATUSES.CANCELLED]: { 
+              label: PROJECT_STATUSES.CANCELLED, 
+              variant: 'destructive' as const, 
+              color: 'bg-red-100 text-red-800 border-red-300' 
+            },
           }
           
-          const config = statusConfig[status as keyof typeof statusConfig] || statusConfig[PROJECT_STATUSES.OPEN_FOR_PROPOSALS]
+          const config = statusConfig[status as keyof typeof statusConfig] || statusConfig[PROJECT_STATUSES.DRAFT]
           
           return (
-            <Badge variant={config.variant} className={config.color}>
+            <Badge variant={config.variant} className={`${config.color} px-3 py-1.5 text-xs font-medium text-center min-w-[120px] flex items-center justify-center`}>
               {config.label}
             </Badge>
           )
@@ -199,21 +227,38 @@ export default function ProjectTable({ projects, onProjectClick }: ProjectTableP
           <div className="flex justify-center">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="h-8 w-8 p-0"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <MoreHorizontal className="h-4 w-4" />
                   <span className="sr-only">Open menu</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => onProjectClick?.(row.original)}>
+                <DropdownMenuItem onClick={(e) => {
+                  e.stopPropagation()
+                  onProjectClick?.(row.original)
+                }}>
                   <Eye className="h-4 w-4 mr-2" />
                   View
                 </DropdownMenuItem>
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={(e) => {
+                  e.stopPropagation()
+                  onEditProject?.(row.original)
+                }}>
                   <Edit className="h-4 w-4 mr-2" />
                   Edit
                 </DropdownMenuItem>
-                <DropdownMenuItem className="text-red-600 focus:text-red-600">
+                <DropdownMenuItem 
+                  className="text-red-600 focus:text-red-600" 
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onDeleteProject?.(row.original)
+                  }}
+                >
                   <Trash2 className="h-4 w-4 mr-2" />
                   Delete
                 </DropdownMenuItem>
