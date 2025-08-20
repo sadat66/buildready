@@ -96,9 +96,9 @@ export default function RecentProposals({ proposals }: RecentProposalsProps) {
   const displayProposals = validProposals.slice(0, 5)
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Enhanced Header Section */}
-      <div className="py-2 sm:py-3 lg:py-4">
+      <div className="py-2 sm:py-2 lg:py-3">
         {/* Main Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-6">
           <div className="space-y-2 w-full sm:w-auto">
@@ -116,14 +116,14 @@ export default function RecentProposals({ proposals }: RecentProposalsProps) {
 
       {/* Content */}
       {displayProposals.length === 0 ? (
-        <div className="text-center py-16 px-4 sm:px-6 lg:px-8">
-          <div className="w-24 h-24 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-6">
-            <FileText className="h-12 w-12 text-gray-600" />
+        <div className="text-center py-12 px-4 sm:px-6 lg:px-8">
+          <div className="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+            <FileText className="h-10 w-10 text-gray-600" />
           </div>
-          <h3 className="text-2xl font-bold text-gray-900 mb-3">
+          <h3 className="text-xl font-bold text-gray-900 mb-2">
             {validProposals.length === 0 ? 'No proposals yet' : 'No valid proposals to display'}
           </h3>
-          <p className="text-gray-600 mb-8 max-w-md mx-auto text-lg leading-relaxed">
+          <p className="text-gray-600 mb-6 max-w-md mx-auto text-base leading-relaxed">
             {validProposals.length === 0 
               ? "You haven't submitted any proposals yet. Start browsing projects to find opportunities!"
               : "Some proposals may have incomplete project data and cannot be displayed."
@@ -137,9 +137,9 @@ export default function RecentProposals({ proposals }: RecentProposalsProps) {
           </Link>
         </div>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-4">
           {/* Enhanced Proposal Cards for Mobile */}
-          <div className="block lg:hidden space-y-4">
+          <div className="block lg:hidden space-y-3">
             {displayProposals.map((proposal) => {
               const StatusIcon = getStatusIcon(proposal.status)
               const project = proposal.project
@@ -152,9 +152,9 @@ export default function RecentProposals({ proposals }: RecentProposalsProps) {
               
               return (
                 <Card key={proposal.id} className="group bg-white border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] overflow-hidden">
-                  <CardContent className="p-6">
+                  <CardContent className="p-5">
                     {/* Header with project type */}
-                    <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-start justify-between mb-3">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
                           <Building2 className="h-4 w-4 text-gray-600" />
@@ -177,7 +177,7 @@ export default function RecentProposals({ proposals }: RecentProposalsProps) {
                     </div>
                     
                     {/* Project details grid */}
-                    <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div className="grid grid-cols-2 gap-4 mb-3">
                       <div className="flex items-center gap-2 text-gray-700 bg-gray-50 p-2 rounded-lg">
                         <MapPin className="h-4 w-4 text-gray-600" />
                         <span className="text-sm font-medium truncate">
@@ -193,7 +193,7 @@ export default function RecentProposals({ proposals }: RecentProposalsProps) {
                     </div>
                     
                     {/* Proposal details */}
-                    <div className="bg-blue-50 p-3 rounded-lg mb-4">
+                    <div className="bg-blue-50 p-3 rounded-lg mb-3">
                       <div className="flex items-center justify-between text-sm">
                                                  <span className="text-gray-700">Your Bid: <span className="font-semibold">{formatCurrency(proposal.total_amount || proposal.subtotal_amount || 0)}</span></span>
                          <span className="text-gray-600">Timeline: <span className="font-medium">{proposal.proposed_start_date && proposal.proposed_end_date ? `${proposal.proposed_start_date} - ${proposal.proposed_end_date}` : 'Not specified'}</span></span>
@@ -201,7 +201,7 @@ export default function RecentProposals({ proposals }: RecentProposalsProps) {
                     </div>
                     
                     {/* Footer */}
-                    <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+                    <div className="flex items-center justify-between pt-3 border-t border-gray-200">
                       <div className="flex items-center gap-2 text-gray-600">
                         <CalendarDays className="h-4 w-4 text-gray-600" />
                         <span className="text-sm font-medium">{getDaysAgo(proposal.created_at)}</span>
@@ -349,7 +349,7 @@ export default function RecentProposals({ proposals }: RecentProposalsProps) {
           </div>
           
           {/* View All link centered below the table */}
-          <div className="flex justify-center pt-6">
+          <div className="flex justify-center pt-4">
             <Link href="/contractor/proposals" className="text-orange-600 hover:text-orange-700 font-medium text-sm transition-colors">
               View All Proposals
             </Link>

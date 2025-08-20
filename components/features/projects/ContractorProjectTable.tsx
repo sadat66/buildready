@@ -1,0 +1,324 @@
+'use client'
+
+import { useMemo } from 'react'
+import {
+  createColumnHelper,
+  flexRender,
+  getCoreRowModel,
+  getSortedRowModel,
+  useReactTable,
+  type SortingState,
+} from '@tanstack/react-table'
+import { useState } from 'react'
+import { ArrowUpDown, Calendar, MapPin, DollarSign, Clock } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+
+import { Project } from '@/types'
+import { PROJECT_STATUSES } from "@/lib/constants"
+
+interface ContractorProjectTableProps {
+  projects: Project[]
+  onProjectClick?: (project: Project) => void
+}
+
+const columnHelper = createColumnHelper<Project>()
+
+export default function ContractorProjectTable({ 
+  projects, 
+  onProjectClick
+}: ContractorProjectTableProps) {
+  const [sorting, setSorting] = useState<SortingState>([])
+
+
+
+  const columns = useMemo(
+    () => [
+      columnHelper.accessor('project_title', {
+        header: ({ column }) => (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            className="h-auto p-0 font-semibold hover:bg-transparent"
+          >
+            Project Title
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        ),
+        cell: ({ row }) => (
+          <div className="space-y-1">
+            <div className="font-medium">{row.original.project_title}</div>
+            <div className="text-sm text-muted-foreground line-clamp-2">
+              {row.original.statement_of_work}
+            </div>
+          </div>
+        ),
+        size: 300,
+      }),
+      columnHelper.accessor('location', {
+        header: 'Location',
+        cell: ({ row }) => {
+          const location = row.original.location;
+          
+          // Check if location exists and has meaningful data
+          if (location && location.address && location.city) {
+            return (
+              <div className="flex items-center gap-2">
+                <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                <span className="text-sm">
+                  {location.address}, {location.city}
+                </span>
+              </div>
+            );
+          }
+          
+          // Check if location exists but might have empty strings
+          if (location && (location.address || location.city || location.province)) {
+            const displayParts = [
+              location.address,
+              location.city,
+              location.province
+            ].filter(Boolean);
+            
+            if (displayParts.length > 0) {
+              return (
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                  <span className="text-sm">
+                    {displayParts.join(', ')}
+                  </span>
+                </div>
+              );
+            }
+          }
+          
+          // No valid location data
+          return (
+            <div className="flex items-center gap-2">
+              <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+              <span className="text-sm text-muted-foreground">
+                Not specified
+              </span>
+            </div>
+          );
+        },
+        size: 200,
+      }),
+      columnHelper.accessor('category', {
+        header: 'Category',
+        cell: ({ row }) => {
+          const categories = row.original.category;
+          if (!categories || categories.length === 0) {
+            return <span className="text-sm text-muted-foreground">No category</span>;
+          }
+          
+          return (
+            <div className="flex flex-wrap gap-1">
+              {categories.slice(0, 2).map((cat, index) => (
+                <Badge key={index} variant="outline" className="bg-gray-50 text-gray-700 border-gray-300 px-2 py-1 text-xs font-medium">
+                  {cat}
+                </Badge>
+              ))}
+              {categories.length > 2 && (
+                <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-300 px-2 py-1 text-xs font-medium">
+                  +{categories.length - 2}
+                </Badge>
+              )}
+            </div>
+          );
+        },
+        size: 150,
+      }),
+      columnHelper.accessor('budget', {
+        header: ({ column }) => (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            className="h-auto p-0 font-semibold hover:bg-transparent"
+          >
+            Budget
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        ),
+        cell: ({ row }) => (
+          <div className="flex items-center gap-2">
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm font-medium">
+              {row.original.budget ? 
+                new Intl.NumberFormat('en-US', {
+                  style: 'currency',
+                  currency: 'USD',
+                  minimumFractionDigits: 0,
+                  maximumFractionDigits: 0,
+                }).format(row.original.budget) : 
+                'Not specified'
+              }
+            </span>
+          </div>
+        ),
+        size: 120,
+      }),
+      columnHelper.accessor('status', {
+        header: 'Status',
+        cell: ({ row }) => {
+          const status = row.original.status
+          const statusConfig = {
+            [PROJECT_STATUSES.DRAFT]: { 
+              label: PROJECT_STATUSES.DRAFT, 
+              variant: 'outline' as const, 
+              color: 'bg-gray-50 text-gray-700 border-gray-300' 
+            },
+            [PROJECT_STATUSES.OPEN_FOR_PROPOSALS]: { 
+              label: PROJECT_STATUSES.OPEN_FOR_PROPOSALS, 
+              variant: 'default' as const, 
+              color: 'bg-blue-100 text-blue-800 border-blue-300' 
+            },
+            [PROJECT_STATUSES.PROPOSAL_SELECTED]: { 
+              label: PROJECT_STATUSES.PROPOSAL_SELECTED, 
+              variant: 'secondary' as const, 
+              color: 'bg-green-100 text-green-800 border-green-300' 
+            },
+            [PROJECT_STATUSES.IN_PROGRESS]: { 
+              label: PROJECT_STATUSES.IN_PROGRESS, 
+              variant: 'secondary' as const, 
+              color: 'bg-orange-100 text-orange-800 border-orange-300' 
+            },
+            [PROJECT_STATUSES.COMPLETED]: { 
+              label: PROJECT_STATUSES.COMPLETED, 
+              variant: 'outline' as const, 
+              color: 'bg-gray-900 text-white border-gray-900' 
+            },
+            [PROJECT_STATUSES.CANCELLED]: { 
+              label: PROJECT_STATUSES.CANCELLED, 
+              variant: 'destructive' as const, 
+              color: 'bg-red-100 text-red-800 border-red-300' 
+            },
+          }
+          
+          const config = statusConfig[status as keyof typeof statusConfig] || statusConfig[PROJECT_STATUSES.DRAFT]
+          
+          return (
+            <Badge variant={config.variant} className={`${config.color} px-3 py-1.5 text-xs font-medium text-center min-w-[120px] flex items-center justify-center`}>
+              {config.label}
+            </Badge>
+          )
+        },
+        size: 120,
+      }),
+      columnHelper.accessor('expiry_date', {
+        header: ({ column }) => (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            className="h-auto p-0 font-semibold hover:bg-transparent"
+          >
+            Expires
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        ),
+        cell: ({ row }) => {
+          const expiryDate = row.original.expiry_date;
+          if (!expiryDate) {
+            return <span className="text-sm text-muted-foreground">No expiry</span>;
+          }
+          
+          const date = new Date(expiryDate);
+          const now = new Date();
+          const isExpired = date < now;
+          
+          return (
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+              <span className={`text-sm ${isExpired ? 'text-red-600' : ''}`}>
+                {date.toLocaleDateString()}
+              </span>
+            </div>
+          );
+        },
+        size: 120,
+      }),
+      columnHelper.accessor('created_at', {
+        header: ({ column }) => (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            className="h-auto p-0 font-semibold hover:bg-transparent"
+          >
+            Posted
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        ),
+        cell: ({ row }) => (
+          <div className="flex items-center gap-2">
+            <Clock className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm">
+              {new Date(row.original.created_at).toLocaleDateString()}
+            </span>
+          </div>
+        ),
+        size: 120,
+      }),
+
+    ],
+    [onProjectClick]
+  )
+
+  const table = useReactTable({
+    data: projects,
+    columns,
+    state: {
+      sorting,
+    },
+    onSortingChange: setSorting,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+  })
+
+  return (
+    <div className="rounded-md border">
+      <Table>
+        <TableHeader>
+          {table.getHeaderGroups().map((headerGroup) => (
+            <TableRow key={headerGroup.id}>
+              {headerGroup.headers.map((header) => (
+                <TableHead key={header.id} style={{ width: header.getSize() }}>
+                  {header.isPlaceholder
+                    ? null
+                    : flexRender(
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
+                </TableHead>
+              ))}
+            </TableRow>
+          ))}
+        </TableHeader>
+        <TableBody>
+          {table.getRowModel().rows?.length ? (
+            table.getRowModel().rows.map((row) => (
+              <TableRow
+                key={row.id}
+                data-state={row.getIsSelected() && 'selected'}
+                className="hover:bg-muted/50 cursor-pointer"
+                onClick={() => onProjectClick?.(row.original)}
+              >
+                {row.getVisibleCells().map((cell) => (
+                  <TableCell key={cell.id} style={{ width: cell.column.getSize() }}>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))
+          ) : (
+            <TableRow>
+              <TableCell colSpan={columns.length} className="h-24 text-center">
+                No projects available.
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+    </div>
+  )
+}

@@ -44,17 +44,17 @@ export default function ContractorStats({ stats }: ContractorStatsProps) {
   ]
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       {statItems.map((item, index) => (
-        <div key={index} className="bg-white border border-gray-100 rounded-lg p-6 hover:shadow-lg transition-all duration-200 shadow-md shadow-orange-100/50">
-          <div className="flex items-start justify-between mb-4">
+        <div key={index} className="bg-white border border-gray-100 rounded-lg p-5 hover:shadow-lg transition-all duration-200 shadow-md shadow-orange-100/50">
+          <div className="flex items-start justify-between mb-3">
             <h3 className="text-sm font-medium text-gray-600">{item.title}</h3>
             <div className="flex items-center space-x-1">
               <item.icon className="h-7 w-7 text-orange-500" />
             </div>
           </div>
           
-          <div className="mb-4">
+          <div className="mb-3">
             <div className="text-3xl font-bold text-gray-900 mb-1">
               {item.value}
             </div>
