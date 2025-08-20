@@ -80,6 +80,11 @@ function generateBreadcrumbsFromPath(pathname: string): BreadcrumbItem[] {
       return
     }
     
+    // Skip project IDs (UUIDs) - they're typically long alphanumeric strings
+    if (segment.length > 20 && /^[a-f0-9-]+$/i.test(segment)) {
+      return
+    }
+    
     // Format the label
     let label = segment
       .split('-')
