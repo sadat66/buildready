@@ -5,11 +5,17 @@ import { useRouter } from 'next/navigation'
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { CalendarDays, DollarSign, MapPin, Plus, Eye, Building2, TrendingUp } from "lucide-react"
+import { CalendarDays, DollarSign, MapPin, Plus, Eye, Building2, TrendingUp, MoreHorizontal } from "lucide-react"
 import Link from "next/link"
 import { Project } from '@/types'
 import { ProposalPaymentModal } from '@/components/features/projects/ProposalPaymentModal'
 import toast from 'react-hot-toast'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 interface RecentOpportunitiesProps {
   projects: Project[]
@@ -96,31 +102,19 @@ export default function RecentOpportunities({ projects }: RecentOpportunitiesPro
   return (
     <div className="space-y-6">
       {/* Enhanced Header Section */}
-      <div className="py-4 sm:py-6 lg:py-8">
+      <div className="py-2 sm:py-3 lg:py-4">
         {/* Main Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-6">
           <div className="space-y-2 w-full sm:w-auto">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600" />
-              </div>
-              <div className="text-center sm:text-left">
-                <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
-                  Recent Opportunities
-                </h2>
-                <p className="text-gray-600 text-sm sm:text-lg mt-1">
-                  New projects posted in the last 30 days
-                </p>
-              </div>
+            <div className="text-center sm:text-left">
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900">
+                Recent Opportunities
+              </h2>
+              <p className="text-xs text-gray-600 mt-1">
+                New projects posted in the last 30 days
+              </p>
             </div>
           </div>
-          
-          <Link href="/contractor/projects">
-            <Button className="gap-2 bg-gray-600 hover:bg-gray-700 text-white">
-              <Plus className="h-4 w-4" />
-              Browse All Projects
-            </Button>
-          </Link>
         </div>
       </div>
 
@@ -317,22 +311,23 @@ export default function RecentOpportunities({ projects }: RecentOpportunitiesPro
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                           <div className="flex space-x-2">
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => handleViewDetails(project)}
-                            >
-                              <Eye className="h-4 w-4 mr-1" />
-                              View
-                            </Button>
-                            <Button 
-                              size="sm" 
-                              className="bg-blue-600 hover:bg-blue-700 text-white"
-                              onClick={() => handleSubmitProposal(project)}
-                            >
-                              <Plus className="h-4 w-4 mr-1" />
-                              Bid
-                            </Button>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => handleViewDetails(project)}>
+                                  <Eye className="h-4 w-4 mr-2" />
+                                  View Details
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleSubmitProposal(project)}>
+                                  <Plus className="h-4 w-4 mr-2" />
+                                  Submit Proposal
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </div>
                         </td>
                       </tr>
@@ -343,13 +338,10 @@ export default function RecentOpportunities({ projects }: RecentOpportunitiesPro
             </div>
           </div>
           
-          {/* View All button at bottom right */}
-          <div className="flex justify-end pt-4">
-            <Link href="/contractor/projects">
-              <Button className="gap-2 bg-gray-600 hover:bg-gray-700 text-white">
-                <Eye className="h-4 w-4" />
-                Browse All Projects
-              </Button>
+          {/* View All link centered below the table */}
+          <div className="flex justify-center pt-6">
+            <Link href="/contractor/projects" className="text-orange-600 hover:text-orange-700 font-medium text-sm transition-colors">
+              View All Projects
             </Link>
           </div>
         </div>

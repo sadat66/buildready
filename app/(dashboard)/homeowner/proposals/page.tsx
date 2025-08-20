@@ -133,7 +133,7 @@ export default function HomeownerProposalsPage() {
           .from('proposals')
           .select(`
             *,
-            project:projects!proposals_project_fkey (
+            project_details:projects!proposals_project_fkey (
               id,
               project_title,
               statement_of_work,
@@ -161,6 +161,7 @@ export default function HomeownerProposalsPage() {
           }
           
           console.log('Proposals fetched successfully:', proposalsData?.length || 0)
+          console.log('Sample proposal structure:', proposalsData?.[0])
           setProposals(proposalsData || [])
         } else {
           console.log('No projects found for homeowner, setting empty proposals')
@@ -208,13 +209,18 @@ export default function HomeownerProposalsPage() {
              // If accepted, update project status to awarded
        if (status === PROPOSAL_STATUSES.ACCEPTED) {
         const proposal = proposals.find(p => p.id === proposalId)
-        if (proposal) {
+        console.log('Found proposal for status update:', proposal)
+        console.log('Proposal project_details:', proposal?.project_details)
+        if (proposal && proposal.project_details) {
           const { error: projectError } = await supabase
             .from('projects')
             .update({ status: 'awarded' })
             .eq('id', proposal.project_details.id)
           
           if (projectError) throw projectError
+        } else {
+          console.error('Proposal or project_details not found for proposalId:', proposalId)
+          toast.error("Failed to update project status. Project details not found.")
         }
       }
       

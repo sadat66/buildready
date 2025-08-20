@@ -98,31 +98,19 @@ export default function RecentProposals({ proposals }: RecentProposalsProps) {
   return (
     <div className="space-y-6">
       {/* Enhanced Header Section */}
-      <div className="py-4 sm:py-6 lg:py-8">
+      <div className="py-2 sm:py-3 lg:py-4">
         {/* Main Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-6">
           <div className="space-y-2 w-full sm:w-auto">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600" />
-              </div>
-              <div className="text-center sm:text-left">
-                <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
-                  Recent Proposals
-                </h2>
-                <p className="text-gray-600 text-sm sm:text-lg mt-1">
-                  Track your latest proposal submissions and their status
-                </p>
-              </div>
+            <div className="text-center sm:text-left">
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900">
+                Recent Proposals
+              </h2>
+              <p className="text-xs text-gray-600 mt-1">
+                Track your latest proposal submissions and their status
+              </p>
             </div>
           </div>
-          
-          <Link href="/contractor/proposals">
-            <Button className="gap-2 bg-gray-600 hover:bg-gray-700 text-white">
-              <Plus className="h-4 w-4" />
-              View All Proposals
-            </Button>
-          </Link>
         </div>
       </div>
 
@@ -328,18 +316,27 @@ export default function RecentProposals({ proposals }: RecentProposalsProps) {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <div className="flex space-x-2">
-                              <Link href={`/contractor/projects/view/${project.id}`}>
-                                <Button variant="outline" size="sm">
-                                  <Eye className="h-4 w-4 mr-1" />
-                                  View
-                                </Button>
-                              </Link>
-                              <Link href={`/contractor/proposals/${proposal.id}`}>
-                                <Button variant="outline" size="sm">
-                                  <Edit className="h-4 w-4 mr-1" />
-                                  Proposal
-                                </Button>
-                              </Link>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="sm">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem asChild>
+                                    <Link href={`/contractor/projects/view/${project.id}`} className="flex items-center">
+                                      <Eye className="h-4 w-4 mr-2" />
+                                      View Project
+                                    </Link>
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem asChild>
+                                    <Link href={`/contractor/proposals/${proposal.id}`} className="flex items-center">
+                                      <Edit className="h-4 w-4 mr-2" />
+                                      View Proposal
+                                    </Link>
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
                             </div>
                           </td>
                         </tr>
@@ -351,13 +348,10 @@ export default function RecentProposals({ proposals }: RecentProposalsProps) {
             </div>
           </div>
           
-          {/* View All button at bottom right */}
-          <div className="flex justify-end pt-4">
-            <Link href="/contractor/proposals">
-              <Button className="gap-2 bg-gray-600 hover:bg-gray-700 text-white">
-                <Eye className="h-4 w-4" />
-                View All Proposals
-              </Button>
+          {/* View All link centered below the table */}
+          <div className="flex justify-center pt-6">
+            <Link href="/contractor/proposals" className="text-orange-600 hover:text-orange-700 font-medium text-sm transition-colors">
+              View All Proposals
             </Link>
           </div>
         </div>
