@@ -77,12 +77,10 @@ export default function ProjectList({
             Manage and track your construction projects
           </p>
         </div>
-        <Link href="/homeowner/projects/create">
-          <Button onClick={onPostProject} className="gap-2 cursor-pointer">
-            <Plus className="h-5 w-5" />
-            Post Project
-          </Button>
-        </Link>
+        <Button onClick={onPostProject} className="gap-2">
+          <Plus className="h-5 w-5" />
+          Post Project
+        </Button>
       </div>
 
       {/* Controls Bar */}

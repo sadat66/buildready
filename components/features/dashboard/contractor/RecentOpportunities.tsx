@@ -1,11 +1,15 @@
 'use client'
 
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { CalendarDays, DollarSign, MapPin, Plus, Eye, Building2, TrendingUp } from "lucide-react"
 import Link from "next/link"
 import { Project } from '@/types'
+import { ProposalPaymentModal } from '@/components/features/projects/ProposalPaymentModal'
+import toast from 'react-hot-toast'
 
 interface RecentOpportunitiesProps {
   projects: Project[]
@@ -44,15 +48,50 @@ function getDaysAgo(date: string | Date) {
 }
 
 export default function RecentOpportunities({ projects }: RecentOpportunitiesProps) {
-  // Filter for recent projects (last 30 days) and take top 5
-  const recentProjects = projects
+  const router = useRouter()
+  const [hasPaid, setHasPaid] = useState(false)
+  const [showPaymentModal, setShowPaymentModal] = useState(false)
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null)
+  
+  // Filter for recent projects (last 30 days) and take top 6
+  const displayProjects = projects
     .filter(project => {
       const projectDate = new Date(project.created_at)
       const cutoffDate = new Date()
       cutoffDate.setDate(cutoffDate.getDate() - 30)
       return projectDate >= cutoffDate
     })
-    .slice(0, 5)
+    .slice(0, 6)
+  
+  // Handle payment success
+  const handlePaymentSuccess = () => {
+    setHasPaid(true)
+    setShowPaymentModal(false)
+    toast.success('Demo payment successful! Redirecting to proposal submission...')
+    if (selectedProject) {
+      router.push(`/contractor/projects/submit-proposal/${selectedProject.id}`)
+    }
+  }
+  
+  // Handle submit proposal click
+  const handleSubmitProposal = (project: Project) => {
+    if (!hasPaid) {
+      setSelectedProject(project)
+      setShowPaymentModal(true)
+    } else {
+      router.push(`/contractor/projects/submit-proposal/${project.id}`)
+    }
+  }
+
+  // Handle view details click
+  const handleViewDetails = (project: Project) => {
+    if (!hasPaid) {
+      setSelectedProject(project)
+      setShowPaymentModal(true)
+    } else {
+      router.push(`/contractor/projects/view/${project.id}`)
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -86,7 +125,7 @@ export default function RecentOpportunities({ projects }: RecentOpportunitiesPro
       </div>
 
       {/* Content */}
-      {recentProjects.length === 0 ? (
+      {displayProjects.length === 0 ? (
         <div className="text-center py-16 px-4 sm:px-6 lg:px-8">
           <div className="w-24 h-24 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-6">
             <TrendingUp className="h-12 w-12 text-gray-600" />
@@ -106,7 +145,7 @@ export default function RecentOpportunities({ projects }: RecentOpportunitiesPro
         <div className="space-y-6">
           {/* Enhanced Project Cards for Mobile */}
           <div className="block lg:hidden space-y-4">
-            {recentProjects.map((project) => (
+            {displayProjects.map((project) => (
               <Card key={project.id} className="group bg-white border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] overflow-hidden">
                 <CardContent className="p-6">
                   {/* Header with project type */}
@@ -183,12 +222,14 @@ export default function RecentOpportunities({ projects }: RecentOpportunitiesPro
                           View Details
                         </Button>
                       </Link>
-                      <Link href={`/contractor/projects/submit-proposal/${project.id}`}>
-                        <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">
-                          <Plus className="h-4 w-4 mr-1" />
-                          Submit Proposal
-                        </Button>
-                      </Link>
+                      <Button 
+                        size="sm" 
+                        className="bg-blue-600 hover:bg-blue-700 text-white"
+                        onClick={() => handleSubmitProposal(project)}
+                      >
+                        <Plus className="h-4 w-4 mr-1" />
+                        Submit Proposal
+                      </Button>
                     </div>
                   </div>
                 </CardContent>
@@ -224,7 +265,7 @@ export default function RecentOpportunities({ projects }: RecentOpportunitiesPro
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {recentProjects.map((project) => (
+                    {displayProjects.map((project) => (
                       <tr key={project.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
@@ -276,18 +317,22 @@ export default function RecentOpportunities({ projects }: RecentOpportunitiesPro
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                           <div className="flex space-x-2">
-                            <Link href={`/contractor/projects/view/${project.id}`}>
-                              <Button variant="outline" size="sm">
-                                <Eye className="h-4 w-4 mr-1" />
-                                View
-                              </Button>
-                            </Link>
-                            <Link href={`/contractor/projects/submit-proposal/${project.id}`}>
-                              <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">
-                                <Plus className="h-4 w-4 mr-1" />
-                                Bid
-                              </Button>
-                            </Link>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleViewDetails(project)}
+                            >
+                              <Eye className="h-4 w-4 mr-1" />
+                              View
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              className="bg-blue-600 hover:bg-blue-700 text-white"
+                              onClick={() => handleSubmitProposal(project)}
+                            >
+                              <Plus className="h-4 w-4 mr-1" />
+                              Bid
+                            </Button>
                           </div>
                         </td>
                       </tr>
@@ -309,6 +354,14 @@ export default function RecentOpportunities({ projects }: RecentOpportunitiesPro
           </div>
         </div>
       )}
+      
+      {/* Payment Modal */}
+       <ProposalPaymentModal
+         isOpen={showPaymentModal}
+         onClose={() => setShowPaymentModal(false)}
+         onPaymentSuccess={handlePaymentSuccess}
+         projectTitle={selectedProject?.project_title}
+       />
     </div>
   )
 }

@@ -16,6 +16,7 @@ import { VisibilitySettingsSection } from "./VisibilitySettingsSection";
 import { FileUploadSection } from "./FileUploadSection";
 import { FormActions } from "./FormActions";
 import { ErrorDisplay } from "./ErrorDisplay";
+import { toast } from "react-hot-toast";
 
 interface CreateProjectFormProps {
   user: ExtendedUser;
@@ -83,6 +84,8 @@ export default function CreateProjectForm({
 
   const projectService = new ProjectService();
 
+
+
   const onSubmit = async (data: CreateProjectFormInputData) => {
     console.log('Form submitted with data:', data)
     console.log('Project photos:', data.project_photos)
@@ -124,6 +127,8 @@ export default function CreateProjectForm({
       return;
     }
 
+
+
     if (!isValid) {
       setError("Please fix form validation errors before submitting");
       return;
@@ -159,6 +164,8 @@ export default function CreateProjectForm({
     setError("Please fix the form errors before submitting");
   };
 
+  // No loading state needed for frontend-only demo
+
   return (
     <div className={`space-y-6 ${className}`}>
        
@@ -187,6 +194,8 @@ export default function CreateProjectForm({
         <FormActions loading={loading || isUploading} />
         </form>
       </FormProvider>
+
+
     </div>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 import { useAuth } from '@/contexts/AuthContext'
 import { USER_ROLES } from '@/lib/constants'
 import { createClient } from '@/lib/supabase'
@@ -10,6 +11,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft, MapPin, Calendar, DollarSign, Building, User, FileText, Clock } from 'lucide-react'
 import { Project } from '@/types'
+import { ProposalPaymentModal } from '@/components/features/projects/ProposalPaymentModal'
 
 export default function ProjectDetailPage() {
   const params = useParams()
@@ -19,6 +21,8 @@ export default function ProjectDetailPage() {
   const [project, setProject] = useState<Project | null>(null)
   const [projectLoading, setProjectLoading] = useState(true)
   const [error, setError] = useState('')
+  const [hasPaid, setHasPaid] = useState(false)
+  const [showPaymentModal, setShowPaymentModal] = useState(false)
 
   useEffect(() => {
     const fetchProject = async () => {
@@ -61,6 +65,26 @@ export default function ProjectDetailPage() {
     }
   }, [projectId, user, userRole, loading])
 
+  // Handle payment success
+  const handlePaymentSuccess = () => {
+    setHasPaid(true)
+    setShowPaymentModal(false)
+    toast.success('Payment successful! You can now submit your proposal.')
+    
+    if (project) {
+      router.push(`/contractor/projects/submit-proposal/${project.id}`)
+    }
+  }
+
+  // Handle submit proposal click
+  const handleSubmitProposal = () => {
+    if (!hasPaid) {
+      setShowPaymentModal(true)
+    } else {
+      router.push(`/contractor/projects/submit-proposal/${project?.id}`)
+    }
+  }
+
   if (loading || projectLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -81,6 +105,43 @@ export default function ProjectDetailPage() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-lg">Access denied. Only contractors can view project details.</div>
+      </div>
+    )
+  }
+
+  // Check if contractor has paid before allowing access to project details
+  if (!hasPaid) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center space-y-4">
+          <div className="text-lg font-medium">Payment Required</div>
+          <p className="text-gray-600">You need to pay $9.99 to access project details and submit proposals.</p>
+          <Button 
+            onClick={() => setShowPaymentModal(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            Pay $9.99 to Continue
+          </Button>
+          <div className="mt-4">
+            <Button 
+              variant="outline" 
+              onClick={() => router.back()}
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Go Back
+            </Button>
+          </div>
+          <ProposalPaymentModal
+            isOpen={showPaymentModal}
+            onClose={() => setShowPaymentModal(false)}
+            onPaymentSuccess={() => {
+              setHasPaid(true)
+              setShowPaymentModal(false)
+              toast.success('Payment successful! You can now access project details.')
+            }}
+            projectTitle={project?.project_title}
+          />
+        </div>
       </div>
     )
   }
@@ -138,7 +199,7 @@ export default function ProjectDetailPage() {
         <div className="flex gap-2">
           <Button
             variant="outline"
-            onClick={() => router.push(`/contractor/projects/submit-proposal/${project.id}`)}
+            onClick={handleSubmitProposal}
           >
             Submit Proposal
           </Button>
@@ -336,6 +397,14 @@ export default function ProjectDetailPage() {
           </Card>
         </div>
       </div>
+      
+      {/* Payment Modal */}
+      <ProposalPaymentModal
+        isOpen={showPaymentModal}
+        onClose={() => setShowPaymentModal(false)}
+        onPaymentSuccess={handlePaymentSuccess}
+        projectTitle={project?.project_title}
+      />
     </div>
   )
 }

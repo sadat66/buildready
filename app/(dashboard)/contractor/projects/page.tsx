@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 
 import { useAuth } from '@/contexts/AuthContext'
 import { ProjectService } from '@/lib/services/ProjectService'
@@ -13,6 +14,7 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Building, MapPin, Calendar, DollarSign, Search } from 'lucide-react'
 import { USER_ROLES, PROJECT_STATUSES } from '@/lib/constants'
+import { ProposalPaymentModal } from '@/components/features/projects/ProposalPaymentModal'
 
 export default function ContractorProjectsPage() {
   const { user, userRole, loading } = useAuth()
@@ -22,6 +24,9 @@ export default function ContractorProjectsPage() {
   const [categoryFilter, setCategoryFilter] = useState('all')
   const [projectsLoading, setProjectsLoading] = useState(true)
   const [error, setError] = useState('')
+  const [hasPaid, setHasPaid] = useState(false)
+  const [showPaymentModal, setShowPaymentModal] = useState(false)
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null)
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -51,6 +56,37 @@ export default function ContractorProjectsPage() {
       fetchProjects()
     }
   }, [user, userRole, loading])
+
+  // Handle payment success
+  const handlePaymentSuccess = () => {
+    setHasPaid(true)
+    setShowPaymentModal(false)
+    toast.success('Payment successful! You can now submit your proposal.')
+    
+    if (selectedProject) {
+      router.push(`/contractor/projects/submit-proposal/${selectedProject.id}`)
+    }
+  }
+
+  // Handle submit proposal click
+  const handleSubmitProposal = (project: Project) => {
+    if (!hasPaid) {
+      setSelectedProject(project)
+      setShowPaymentModal(true)
+    } else {
+      router.push(`/contractor/projects/submit-proposal/${project.id}`)
+    }
+  }
+
+  // Handle view details click
+  const handleViewDetails = (project: Project) => {
+    if (!hasPaid) {
+      setSelectedProject(project)
+      setShowPaymentModal(true)
+    } else {
+      router.push(`/contractor/projects/view/${project.id}`)
+    }
+  }
 
   if (loading || projectsLoading) {
     return (
@@ -237,14 +273,14 @@ export default function ContractorProjectsPage() {
                 <Button 
                   className="flex-1" 
                   size="sm"
-                  onClick={() => router.push(`/contractor/projects/submit-proposal/${project.id}`)}
+                  onClick={() => handleSubmitProposal(project)}
                 >
                   Submit Proposal
                 </Button>
                 <Button 
                   variant="outline" 
                   size="sm"
-                  onClick={() => router.push(`/contractor/projects/view/${project.id}`)}
+                  onClick={() => handleViewDetails(project)}
                 >
                   View Details
                 </Button>
@@ -267,6 +303,14 @@ export default function ContractorProjectsPage() {
           </Card>
         )}
       </div>
+      
+      {/* Payment Modal */}
+      <ProposalPaymentModal
+        isOpen={showPaymentModal}
+        onClose={() => setShowPaymentModal(false)}
+        onPaymentSuccess={handlePaymentSuccess}
+        projectTitle={selectedProject?.project_title}
+      />
     </div>
   )
 }
