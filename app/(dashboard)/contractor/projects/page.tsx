@@ -307,8 +307,6 @@ export default function ContractorProjectsPage() {
         <ContractorProjectTable
           projects={paginatedProjects}
           onProjectClick={handleRowClick}
-          onSubmitProposal={handleSubmitProposal}
-          onViewDetails={handleViewDetails}
         />
       ) : (
         <div className="grid gap-6">

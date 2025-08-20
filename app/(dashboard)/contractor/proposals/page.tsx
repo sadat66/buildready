@@ -202,11 +202,11 @@ export default function ContractorProposalsPage() {
     router.push(`/contractor/proposals/${proposalId}`)
   }
 
-  const handleViewDetails = (proposal: any) => {
+  const handleViewDetails = (proposal: typeof proposals[0]) => {
     router.push(`/contractor/proposals/${proposal.id}`)
   }
 
-  const handleEditProposal = (proposal: any) => {
+  const handleEditProposal = (proposal: typeof proposals[0]) => {
     if (proposal.project?.id) {
       router.push(`/contractor/projects/submit-proposal/${proposal.project.id}?edit=${proposal.id}`)
     }

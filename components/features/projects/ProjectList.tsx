@@ -15,7 +15,6 @@ import {
 import { Project } from "@/types";
 import ProjectTable from "./ProjectTable";
 import ProjectCard from "./ProjectCard";
-import Link from "next/link";
 
 interface ProjectListProps {
   projects: Project[];

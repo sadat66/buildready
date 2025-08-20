@@ -57,7 +57,7 @@ export interface ProjectData {
 export class ProjectService {
   private supabase = createClient()
  
-  private determineInitialStatus(visibilitySettings: string, formData: CreateProjectFormInputData): string {
+  private determineInitialStatus(visibilitySettings: string): string {
      if (visibilitySettings === VISIBILITY_SETTINGS.PUBLIC_TO_MARKETPLACE) {
       return PROJECT_STATUSES.OPEN_FOR_PROPOSALS;
     }
@@ -106,7 +106,7 @@ export class ProjectService {
        const locationData = formData.location
 
       // Determine the initial status based on visibility settings
-      const initialStatus = this.determineInitialStatus(formData.visibility_settings, formData)
+      const initialStatus = this.determineInitialStatus(formData.visibility_settings)
       console.log(`Determined initial status: ${initialStatus} based on visibility: ${formData.visibility_settings}`)
 
       // Prepare project data for database insertion
@@ -118,9 +118,9 @@ export class ProjectService {
         pid: formData.pid,
         location: {
           address: locationData.address,
-          city: locationData.city,
-          province: locationData.province,
-          postalCode: locationData.postalCode,
+          city: locationData.city || '',
+          province: locationData.province || '',
+          postalCode: locationData.postalCode || '',
           latitude: locationData.latitude || null,
           longitude: locationData.longitude || null,
         },

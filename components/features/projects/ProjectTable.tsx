@@ -274,7 +274,7 @@ export default function ProjectTable({ projects, onProjectClick, onEditProject, 
         size: 80,
       }),
     ],
-    [onProjectClick]
+    [onProjectClick, onEditProject, onDeleteProject]
   )
 
   const table = useReactTable({
