@@ -42,14 +42,18 @@ export function DetailsTabContent({ project, user }: DetailsTabContentProps) {
               <span className="text-sm sm:text-base text-gray-900">{project.location.address}</span>
             </div>
           )}
-          <div className="flex flex-col sm:flex-row sm:justify-between py-2 border-b border-gray-100">
-            <span className="text-sm sm:text-base text-gray-600 font-medium mb-1 sm:mb-0">City</span>
-            <span className="text-sm sm:text-base text-gray-900">{project.location.city}</span>
-          </div>
-          <div className="flex flex-col sm:flex-row sm:justify-between py-2 border-b border-gray-100">
-            <span className="text-sm sm:text-base text-gray-600 font-medium mb-1 sm:mb-0">Province</span>
-            <span className="text-sm sm:text-base text-gray-900">{project.location.province}</span>
-          </div>
+          {project.location.city && (
+            <div className="flex flex-col sm:flex-row sm:justify-between py-2 border-b border-gray-100">
+              <span className="text-sm sm:text-base text-gray-600 font-medium mb-1 sm:mb-0">City</span>
+              <span className="text-sm sm:text-base text-gray-900">{project.location.city}</span>
+            </div>
+          )}
+          {project.location.province && (
+            <div className="flex flex-col sm:flex-row sm:justify-between py-2 border-b border-gray-100">
+              <span className="text-sm sm:text-base text-gray-600 font-medium mb-1 sm:mb-0">Province</span>
+              <span className="text-sm sm:text-base text-gray-900">{project.location.province}</span>
+            </div>
+          )}
           {project.location.postalCode && (
             <div className="flex flex-col sm:flex-row sm:justify-between py-2 border-b border-gray-100">
               <span className="text-sm sm:text-base text-gray-600 font-medium mb-1 sm:mb-0">Postal Code</span>

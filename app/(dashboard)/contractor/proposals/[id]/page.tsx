@@ -503,14 +503,7 @@ export default function ProposalViewPage({ params }: ProposalViewPageProps) {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    <Button 
-                      variant="outline" 
-                      className="w-full border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300"
-                      onClick={() => router.push(`/contractor/projects/${proposal.project}`)}
-                    >
-                      <Building className="w-4 h-4 mr-2" />
-                      View Project
-                    </Button>
+
                     
                     {proposal.status === 'draft' && (
                       <Button 

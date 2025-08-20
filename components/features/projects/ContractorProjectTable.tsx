@@ -48,13 +48,15 @@ export default function ContractorProjectTable({
         ),
         cell: ({ row }) => (
           <div className="space-y-1">
-            <div className="font-medium">{row.original.project_title}</div>
-            <div className="text-sm text-muted-foreground line-clamp-2">
+            <div className="font-medium truncate" title={row.original.project_title}>
+              {row.original.project_title}
+            </div>
+            <div className="text-sm text-muted-foreground line-clamp-1 max-w-[180px]" title={row.original.statement_of_work}>
               {row.original.statement_of_work}
             </div>
           </div>
         ),
-        size: 300,
+        size: 200,
       }),
       columnHelper.accessor('location', {
         header: 'Location',
@@ -66,7 +68,7 @@ export default function ContractorProjectTable({
             return (
               <div className="flex items-center gap-2">
                 <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                <span className="text-sm">
+                <span className="text-sm truncate" title={`${location.address}, ${location.city}`}>
                   {location.address}, {location.city}
                 </span>
               </div>
@@ -85,7 +87,7 @@ export default function ContractorProjectTable({
               return (
                 <div className="flex items-center gap-2">
                   <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                  <span className="text-sm">
+                  <span className="text-sm truncate" title={displayParts.join(', ')}>
                     {displayParts.join(', ')}
                   </span>
                 </div>
@@ -103,7 +105,7 @@ export default function ContractorProjectTable({
             </div>
           );
         },
-        size: 200,
+        size: 160,
       }),
       columnHelper.accessor('category', {
         header: 'Category',
@@ -128,7 +130,7 @@ export default function ContractorProjectTable({
             </div>
           );
         },
-        size: 150,
+        size: 120,
       }),
       columnHelper.accessor('budget', {
         header: ({ column }) => (
@@ -157,7 +159,7 @@ export default function ContractorProjectTable({
             </span>
           </div>
         ),
-        size: 120,
+        size: 100,
       }),
       columnHelper.accessor('status', {
         header: 'Status',
@@ -199,12 +201,12 @@ export default function ContractorProjectTable({
           const config = statusConfig[status as keyof typeof statusConfig] || statusConfig[PROJECT_STATUSES.DRAFT]
           
           return (
-            <Badge variant={config.variant} className={`${config.color} px-3 py-1.5 text-xs font-medium text-center min-w-[120px] flex items-center justify-center`}>
+            <Badge variant={config.variant} className={`${config.color} px-2 py-1 text-xs font-medium text-center min-w-[100px] flex items-center justify-center`}>
               {config.label}
             </Badge>
           )
         },
-        size: 120,
+        size: 100,
       }),
       columnHelper.accessor('expiry_date', {
         header: ({ column }) => (
@@ -236,7 +238,7 @@ export default function ContractorProjectTable({
             </div>
           );
         },
-        size: 120,
+        size: 100,
       }),
       columnHelper.accessor('created_at', {
         header: ({ column }) => (
@@ -257,7 +259,7 @@ export default function ContractorProjectTable({
             </span>
           </div>
         ),
-        size: 120,
+        size: 100,
       }),
 
     ],
@@ -276,13 +278,18 @@ export default function ContractorProjectTable({
   })
 
   return (
-    <div className="rounded-md border">
-      <Table>
+    <div className="rounded-md border overflow-hidden">
+      <div className="max-w-full">
+        <Table className="w-full table-fixed">
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
-                <TableHead key={header.id} style={{ width: header.getSize() }}>
+                <TableHead 
+                  key={header.id} 
+                  style={{ width: header.getSize() }}
+                  className="whitespace-nowrap"
+                >
                   {header.isPlaceholder
                     ? null
                     : flexRender(
@@ -304,7 +311,11 @@ export default function ContractorProjectTable({
                 onClick={() => onProjectClick?.(row.original)}
               >
                 {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id} style={{ width: cell.column.getSize() }}>
+                  <TableCell 
+                    key={cell.id} 
+                    style={{ width: cell.column.getSize() }}
+                    className="max-w-0"
+                  >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
                 ))}
@@ -319,6 +330,7 @@ export default function ContractorProjectTable({
           )}
         </TableBody>
       </Table>
+      </div>
     </div>
   )
 }

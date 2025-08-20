@@ -215,12 +215,6 @@ export default function RecentProposals({ proposals }: RecentProposalsProps) {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem asChild>
-                              <Link href={`/contractor/projects/view/${project.id}`} className="flex items-center">
-                                <Eye className="h-4 w-4 mr-2" />
-                                View Project
-                              </Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem asChild>
                               <Link href={`/contractor/proposals/${proposal.id}`} className="flex items-center">
                                 <Edit className="h-4 w-4 mr-2" />
                                 View Proposal
@@ -322,20 +316,14 @@ export default function RecentProposals({ proposals }: RecentProposalsProps) {
                                     <MoreHorizontal className="h-4 w-4" />
                                   </Button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  <DropdownMenuItem asChild>
-                                    <Link href={`/contractor/projects/view/${project.id}`} className="flex items-center">
-                                      <Eye className="h-4 w-4 mr-2" />
-                                      View Project
-                                    </Link>
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem asChild>
-                                    <Link href={`/contractor/proposals/${proposal.id}`} className="flex items-center">
-                                      <Edit className="h-4 w-4 mr-2" />
-                                      View Proposal
-                                    </Link>
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
+                                                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem asChild>
+                              <Link href={`/contractor/proposals/${proposal.id}`} className="flex items-center">
+                                <Edit className="h-4 w-4 mr-2" />
+                                View Proposal
+                              </Link>
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
                               </DropdownMenu>
                             </div>
                           </td>
