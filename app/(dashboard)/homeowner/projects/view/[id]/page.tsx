@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { HomeownerProjectView } from '@/components/features/projects'
 import { createClient } from '@/lib/supabase'
 import toast from 'react-hot-toast'
-import { USER_ROLES } from '@/lib/constants'
+import { USER_ROLES, PROJECT_STATUSES, ProjectStatus, PROJECT_STATUS_VALUES, PROPOSAL_STATUSES } from '@/lib/constants'
 import { Project } from '@/types/database/projects'
 import { Proposal } from '@/types/database/proposals'
 import { User } from '@/types/database/auth'
@@ -95,7 +95,7 @@ export default function HomeownerProjectViewPage() {
           .eq('project', id)
           .eq('homeowner', user.id)
           .eq('is_deleted', 'no')
-          .in('status', ['submitted', 'viewed', 'accepted', 'rejected'])
+          .in('status', [PROPOSAL_STATUSES.SUBMITTED, PROPOSAL_STATUSES.VIEWED, PROPOSAL_STATUSES.ACCEPTED, PROPOSAL_STATUSES.REJECTED])
           .order('created_at', { ascending: false })
         
         if (fetchError) {
@@ -197,13 +197,13 @@ export default function HomeownerProjectViewPage() {
           last_modified_by: user.id
         })
         .eq('id', proposalId)
-        .eq('status', 'submitted')
+        .eq('status', PROPOSAL_STATUSES.SUBMITTED)
       
       // Accept the selected proposal
       const { error: acceptError } = await supabase
         .from('proposals')
         .update({
-          status: 'accepted',
+          status: PROPOSAL_STATUSES.ACCEPTED,
           is_selected: 'yes',
           accepted_date: new Date().toISOString(),
           last_updated: new Date().toISOString(),
@@ -220,7 +220,7 @@ export default function HomeownerProjectViewPage() {
       const { error: rejectError } = await supabase
         .from('proposals')
         .update({
-          status: 'rejected',
+          status: PROPOSAL_STATUSES.REJECTED,
           rejected_date: new Date().toISOString(),
           rejection_reason: 'other',
           rejection_reason_notes: 'Another proposal was selected by the homeowner',
@@ -229,22 +229,22 @@ export default function HomeownerProjectViewPage() {
         })
         .eq('project', id)
         .neq('id', proposalId)
-        .in('status', ['submitted', 'viewed'])
+        .in('status', [PROPOSAL_STATUSES.SUBMITTED, PROPOSAL_STATUSES.VIEWED])
       
       if (rejectError) {
         throw rejectError
       }
       
-      // Update project status to awarded
+      // Update project status to proposal selected
       await supabase
         .from('projects')
         .update({
-          status: 'awarded',
+          status: PROJECT_STATUSES.PROPOSAL_SELECTED,
           updated_at: new Date().toISOString()
         })
         .eq('id', id)
       
-      toast.success('Contractor proposal accepted successfully! Your project is now awarded.')
+      toast.success('Contractor proposal accepted successfully! Your project is now in proposal selected status.')
       
       // Refresh proposals
       const { data: updatedProposals } = await supabase
@@ -313,19 +313,19 @@ export default function HomeownerProjectViewPage() {
       await supabase
         .from('proposals')
         .update({
-          status: 'viewed',
+          status: PROPOSAL_STATUSES.VIEWED,
           viewed_date: new Date().toISOString(),
           last_updated: new Date().toISOString(),
           last_modified_by: user.id
         })
         .eq('id', proposalId)
-        .eq('status', 'submitted')
+        .eq('status', PROPOSAL_STATUSES.SUBMITTED)
       
       // Reject the proposal
       const { error: rejectError } = await supabase
         .from('proposals')
         .update({
-          status: 'rejected',
+          status: PROPOSAL_STATUSES.REJECTED,
           rejected_date: new Date().toISOString(),
           rejection_reason: reason || 'other',
           rejection_reason_notes: notes,
@@ -357,7 +357,7 @@ export default function HomeownerProjectViewPage() {
         .eq('project', id)
         .eq('homeowner', user.id)
         .eq('is_deleted', 'no')
-        .in('status', ['submitted', 'viewed', 'accepted', 'rejected'])
+        .in('status', [PROPOSAL_STATUSES.SUBMITTED, PROPOSAL_STATUSES.VIEWED, PROPOSAL_STATUSES.ACCEPTED, PROPOSAL_STATUSES.REJECTED])
         .order('created_at', { ascending: false })
       
       if (updatedProposals) {
