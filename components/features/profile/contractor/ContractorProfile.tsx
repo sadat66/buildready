@@ -35,7 +35,7 @@ export function ContractorProfile() {
   const [contractorFormData, setContractorFormData] = useState({
     business_name: "",
     bio: "",
-          legal_entity_type: "" as LegalEntityType | "",
+    legal_entity_type: "" as LegalEntityType | "",
     gst_hst_number: "",
     wcb_number: "",
     service_location: "",
@@ -306,110 +306,129 @@ export function ContractorProfile() {
       <Breadcrumbs />
 
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Contractor Profile</h1>
-        <p className="text-muted-foreground">
-          Manage your contractor account and business information
-        </p>
+      <div className="flex items-center space-x-4">
+        <Link href="/contractor/dashboard">
+          <Button variant="outline" size="sm">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Dashboard
+          </Button>
+        </Link>
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900">Contractor Profile</h1>
+          <p className="text-gray-600">Manage your contractor account and business information</p>
+        </div>
       </div>
 
-      {/* Personal Information Section */}
-      <PersonalInfoSection
-        formData={{
-          full_name: `${userFormData.first_name} ${userFormData.last_name}`.trim(),
-          phone: userFormData.phone_number,
-          location: userFormData.address,
-          bio: contractorFormData.bio,
-        }}
-        user={user}
-        onInputChange={(field, value) => {
-          if (field === 'full_name') {
-            const names = value.split(' ');
-            setUserFormData(prev => ({
-              ...prev,
-              first_name: names[0] || '',
-              last_name: names.slice(1).join(' ') || '',
-            }));
-          } else if (field === 'phone') {
-            setUserFormData(prev => ({ ...prev, phone_number: value }));
-          } else if (field === 'location') {
-            setUserFormData(prev => ({ ...prev, address: value }));
-          } else if (field === 'bio') {
-            setContractorFormData(prev => ({ ...prev, bio: value }));
-          }
-        }}
-      />
+      {/* Profile Sections */}
+      <div className="space-y-6">
+        {/* Personal Information Section */}
+        <div className="rounded-lg bg-white border border-gray-200 p-6 shadow-sm">
+          <PersonalInfoSection
+            formData={{
+              full_name: `${userFormData.first_name} ${userFormData.last_name}`.trim(),
+              phone: userFormData.phone_number,
+              location: userFormData.address,
+              bio: contractorFormData.bio,
+            }}
+            user={user}
+            onInputChange={(field, value) => {
+              if (field === 'full_name') {
+                const names = value.split(' ');
+                setUserFormData(prev => ({
+                  ...prev,
+                  first_name: names[0] || '',
+                  last_name: names.slice(1).join(' ') || '',
+                }));
+              } else if (field === 'phone') {
+                setUserFormData(prev => ({ ...prev, phone_number: value }));
+              } else if (field === 'location') {
+                setUserFormData(prev => ({ ...prev, address: value }));
+              } else if (field === 'bio') {
+                setContractorFormData(prev => ({ ...prev, bio: value }));
+              }
+            }}
+          />
+        </div>
 
-      {/* Business Information Section */}
-      <BusinessInfoSection
-        formData={{
-          business_name: contractorFormData.business_name,
-          trade_category: contractorFormData.trade_category,
-          portfolio: contractorFormData.portfolio,
-          logo: contractorFormData.logo,
-          licenses: contractorFormData.licenses,
-        }}
-        onInputChange={handleContractorInputChange}
-        onTradeCategoryChange={handleTradeCategoryChange}
-        onPortfolioChange={handlePortfolioChange}
-        onLicensesChange={handleLicensesChange}
-      />
+        {/* Business Information Section */}
+        <div className="rounded-lg bg-white border border-gray-200 p-6 shadow-sm">
+          <BusinessInfoSection
+            formData={{
+              business_name: contractorFormData.business_name,
+              trade_category: contractorFormData.trade_category,
+              portfolio: contractorFormData.portfolio,
+              logo: contractorFormData.logo,
+              licenses: contractorFormData.licenses,
+            }}
+            onInputChange={handleContractorInputChange}
+            onTradeCategoryChange={handleTradeCategoryChange}
+            onPortfolioChange={handlePortfolioChange}
+            onLicensesChange={handleLicensesChange}
+          />
+        </div>
 
-      {/* Insurance & Compliance Section */}
-      <InsuranceSection
-        formData={{
-          legal_entity_type: contractorFormData.legal_entity_type,
-          gst_hst_number: contractorFormData.gst_hst_number,
-          wcb_number: contractorFormData.wcb_number,
-          work_guarantee: contractorFormData.work_guarantee,
-          insurance_general_liability: contractorFormData.insurance_general_liability,
-          insurance_builders_risk: contractorFormData.insurance_builders_risk,
-          insurance_expiry: contractorFormData.insurance_expiry,
-          insurance_upload: contractorFormData.insurance_upload,
-          is_insurance_verified: false, // Not editable by user
-        }}
-        onInputChange={(field, value) => {
-          if (field === 'work_guarantee') {
-            setContractorFormData(prev => ({ ...prev, work_guarantee: value as number }));
-          } else if (field === 'insurance_expiry') {
-            setContractorFormData(prev => ({ ...prev, insurance_expiry: value as string }));
-          } else if (field === 'insurance_upload') {
-            setContractorFormData(prev => ({ ...prev, insurance_upload: value as string }));
-          } else if (typeof value === 'boolean') {
-            // Handle boolean values separately
-            if (field === 'is_insurance_verified') {
-              // This field is not editable by user, so we ignore it
-              return;
-            }
-          } else {
-            handleContractorInputChange(field, value);
-          }
-        }}
-      />
+        {/* Insurance & Compliance Section */}
+        <div className="rounded-lg bg-white border border-gray-200 p-6 shadow-sm">
+          <InsuranceSection
+            formData={{
+              legal_entity_type: contractorFormData.legal_entity_type,
+              gst_hst_number: contractorFormData.gst_hst_number,
+              wcb_number: contractorFormData.wcb_number,
+              work_guarantee: contractorFormData.work_guarantee,
+              insurance_general_liability: contractorFormData.insurance_general_liability,
+              insurance_builders_risk: contractorFormData.insurance_builders_risk,
+              insurance_expiry: contractorFormData.insurance_expiry,
+              insurance_upload: contractorFormData.insurance_upload,
+              is_insurance_verified: false, // Not editable by user
+            }}
+            onInputChange={(field, value) => {
+              if (field === 'work_guarantee') {
+                setContractorFormData(prev => ({ ...prev, work_guarantee: value as number }));
+              } else if (field === 'insurance_expiry') {
+                setContractorFormData(prev => ({ ...prev, insurance_expiry: value as string }));
+              } else if (field === 'insurance_upload') {
+                setContractorFormData(prev => ({ ...prev, insurance_upload: value as string }));
+              } else if (typeof value === 'boolean') {
+                // Handle boolean values separately
+                if (field === 'is_insurance_verified') {
+                  // This field is not editable by user, so we ignore it
+                  return;
+                }
+              } else {
+                handleContractorInputChange(field, value);
+              }
+            }}
+          />
+        </div>
 
-      {/* Service Location Section */}
-      <ServiceLocationSection
-        formData={{
-          service_location: contractorFormData.service_location,
-        }}
-        onInputChange={(field, value) => {
-          if (field === 'service_location') {
-            setContractorFormData(prev => ({ ...prev, service_location: value }));
-          }
-        }}
-      />
+        {/* Service Location Section */}
+        <div className="rounded-lg bg-white border border-gray-200 p-6 shadow-sm">
+          <ServiceLocationSection
+            formData={{
+              service_location: contractorFormData.service_location,
+            }}
+            onInputChange={(field, value) => {
+              if (field === 'service_location') {
+                setContractorFormData(prev => ({ ...prev, service_location: value }));
+              }
+            }}
+          />
+        </div>
 
-      {/* Contact Management Section */}
-      <ContactManagementSection
-        contractor_contacts={contractorFormData.contractor_contacts}
-      />
+        {/* Contact Management Section */}
+        <div className="rounded-lg bg-white border border-gray-200 p-6 shadow-sm">
+          <ContactManagementSection
+            contractor_contacts={contractorFormData.contractor_contacts}
+          />
+        </div>
 
-      {/* Save Button */}
-      <div className="flex justify-end">
-        <Button onClick={handleSave} disabled={saving} className="gap-2 bg-gray-600 hover:bg-gray-700 text-white">
-          <Save className="h-4 w-4" />
-          {saving ? "Saving Changes..." : "Save Changes"}
-        </Button>
+        {/* Save Button */}
+        <div className="flex justify-end">
+          <Button onClick={handleSave} disabled={saving} className="gap-2 bg-orange-500 hover:bg-orange-600 text-white">
+            <Save className="h-4 w-4" />
+            {saving ? "Saving Changes..." : "Save Changes"}
+          </Button>
+        </div>
       </div>
     </div>
   );

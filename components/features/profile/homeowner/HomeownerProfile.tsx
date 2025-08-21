@@ -118,34 +118,22 @@ export function HomeownerProfile() {
             Back to Dashboard
           </Button>
         </Link>
-      </div>
-
-      {/* Profile Header */}
-      <div className="flex items-center space-x-4">
-        <RandomAvatar 
-          name={user?.full_name || user?.email || "User"}
-          size={64}
-        />
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Profile Settings</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900">Profile Settings</h1>
           <p className="text-gray-600">Manage your account information</p>
         </div>
       </div>
 
-      {/* Profile Form */}
-      <div className="space-y-4">
-        <div className="border-b pb-4">
-          <div className="flex items-center space-x-3">
-            <div className="w-6 h-6 bg-gray-600 rounded flex items-center justify-center">
-              <User className="h-4 w-4 text-white" />
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900">Personal Information</h3>
-              <p className="text-sm text-gray-600">Your account details and contact information</p>
-            </div>
-          </div>
+      {/* Profile Header */}
+      <div className="rounded-lg bg-white border border-gray-200 p-6 shadow-sm">
+        <div>
+          <h2 className="text-xl font-semibold text-gray-900">Personal Information</h2>
+          <p className="text-sm text-gray-600">Your account details and contact information</p>
         </div>
-        
+      </div>
+
+      {/* Profile Form */}
+      <div className="rounded-lg bg-white border border-gray-200 p-6 shadow-sm">
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -217,7 +205,7 @@ export function HomeownerProfile() {
         <Button 
           onClick={handleSave} 
           disabled={saving} 
-          className="gap-2 bg-gray-600 hover:bg-gray-700 text-white"
+          className="gap-2 bg-orange-500 hover:bg-orange-600 text-white"
         >
           <Save className="h-4 w-4" />
           {saving ? "Saving Changes..." : "Save Changes"}

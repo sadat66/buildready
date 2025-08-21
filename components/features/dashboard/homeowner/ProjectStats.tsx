@@ -35,11 +35,11 @@ export default function ProjectStats({ stats }: ProjectStatsProps) {
       subtitle: 'Ready to start work'
     },
     {
-      title: 'Completion Rate',
-      value: `${stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0}%`,
+      title: 'Completed Projects',
+      value: stats.completed.toLocaleString(),
       icon: Target,
-      description: 'Steady performance increase',
-      subtitle: 'Meets growth projections'
+      description: 'Successfully finished',
+      subtitle: 'Projects completed'
     }
   ]
 
