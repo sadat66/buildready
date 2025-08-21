@@ -26,7 +26,15 @@ import { cn } from "@/lib/utils";
 import { USER_ROLES, PROJECT_STATUSES } from "@/lib/constants";
 
 interface ProposalsTabContentProps {
-  proposals: Proposal[];
+  proposals: (Proposal & {
+    contractor_profile?: {
+      id: string;
+      full_name: string;
+      email: string;
+      phone_number?: string;
+      address?: string;
+    };
+  })[];
   project: Project;
   userRole: (typeof USER_ROLES)[keyof typeof USER_ROLES];
   onAcceptProposal: (proposalId: string) => Promise<void>;
@@ -278,7 +286,7 @@ export function ProposalsTabContent({
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
                     <div className="flex items-center gap-1">
                       <UserIcon className="h-4 w-4" />
-                      <span>Contractor ID: {proposal.contractor}</span>
+                      <span>Contractor: {proposal.contractor_profile?.full_name || proposal.contractor}</span>
                     </div>
                     <span>•</span>
                     <span>Submitted {formatDate(proposal.createdAt)}</span>

@@ -31,7 +31,7 @@ export function ProjectViewTabs({ activeTab, onTabChange, userRole, availableTab
       case 'details': return 'Details'
       case 'proposals':
         if (userRole === USER_ROLES.HOMEOWNER) {
-          return `Proposals ${proposalCount > 0 ? `(${proposalCount})` : ''}`
+          return 'Proposals'
         }
         return userRole === USER_ROLES.CONTRACTOR ? 'My Proposals' : 'Proposals'
       case 'messages': return 'Messages'
