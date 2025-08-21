@@ -38,6 +38,7 @@ import {
   FileText,
   Clock,
 } from "lucide-react";
+import HomeownerProposalTable from "@/components/features/projects/HomeownerProposalTable";
 import toast from "react-hot-toast";
 import { Label } from "@/components/ui/label";
 
@@ -456,153 +457,12 @@ export default function HomeownerProposalsPage() {
         </CardContent>
       </Card>
 
-      {/* Proposals List */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {filteredProposals.map((proposal) => (
-          <Card key={proposal.id} className="hover:shadow-md transition-shadow">
-            <CardHeader className="pb-3">
-              <div className="flex items-start justify-between">
-                <div className="flex-1 min-w-0">
-                  <CardTitle className="text-lg font-semibold text-gray-600 truncate">
-                    {proposal.project_details?.project_title}
-                  </CardTitle>
-                  <CardDescription className="text-sm text-gray-500 mt-1">
-                    <span className="font-medium text-gray-600">
-                      Contractor:{" "}
-                      {proposal.contractor_profile?.full_name
-                        ? proposal.contractor_profile.full_name
-                            .split(" ")
-                            .map(
-                              (word) =>
-                                word.charAt(0).toUpperCase() +
-                                word.slice(1).toLowerCase()
-                            )
-                            .join(" ")
-                        : "Unknown"}
-                    </span>
-                  </CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-
-            <CardContent className="pt-0 space-y-3">
-              {/* Financial Summary - Compact */}
-              <div className="grid grid-cols-2 gap-3 p-3 bg-gray-50 rounded-md">
-                <div className="text-center">
-                  <p className="text-xs font-medium text-gray-500">Total</p>
-                  <p className="text-lg font-bold text-gray-700">
-                    {proposal.total_amount
-                      ? formatCurrency(proposal.total_amount)
-                      : "N/A"}
-                  </p>
-                </div>
-                <div className="text-center">
-                  <p className="text-xs font-medium text-gray-500">Deposit</p>
-                  <p className="text-sm font-semibold text-gray-700">
-                    {proposal.deposit_amount
-                      ? formatCurrency(proposal.deposit_amount)
-                      : "N/A"}
-                  </p>
-                </div>
-              </div>
-
-              {/* Key Details - Compact */}
-              <div className="grid grid-cols-2 gap-3 text-xs text-gray-500">
-                <div className="flex items-center gap-1.5">
-                  <Calendar className="h-3 w-3 text-gray-400" />
-                  <span className="truncate">
-                    {proposal.proposed_start_date && proposal.proposed_end_date
-                      ? `${formatDate(
-                          proposal.proposed_start_date.toString()
-                        )} - ${formatDate(
-                          proposal.proposed_end_date.toString()
-                        )}`
-                      : "Dates TBD"}
-                  </span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <Clock className="h-3 w-3 text-gray-400" />
-                  <span>
-                    {proposal.proposed_start_date && proposal.proposed_end_date
-                      ? `${Math.ceil(
-                          (new Date(
-                            proposal.proposed_end_date.toString()
-                          ).getTime() -
-                            new Date(
-                              proposal.proposed_start_date.toString()
-                            ).getTime()) /
-                            (1000 * 60 * 60 * 24)
-                        )} days`
-                      : "Duration TBD"}
-                  </span>
-                </div>
-              </div>
-
-              {/* Description - Truncated */}
-              <div className="text-xs text-gray-500">
-                <p className="line-clamp-2">
-                  {proposal.description_of_work || "No description provided"}
-                </p>
-              </div>
-
-              {/* Actions - Compact */}
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-100">
-                {proposal.status === PROPOSAL_STATUSES.SUBMITTED ||
-                proposal.status === PROPOSAL_STATUSES.VIEWED ? (
-                  <>
-                    <Button
-                      size="sm"
-                      onClick={() =>
-                        handleStatusUpdate(
-                          proposal.id,
-                          PROPOSAL_STATUSES.ACCEPTED
-                        )
-                      }
-                      disabled={actionLoading === proposal.id}
-                      className="bg-green-600 hover:bg-green-700 h-8 px-3 text-xs"
-                    >
-                      <CheckCircle className="h-3 w-3 mr-1" />
-                      Accept
-                    </Button>
-                    <Button
-                      size="sm"
-                      onClick={() =>
-                        handleStatusUpdate(
-                          proposal.id,
-                          PROPOSAL_STATUSES.REJECTED
-                        )
-                      }
-                      disabled={actionLoading === proposal.id}
-                      variant="destructive"
-                      className="h-8 px-3 text-xs"
-                    >
-                      <XCircle className="h-3 w-3 mr-1" />
-                      Reject
-                    </Button>
-                  </>
-                ) : proposal.status === PROPOSAL_STATUSES.ACCEPTED ? (
-                  <Badge
-                    variant="default"
-                    className="bg-green-100 text-green-800 text-xs"
-                  >
-                    <CheckCircle className="h-3 w-3 mr-1" />
-                    Accepted
-                  </Badge>
-                ) : proposal.status === PROPOSAL_STATUSES.REJECTED ? (
-                  <Badge variant="destructive" className="text-xs">
-                    <XCircle className="h-3 w-3 mr-1" />
-                    Rejected
-                  </Badge>
-                ) : (
-                  <Badge variant="secondary" className="capitalize text-xs">
-                    {proposal.status}
-                  </Badge>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      {/* Proposals Table */}
+      <HomeownerProposalTable
+        proposals={filteredProposals}
+        onStatusUpdate={handleStatusUpdate}
+        actionLoading={actionLoading}
+      />
 
       {/* Empty State */}
       {filteredProposals.length === 0 && !proposalsLoading && (
