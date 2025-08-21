@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { CalendarDays, DollarSign, MapPin, Plus, Eye, Building2, TrendingUp, MoreHorizontal } from "lucide-react"
 import Link from "next/link"
 import { Project } from '@/types'
-import { ProposalPaymentModal } from '@/components/features/projects/ProposalPaymentModal'
+import { PaymentModal } from '@/components/shared/modals'
 import toast from 'react-hot-toast'
 import {
   DropdownMenu,
@@ -347,13 +347,14 @@ export default function RecentOpportunities({ projects }: RecentOpportunitiesPro
         </div>
       )}
       
-      {/* Payment Modal */}
-       <ProposalPaymentModal
-         isOpen={showPaymentModal}
-         onClose={() => setShowPaymentModal(false)}
-         onPaymentSuccess={handlePaymentSuccess}
-         projectTitle={selectedProject?.project_title}
-       />
+             {/* Payment Modal */}
+        <PaymentModal
+          isOpen={showPaymentModal}
+          onClose={() => setShowPaymentModal(false)}
+          onPaymentSuccess={handlePaymentSuccess}
+          userType="contractor"
+          projectTitle={selectedProject?.project_title}
+        />
     </div>
   )
 }

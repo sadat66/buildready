@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft, MapPin, Calendar, DollarSign, Building, User, FileText, Clock, Eye, Briefcase } from 'lucide-react'
 import { Project } from '@/types'
-import { ProposalPaymentModal } from '@/components/features/projects/ProposalPaymentModal'
+import { PaymentModal } from '@/components/shared/modals'
 
 export default function ProjectDetailPage() {
   const params = useParams()
@@ -135,16 +135,17 @@ export default function ProjectDetailPage() {
               Go Back
             </Button>
           </div>
-          <ProposalPaymentModal
-            isOpen={showPaymentModal}
-            onClose={() => setShowPaymentModal(false)}
-            onPaymentSuccess={() => {
-              setHasPaid(true)
-              setShowPaymentModal(false)
-              toast.success('Payment successful! You can now access project details.')
-            }}
-            projectTitle={project?.project_title}
-          />
+                     <PaymentModal
+             isOpen={showPaymentModal}
+             onClose={() => setShowPaymentModal(false)}
+             onPaymentSuccess={() => {
+               setHasPaid(true)
+               setShowPaymentModal(false)
+               toast.success('Payment successful! You can now access project details.')
+             }}
+             userType="contractor"
+             projectTitle={project?.project_title}
+           />
         </div>
       </div>
     )
@@ -442,13 +443,14 @@ export default function ProjectDetailPage() {
         </div>
       </div>
       
-      {/* Payment Modal */}
-      <ProposalPaymentModal
-        isOpen={showPaymentModal}
-        onClose={() => setShowPaymentModal(false)}
-        onPaymentSuccess={handlePaymentSuccess}
-        projectTitle={project?.project_title}
-      />
+             {/* Payment Modal */}
+       <PaymentModal
+         isOpen={showPaymentModal}
+         onClose={() => setShowPaymentModal(false)}
+         onPaymentSuccess={handlePaymentSuccess}
+         userType="contractor"
+         projectTitle={project?.project_title}
+       />
     </div>
   )
 }

@@ -18,7 +18,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
-import { PaymentModal } from '@/components/features/projects/PaymentModal'
+import { PaymentModal } from '@/components/shared/modals'
 
 interface RecentProjectsProps {
   projects: Project[]
@@ -308,6 +308,7 @@ export default function RecentProjects({ projects, onProjectDeleted }: RecentPro
         isOpen={showPaymentModal}
         onClose={() => setShowPaymentModal(false)}
         onPaymentSuccess={handlePaymentSuccess}
+        userType="homeowner"
       />
     </div>
   )

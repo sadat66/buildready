@@ -8,7 +8,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { ProjectService } from '@/lib/services/ProjectService'
 import { Project } from '@/types'
 import { USER_ROLES } from '@/lib/constants'
-import { ProposalPaymentModal } from '@/components/features/projects/ProposalPaymentModal'
+import { PaymentModal } from '@/components/shared/modals'
 import { Breadcrumbs } from '@/components/shared'
 import { LoadingSpinner } from '@/components/shared'
 import ProjectList from '@/components/features/projects/ProjectList'
@@ -464,10 +464,11 @@ export default function ContractorProjectsPage() {
       )}
       
       {/* Payment Modal */}
-      <ProposalPaymentModal
+      <PaymentModal
         isOpen={showPaymentModal}
         onClose={() => setShowPaymentModal(false)}
         onPaymentSuccess={handlePaymentSuccess}
+        userType="contractor"
         projectTitle={selectedProject?.project_title}
       />
     </div>

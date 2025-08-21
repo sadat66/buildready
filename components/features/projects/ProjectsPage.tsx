@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { USER_ROLES } from '@/lib/constants'
 import ProjectList from './ProjectList'
 import { Project } from '@/types'
-import { PaymentModal } from './PaymentModal'
+import { PaymentModal } from '@/components/shared/modals'
 import toast from 'react-hot-toast'
 
 interface ProjectsPageProps {
@@ -65,6 +65,7 @@ export default function ProjectsPage({ projects, userRole, className = '' }: Pro
         isOpen={showPaymentModal}
         onClose={() => setShowPaymentModal(false)}
         onPaymentSuccess={handlePaymentSuccess}
+        userType="homeowner"
       />
     </div>
   )
