@@ -115,7 +115,7 @@ export class MigrationRegistry {
         ORDER BY version ASC
       `);
       return results;
-    } catch (error) {
+    } catch {
       // If migration_status table doesn't exist, return empty array
       console.log("📋 No migration status table found (this is normal for first run)");
       return [];

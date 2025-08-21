@@ -61,7 +61,7 @@ export const migration_018_drop_and_recreate_reviews_table: Migration = {
       COMMENT ON TABLE public.reviews IS 'Reviews exchanged between homeowners and contractors for completed projects with ratings, recommendations, and verification status';
     `)
   },
-  down: async (db) => {
+  down: async () => {
     // This is a destructive migration - we can't easily rollback
     // The down migration would need to recreate the old table structure
     console.log('⚠️  Rollback not supported for this migration - it would require recreating the old reviews table structure');

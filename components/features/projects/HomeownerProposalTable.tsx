@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/table'
 import { ArrowUpDown, Eye, CheckCircle, XCircle, Calendar, Clock } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
-import { PROPOSAL_STATUSES } from '@/lib/constants'
+import { PROPOSAL_STATUSES, ProposalStatus } from '@/lib/constants'
 
 interface ProposalWithJoins {
   id: string
@@ -90,7 +90,7 @@ interface ProposalWithJoins {
 
 interface HomeownerProposalTableProps {
   proposals: ProposalWithJoins[]
-  onStatusUpdate?: (proposalId: string, status: string) => void
+  onStatusUpdate?: (proposalId: string, status: ProposalStatus) => void
   actionLoading?: string | null
 }
 

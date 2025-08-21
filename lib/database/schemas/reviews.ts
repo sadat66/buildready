@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { baseSchema, commonEnums, validationPatterns } from './base'
+import { baseSchema, validationPatterns } from './base'
 
 export const reviewSchema = z.object({
   ...baseSchema,

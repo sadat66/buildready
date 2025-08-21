@@ -22,6 +22,8 @@ import {
 } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
 import { toast } from 'sonner'
+import { PROPOSAL_STATUSES } from '@/lib/constants/proposals'
+import { Proposal } from '@/lib/database/schemas/proposals'
 
 interface ProposalViewPageProps {
   params: Promise<{
@@ -29,48 +31,23 @@ interface ProposalViewPageProps {
   }>
 }
 
-interface ProposalData {
-  id: string
-  title: string
-  description_of_work: string
-  subtotal_amount: number | null
-  tax_included: 'yes' | 'no'
-  total_amount: number | null
-  deposit_amount: number | null
-  deposit_due_on: string | null
+// Use the schema-based Proposal type and add only the additional fields
+// Create a database-compatible version that handles string dates from the database
+type ProposalData = Omit<Proposal, 'createdAt' | 'updatedAt' | 'proposed_start_date' | 'proposed_end_date' | 'expiry_date' | 'deposit_due_on' | 'submitted_date' | 'accepted_date' | 'rejected_date' | 'withdrawn_date' | 'viewed_date' | 'last_updated' | 'rejected_by'> & {
+  // Database returns string dates, not Date objects
   proposed_start_date: string | null
   proposed_end_date: string | null
   expiry_date: string | null
-  status: string
-  is_selected: 'yes' | 'no'
-  is_deleted: 'yes' | 'no'
+  deposit_due_on: string | null
   submitted_date: string | null
   accepted_date: string | null
   rejected_date: string | null
   withdrawn_date: string | null
   viewed_date: string | null
   last_updated: string
+  // Override rejected_by to allow null (database can return null)
   rejected_by: string | null
-  rejection_reason: string | null
-  rejection_reason_notes: string | null
-  clause_preview_html: string | null
-  attached_files: Array<{
-    id: string
-    filename: string
-    url: string
-    size?: number
-    mimeType?: string
-    uploadedAt?: string
-  }>
-  notes: string | null
-  agreement: string | null
-  proposals: string[]
-  created_by: string
-  last_modified_by: string
-  visibility_settings: string
-  project: string
-  contractor: string
-  homeowner: string
+  // Additional fields from the database query that aren't in the base schema
   project_details?: {
     id: string
     project_title: string
@@ -181,20 +158,19 @@ export default function HomeownerProposalViewPage({ params }: ProposalViewPagePr
 
   const getStatusBadgeStyle = (status: string) => {
     const badgeStyles = {
-      'pending': 'bg-yellow-100 text-yellow-800 border-yellow-300',
-      'submitted': 'bg-yellow-100 text-yellow-800 border-yellow-300',
-      'viewed': 'bg-blue-100 text-blue-800 border-blue-300',
-      'accepted': 'bg-green-100 text-green-800 border-green-300',
-      'rejected': 'bg-red-100 text-red-800 border-red-300',
-      'withdrawn': 'bg-gray-100 text-gray-800 border-gray-300',
-      'expired': 'bg-gray-100 text-gray-800 border-gray-300',
-      'draft': 'bg-gray-100 text-gray-800 border-gray-300'
+      [PROPOSAL_STATUSES.DRAFT]: 'bg-gray-100 text-gray-800 border-gray-300',
+      [PROPOSAL_STATUSES.SUBMITTED]: 'bg-yellow-100 text-yellow-800 border-yellow-300',
+      [PROPOSAL_STATUSES.VIEWED]: 'bg-blue-100 text-blue-800 border-blue-300',
+      [PROPOSAL_STATUSES.ACCEPTED]: 'bg-green-100 text-green-800 border-green-300',
+      [PROPOSAL_STATUSES.REJECTED]: 'bg-red-100 text-red-800 border-red-300',
+      [PROPOSAL_STATUSES.WITHDRAWN]: 'bg-gray-100 text-gray-800 border-gray-300',
+      [PROPOSAL_STATUSES.EXPIRED]: 'bg-gray-100 text-gray-800 border-gray-300'
     }
     return badgeStyles[status as keyof typeof badgeStyles] || 'bg-gray-100 text-gray-800 border-gray-200'
   }
 
   const getDisplayStatus = (status: string) => {
-    return status === 'submitted' ? 'pending' : status
+    return status === PROPOSAL_STATUSES.SUBMITTED ? 'pending' : status
   }
 
   const handleAcceptProposal = async () => {
@@ -207,7 +183,7 @@ export default function HomeownerProposalViewPage({ params }: ProposalViewPagePr
       const { error } = await supabase
         .from('proposals')
         .update({
-          status: 'accepted',
+          status: PROPOSAL_STATUSES.ACCEPTED,
           accepted_date: new Date().toISOString(),
           last_updated: new Date().toISOString()
         })
@@ -222,7 +198,7 @@ export default function HomeownerProposalViewPage({ params }: ProposalViewPagePr
       toast.success('Proposal accepted successfully!')
       setProposal(prev => prev ? {
         ...prev,
-        status: 'accepted',
+        status: PROPOSAL_STATUSES.ACCEPTED,
         accepted_date: new Date().toISOString()
       } : null)
     } catch (err) {
@@ -243,7 +219,7 @@ export default function HomeownerProposalViewPage({ params }: ProposalViewPagePr
       const { error } = await supabase
         .from('proposals')
         .update({
-          status: 'rejected',
+          status: PROPOSAL_STATUSES.REJECTED,
           rejected_date: new Date().toISOString(),
           rejected_by: user?.id,
           last_updated: new Date().toISOString()
@@ -259,9 +235,9 @@ export default function HomeownerProposalViewPage({ params }: ProposalViewPagePr
       toast.success('Proposal rejected')
       setProposal(prev => prev ? {
         ...prev,
-        status: 'rejected',
+        status: PROPOSAL_STATUSES.REJECTED,
         rejected_date: new Date().toISOString(),
-        rejected_by: user?.id
+        rejected_by: user?.id || null
       } : null)
     } catch (err) {
       console.error('Error:', err)
@@ -429,9 +405,6 @@ export default function HomeownerProposalViewPage({ params }: ProposalViewPagePr
                       <div>
                         <p className="text-sm text-slate-500 font-medium">Contractor</p>
                         <p className="font-semibold text-slate-900">{proposal.contractor_details?.full_name || 'Unknown'}</p>
-                        {proposal.contractor_details?.company_name && (
-                          <p className="text-sm text-slate-500">{proposal.contractor_details.company_name}</p>
-                        )}
                       </div>
                     </div>
                   </div>
@@ -595,7 +568,7 @@ export default function HomeownerProposalViewPage({ params }: ProposalViewPagePr
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {(proposal.status === 'pending' || proposal.status === 'submitted' || proposal.status === 'viewed') && (
+                    {(proposal.status === PROPOSAL_STATUSES.SUBMITTED || proposal.status === PROPOSAL_STATUSES.VIEWED) && (
                       <>
                         <Button 
                           className="w-full bg-green-600 hover:bg-green-700 text-white"

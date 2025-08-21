@@ -1,10 +1,20 @@
 import * as React from "react"
-import { Paperclip, Upload, X, FileText } from "lucide-react"
+import { Paperclip, X, FileText } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { FormField } from "./FormField"
 import { CreateProjectFormInputData } from "@/lib/validation/projects"
+
+// Define the file type based on the validation schema
+type FileReference = {
+  id: string
+  filename: string
+  url: string
+  size: number
+  mimeType?: string
+  uploadedAt?: Date
+}
 
 interface FormDocumentInputProps {
   name: keyof CreateProjectFormInputData
@@ -40,7 +50,7 @@ export function FormDocumentInput({
   return (
     <FormField name={name}>
       {({ field, error }) => {
-        const selectedFiles = field.value || []
+        const selectedFiles = (field.value as FileReference[]) || []
         
         const handleFileChange = (files: FileList | null) => {
           if (!files) return
@@ -65,7 +75,7 @@ export function FormDocumentInput({
           })
 
           // Convert File objects to file reference structure
-          const newFileReferences = newFiles.map(file => ({
+          const newFileReferences: FileReference[] = newFiles.map(file => ({
             id: crypto.randomUUID(), // Generate temporary ID
             filename: file.name,
             url: URL.createObjectURL(file), // Temporary blob URL
@@ -89,7 +99,7 @@ export function FormDocumentInput({
         }
 
         const removeFile = (index: number) => {
-          const updatedFiles = selectedFiles.filter((_: any, i: number) => i !== index)
+          const updatedFiles = selectedFiles.filter((_: FileReference, i: number) => i !== index)
           field.onChange(updatedFiles)
         }
 
@@ -147,7 +157,7 @@ export function FormDocumentInput({
                   Selected Files ({selectedFiles.length})
                 </p>
                 <div className="space-y-2">
-                  {selectedFiles.map((file: any, index: number) => (
+                  {selectedFiles.map((file: FileReference, index: number) => (
                     <div key={file.id || index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                       <div className="flex items-center space-x-3">
                         {/* File type icon */}
