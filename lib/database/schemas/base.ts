@@ -53,11 +53,12 @@ export const validationPatterns = {
   // New patterns for geospatial and file handling
   geospatialLocation: z.object({
     address: z.string().min(1, 'Address is required'),
-    latitude: z.number().min(-90).max(90).optional(),
-    longitude: z.number().min(-180).max(180).optional(),
-    city: z.string().optional().or(z.literal('')),
-    province: z.string().optional().or(z.literal('')),
-    postalCode: z.string().optional().or(z.literal('')),
+    latitude: z.number().min(-90).max(90).optional().nullable(),
+    longitude: z.number().min(-180).max(180).optional().nullable(),
+    city: z.string().optional().nullable(),
+    province: z.string().optional().nullable(),
+    postalCode: z.string().optional().nullable(),
+    country: z.string().optional().nullable(),
   }),
   fileReference: z.object({
     id: z.string().uuid(),

@@ -1,10 +1,11 @@
 import * as React from "react"
-import { Paperclip, X, FileText } from "lucide-react"
+import { Paperclip, X, FileText, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { FormField } from "./FormField"
 import { CreateProjectFormInputData } from "@/lib/validation/projects"
+import { supabaseStorageService } from "@/lib/services/SupabaseStorageService"
 
 // Define the file type based on the validation schema
 type FileReference = {
@@ -33,9 +34,11 @@ export function FormDocumentInput({
   required = false,
   accept = ".pdf,.doc,.docx,.xls,.xlsx",
   maxSize = 10,
-  className = ""
+  className = "",
 }: FormDocumentInputProps) {
   const [dragActive, setDragActive] = React.useState(false)
+  const [uploadingFiles, setUploadingFiles] = React.useState<Set<string>>(new Set())
+  const [uploadErrors, setUploadErrors] = React.useState<Map<string, string>>(new Map())
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault()
@@ -47,16 +50,37 @@ export function FormDocumentInput({
     }
   }
 
+  const uploadFileToSupabase = async (file: File): Promise<FileReference> => {
+    try {
+      const uploadResult = await supabaseStorageService.uploadFile(file, {
+        fileType: 'documents',
+        bucket: 'buildready-files'
+      })
+
+      return {
+        id: crypto.randomUUID(), // Generate proper UUID for database
+        filename: file.name,
+        url: uploadResult.url,
+        size: uploadResult.size,
+        mimeType: uploadResult.mimeType,
+        uploadedAt: new Date(uploadResult.uploadedAt),
+      }
+    } catch (error) {
+      console.error('Upload failed for file:', file.name, error)
+      throw new Error(`Failed to upload ${file.name}: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    }
+  }
+
   return (
     <FormField name={name}>
       {({ field, error }) => {
         const selectedFiles = (field.value as FileReference[]) || []
         
-        const handleFileChange = (files: FileList | null) => {
+        const handleFileChange = async (files: FileList | null) => {
           if (!files) return
 
-          const newFiles = Array.from(files).filter(file => {
-            // Check file type based on extension
+          const newFiles = Array.from(files).filter((file) => {
+            // Check file type by extension
             const fileExtension = file.name.toLowerCase().split('.').pop()
             const allowedExtensions = accept.replace(/\./g, '').split(',')
             
@@ -74,18 +98,47 @@ export function FormDocumentInput({
             return true
           })
 
-          // Convert File objects to file reference structure
-          const newFileReferences: FileReference[] = newFiles.map(file => ({
-            id: crypto.randomUUID(), // Generate temporary ID
-            filename: file.name,
-            url: URL.createObjectURL(file), // Temporary blob URL
-            size: file.size,
-            mimeType: file.type,
-            uploadedAt: new Date()
-          }))
+          // Add files to uploading state
+          setUploadingFiles(prev => new Set([...prev, ...newFiles.map(f => f.name)]))
 
-          // Update form field value
-          field.onChange([...selectedFiles, ...newFileReferences])
+          try {
+            // Upload each file to Supabase
+            const uploadPromises = newFiles.map(async (file) => {
+              try {
+                const fileReference = await uploadFileToSupabase(file)
+                return fileReference
+              } catch (uploadError) {
+                // Store upload error for this file
+                setUploadErrors(prev => new Map(prev).set(file.name, uploadError instanceof Error ? uploadError.message : 'Upload failed'))
+                return null
+              } finally {
+                // Remove from uploading state
+                setUploadingFiles(prev => {
+                  const newSet = new Set(prev)
+                  newSet.delete(file.name)
+                  return newSet
+                })
+              }
+            })
+
+            const uploadResults = await Promise.all(uploadPromises)
+            const successfulUploads = uploadResults.filter((result): result is FileReference => result !== null)
+
+            if (successfulUploads.length > 0) {
+              // Update form field value with successfully uploaded files
+              field.onChange([...selectedFiles, ...successfulUploads])
+            }
+
+            // Show error message if any uploads failed
+            const failedUploads = uploadResults.filter(result => result === null)
+            if (failedUploads.length > 0) {
+              alert(`Failed to upload ${failedUploads.length} file(s). Check the error messages below.`)
+            }
+
+          } catch (error) {
+            console.error('Error handling file uploads:', error)
+            alert('Error uploading files. Please try again.')
+          }
         }
 
         const handleDrop = (e: React.DragEvent) => {
@@ -181,6 +234,19 @@ export function FormDocumentInput({
                           <p className="text-xs text-gray-500">
                             {formatFileSize(file.size)} • {file.mimeType}
                           </p>
+                          {/* Upload status indicator */}
+                          {uploadingFiles.has(file.filename) && (
+                            <div className="flex items-center space-x-1 text-xs text-blue-600">
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                              <span>Uploading...</span>
+                            </div>
+                          )}
+                          {/* Error message if upload failed */}
+                          {uploadErrors.has(file.filename) && (
+                            <p className="text-xs text-red-600">
+                              {uploadErrors.get(file.filename)}
+                            </p>
+                          )}
                         </div>
                       </div>
                       {/* Remove button */}
@@ -194,6 +260,29 @@ export function FormDocumentInput({
                       >
                         <X className="h-4 w-4" />
                       </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Uploading files that haven't been added to the form yet */}
+            {Array.from(uploadingFiles).length > 0 && (
+              <div className="mt-4">
+                <p className="text-sm font-medium text-gray-700 mb-3">
+                  Uploading Files
+                </p>
+                <div className="space-y-2">
+                  {Array.from(uploadingFiles).map((filename) => (
+                    <div
+                      key={filename}
+                      className="flex items-center justify-between p-3 bg-blue-50 rounded-lg"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+                        <span className="text-sm text-blue-700">{filename}</span>
+                      </div>
+                      <span className="text-xs text-blue-600">Uploading...</span>
                     </div>
                   ))}
                 </div>
