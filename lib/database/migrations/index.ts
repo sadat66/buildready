@@ -4,9 +4,12 @@
  */
 
 // Import all migrations to register them
-// Note: All user, contractor profile, proposal, and project related migrations have been removed
+import { migration_016_create_agreements_table } from './016_create_agreements_table'
+import { migrationRegistry } from '../migrations'
 
 // Register all migrations
+migrationRegistry.register(migration_016_create_agreements_table)
+
 // Note: All user, contractor profile, proposal, and project related migrations have been removed
 
 // Export the migration registry for external use

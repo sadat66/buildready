@@ -64,10 +64,11 @@ async function showStatus() {
   if (applied.length > 0) {
     console.log("\n✅ Applied Migrations:");
     applied.forEach((status) => {
+      const appliedDate = status.appliedAt instanceof Date 
+        ? status.appliedAt.toISOString() 
+        : status.appliedAt;
       console.log(
-        `  - ${status.id} (v${
-          status.version
-        }) - ${status.appliedAt.toISOString()}`
+        `  - ${status.id} (v${status.version}) - ${appliedDate}`
       );
     });
   }

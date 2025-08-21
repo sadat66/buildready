@@ -10,11 +10,15 @@ export * from "./proposals";
 
 export * from "./communication";
 
+export * from "./project_views";
+
 import { userSchema } from "./users";
 import { contractorProfileSchema } from "./contractor_profiles";
 import { projectSchema } from "./projects";
 import { proposalSchema } from "./proposals";
-import { messageSchema, reviewSchema } from "./communication";
+import { messageSchema } from "./communication";
+import { projectViewSchema } from "./project_views";
+import { reviewSchema } from "./reviews";
 
 export const schemaRegistry = {
   users: userSchema,
@@ -23,6 +27,7 @@ export const schemaRegistry = {
   proposals: proposalSchema,
   reviews: reviewSchema,
   messages: messageSchema,
+  project_views: projectViewSchema,
 } as const;
 
 export const schemaMetadata = {
@@ -55,14 +60,20 @@ export const schemaMetadata = {
   },
   reviews: {
     tableName: "reviews",
-    description: "User reviews and ratings",
-    indexes: ["reviewer_id", "reviewed_id", "project_id"],
+    description: "Reviews exchanged between homeowners and contractors for completed projects with ratings, recommendations, and verification status",
+    indexes: ["author", "recipient", "project", "rating", "flagged", "is_verified"],
   },
   messages: {
     tableName: "messages",
     description: "User communication messages",
     indexes: ["sender_id", "receiver_id", "project_id"],
   },
+  project_views: {
+    tableName: "project_views",
+    description: "Tracks contractor access to project details for visibility control and monetization",
+    indexes: ["contractor_id", "project_id", "view_status", "access_method", "is_active"],
+  },
+
 } as const;
 
 export type {
@@ -111,12 +122,16 @@ export type {
   MessageUpdate,
   MessageThread,
   MessageSearch,
-  Review,
-  ReviewCreate,
-  ReviewUpdate,
-  ReviewSearch,
   Notification,
   NotificationCreate,
   NotificationUpdate,
   ChatRoom,
 } from "./communication";
+
+export type {
+  ProjectView,
+} from "./project_views";
+
+export type {
+  Review,
+} from "./reviews";
