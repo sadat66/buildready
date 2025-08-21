@@ -18,6 +18,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
+import { PaymentModal } from '@/components/features/projects/PaymentModal'
 
 interface RecentProjectsProps {
   projects: Project[]
@@ -89,6 +90,25 @@ export default function RecentProjects({ projects, onProjectDeleted }: RecentPro
   const { user } = useAuth()
   const router = useRouter()
   const [deletingProjectId, setDeletingProjectId] = useState<string | null>(null)
+  const [hasPaid, setHasPaid] = useState(false)
+  const [showPaymentModal, setShowPaymentModal] = useState(false)
+
+  // Handle payment success
+  const handlePaymentSuccess = () => {
+    setHasPaid(true)
+    setShowPaymentModal(false)
+    toast.success('Demo payment successful! Redirecting to create project...')
+    router.push('/homeowner/projects/create')
+  }
+
+  // Handle post project button click
+  const handlePostProject = () => {
+    if (!hasPaid) {
+      setShowPaymentModal(true)
+    } else {
+      router.push('/homeowner/projects/create')
+    }
+  }
 
   const handleDeleteProject = async (project: Project) => {
     if (!user) return
@@ -143,12 +163,13 @@ export default function RecentProjects({ projects, onProjectDeleted }: RecentPro
               </div>
             </div>
             
-            <Link href="/homeowner/projects/create">
-              <Button className="gap-2 bg-orange-600 hover:bg-orange-700 text-white">
-                <Plus className="h-5 w-5" />
-                Post Project
-              </Button>
-            </Link>
+            <Button 
+              onClick={handlePostProject}
+              className="gap-2 bg-orange-600 hover:bg-orange-700 text-white"
+            >
+              <Plus className="h-5 w-5" />
+              Post Project
+            </Button>
           </div>
         </div>
 
@@ -281,6 +302,13 @@ export default function RecentProjects({ projects, onProjectDeleted }: RecentPro
           </div>
         </div>
       )}
+      
+      {/* Payment Modal */}
+      <PaymentModal
+        isOpen={showPaymentModal}
+        onClose={() => setShowPaymentModal(false)}
+        onPaymentSuccess={handlePaymentSuccess}
+      />
     </div>
   )
 }

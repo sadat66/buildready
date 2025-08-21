@@ -1,11 +1,21 @@
 'use client'
 
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { CalendarDays, DollarSign, MapPin, Plus, Eye, Building2, TrendingUp } from "lucide-react"
+import { CalendarDays, DollarSign, MapPin, Plus, Eye, Building2, TrendingUp, MoreHorizontal } from "lucide-react"
 import Link from "next/link"
 import { Project } from '@/types'
+import { ProposalPaymentModal } from '@/components/features/projects/ProposalPaymentModal'
+import toast from 'react-hot-toast'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 interface RecentOpportunitiesProps {
   projects: Project[]
@@ -44,55 +54,78 @@ function getDaysAgo(date: string | Date) {
 }
 
 export default function RecentOpportunities({ projects }: RecentOpportunitiesProps) {
-  // Filter for recent projects (last 30 days) and take top 5
-  const recentProjects = projects
+  const router = useRouter()
+  const [hasPaid, setHasPaid] = useState(false)
+  const [showPaymentModal, setShowPaymentModal] = useState(false)
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null)
+  
+  // Filter for recent projects (last 30 days) and take top 6
+  const displayProjects = projects
     .filter(project => {
       const projectDate = new Date(project.created_at)
       const cutoffDate = new Date()
       cutoffDate.setDate(cutoffDate.getDate() - 30)
       return projectDate >= cutoffDate
     })
-    .slice(0, 5)
+    .slice(0, 6)
+  
+  // Handle payment success
+  const handlePaymentSuccess = () => {
+    setHasPaid(true)
+    setShowPaymentModal(false)
+    toast.success('Demo payment successful! Redirecting to proposal submission...')
+    if (selectedProject) {
+      router.push(`/contractor/projects/submit-proposal/${selectedProject.id}`)
+    }
+  }
+  
+  // Handle submit proposal click
+  const handleSubmitProposal = (project: Project) => {
+    if (!hasPaid) {
+      setSelectedProject(project)
+      setShowPaymentModal(true)
+    } else {
+      router.push(`/contractor/projects/submit-proposal/${project.id}`)
+    }
+  }
+
+  // Handle view details click
+  const handleViewDetails = (project: Project) => {
+    if (!hasPaid) {
+      setSelectedProject(project)
+      setShowPaymentModal(true)
+    } else {
+      router.push(`/contractor/projects/view/${project.id}`)
+    }
+  }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Enhanced Header Section */}
-      <div className="py-4 sm:py-6 lg:py-8">
+      <div className="py-2 sm:py-2 lg:py-3">
         {/* Main Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-6">
           <div className="space-y-2 w-full sm:w-auto">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600" />
-              </div>
-              <div className="text-center sm:text-left">
-                <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
-                  Recent Opportunities
-                </h2>
-                <p className="text-gray-600 text-sm sm:text-lg mt-1">
-                  New projects posted in the last 30 days
-                </p>
-              </div>
+            <div className="text-center sm:text-left">
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900">
+                Recent Opportunities
+              </h2>
+              <p className="text-xs text-gray-600 mt-1">
+                New projects posted in the last 30 days
+              </p>
             </div>
           </div>
-          
-          <Link href="/contractor/projects">
-            <Button className="gap-2 bg-gray-600 hover:bg-gray-700 text-white">
-              <Plus className="h-4 w-4" />
-              Browse All Projects
-            </Button>
-          </Link>
         </div>
       </div>
 
       {/* Content */}
-      {recentProjects.length === 0 ? (
-        <div className="text-center py-16 px-4 sm:px-6 lg:px-8">
-          <div className="w-24 h-24 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-6">
-            <TrendingUp className="h-12 w-12 text-gray-600" />
+      {displayProjects.length === 0 ? (
+        <div className="text-center py-12 px-4 sm:px-6 lg:px-8">
+          <div className="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+            <TrendingUp className="h-10 w-10 text-gray-600" />
           </div>
-          <h3 className="text-2xl font-bold text-gray-900 mb-3">No recent opportunities</h3>
-          <p className="text-gray-600 mb-8 max-w-md mx-auto text-lg leading-relaxed">
+          <h3 className="text-xl font-bold text-gray-900 mb-2">No recent opportunities</h3>
+          <p className="text-gray-600 mb-6 max-w-md mx-auto text-base leading-relaxed">
             No new projects have been posted in the last 30 days. Check back later for new opportunities!
           </p>
           <Link href="/contractor/projects">
@@ -103,14 +136,14 @@ export default function RecentOpportunities({ projects }: RecentOpportunitiesPro
           </Link>
         </div>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-4">
           {/* Enhanced Project Cards for Mobile */}
-          <div className="block lg:hidden space-y-4">
-            {recentProjects.map((project) => (
+          <div className="block lg:hidden space-y-3">
+            {displayProjects.map((project) => (
               <Card key={project.id} className="group bg-white border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] overflow-hidden">
-                <CardContent className="p-6">
+                <CardContent className="p-5">
                   {/* Header with project type */}
-                  <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-start justify-between mb-3">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
                         <Building2 className="h-4 w-4 text-gray-600" />
@@ -130,12 +163,12 @@ export default function RecentOpportunities({ projects }: RecentOpportunitiesPro
                   </div>
                   
                   {/* Project description */}
-                  <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                  <p className="text-gray-600 text-sm mb-3 line-clamp-2">
                     {project.statement_of_work}
                   </p>
                   
                   {/* Project details grid */}
-                  <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div className="grid grid-cols-2 gap-4 mb-3">
                     <div className="flex items-center gap-2 text-gray-700 bg-gray-50 p-2 rounded-lg">
                       <MapPin className="h-4 w-4 text-gray-600" />
                       <span className="text-sm font-medium truncate">{project.location?.address || 'Not specified'}</span>
@@ -148,7 +181,7 @@ export default function RecentOpportunities({ projects }: RecentOpportunitiesPro
                   
                   {/* Categories */}
                   {project.category && project.category.length > 0 && (
-                    <div className="mb-4">
+                    <div className="mb-3">
                       <div className="flex flex-wrap gap-2">
                         {Array.isArray(project.category) ? (
                           project.category.slice(0, 3).map((cat, index) => (
@@ -171,7 +204,7 @@ export default function RecentOpportunities({ projects }: RecentOpportunitiesPro
                   )}
                   
                   {/* Footer */}
-                  <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+                  <div className="flex items-center justify-between pt-3 border-t border-gray-200">
                     <div className="flex items-center gap-2 text-gray-600">
                       <CalendarDays className="h-4 w-4 text-gray-600" />
                       <span className="text-sm font-medium">{getDaysAgo(project.created_at)}</span>
@@ -183,12 +216,14 @@ export default function RecentOpportunities({ projects }: RecentOpportunitiesPro
                           View Details
                         </Button>
                       </Link>
-                      <Link href={`/contractor/projects/submit-proposal/${project.id}`}>
-                        <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">
-                          <Plus className="h-4 w-4 mr-1" />
-                          Submit Proposal
-                        </Button>
-                      </Link>
+                      <Button 
+                        size="sm" 
+                        className="bg-blue-600 hover:bg-blue-700 text-white"
+                        onClick={() => handleSubmitProposal(project)}
+                      >
+                        <Plus className="h-4 w-4 mr-1" />
+                        Submit Proposal
+                      </Button>
                     </div>
                   </div>
                 </CardContent>
@@ -224,7 +259,7 @@ export default function RecentOpportunities({ projects }: RecentOpportunitiesPro
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {recentProjects.map((project) => (
+                    {displayProjects.map((project) => (
                       <tr key={project.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
@@ -276,18 +311,23 @@ export default function RecentOpportunities({ projects }: RecentOpportunitiesPro
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                           <div className="flex space-x-2">
-                            <Link href={`/contractor/projects/view/${project.id}`}>
-                              <Button variant="outline" size="sm">
-                                <Eye className="h-4 w-4 mr-1" />
-                                View
-                              </Button>
-                            </Link>
-                            <Link href={`/contractor/projects/submit-proposal/${project.id}`}>
-                              <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">
-                                <Plus className="h-4 w-4 mr-1" />
-                                Bid
-                              </Button>
-                            </Link>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => handleViewDetails(project)}>
+                                  <Eye className="h-4 w-4 mr-2" />
+                                  View Details
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleSubmitProposal(project)}>
+                                  <Plus className="h-4 w-4 mr-2" />
+                                  Submit Proposal
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </div>
                         </td>
                       </tr>
@@ -298,17 +338,22 @@ export default function RecentOpportunities({ projects }: RecentOpportunitiesPro
             </div>
           </div>
           
-          {/* View All button at bottom right */}
-          <div className="flex justify-end pt-4">
-            <Link href="/contractor/projects">
-              <Button className="gap-2 bg-gray-600 hover:bg-gray-700 text-white">
-                <Eye className="h-4 w-4" />
-                Browse All Projects
-              </Button>
+          {/* View All link centered below the table */}
+          <div className="flex justify-center pt-4">
+            <Link href="/contractor/projects" className="text-orange-600 hover:text-orange-700 font-medium text-sm transition-colors">
+              View All Projects
             </Link>
           </div>
         </div>
       )}
+      
+      {/* Payment Modal */}
+       <ProposalPaymentModal
+         isOpen={showPaymentModal}
+         onClose={() => setShowPaymentModal(false)}
+         onPaymentSuccess={handlePaymentSuccess}
+         projectTitle={selectedProject?.project_title}
+       />
     </div>
   )
 }

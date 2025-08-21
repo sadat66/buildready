@@ -17,6 +17,7 @@ export const userSchema = z.object({
   is_verified_homeowner: z.boolean().default(false),
   is_verified_phone: z.boolean().default(false),
   user_agreed_to_terms: z.boolean().default(false),
+  has_paid_demo: z.boolean().default(false),
   last_login: validationPatterns.optionalDate,
   contractor_profile: validationPatterns.optionalString,
 })

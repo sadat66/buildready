@@ -236,12 +236,16 @@ export default function ProjectViewHeader({
             </div>
 
             {/* Location */}
-            <div className="flex items-center gap-2">
-              <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500" />
-              <span className="text-sm sm:text-base text-gray-700">
-                {project.location.city}, {project.location.province}
-              </span>
-            </div>
+            {project.location.city || project.location.province ? (
+              <div className="flex items-center gap-2">
+                <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500" />
+                <span className="text-sm sm:text-base text-gray-700">
+                  {[project.location.city, project.location.province]
+                    .filter(Boolean)
+                    .join(', ')}
+                </span>
+              </div>
+            ) : null}
 
             {/* Timeline */}
             <div className="flex items-center gap-2">

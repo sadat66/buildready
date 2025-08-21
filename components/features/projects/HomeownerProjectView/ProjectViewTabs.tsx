@@ -2,8 +2,7 @@
 
 import { Project } from '@/types/database/projects'
 import { Badge } from '@/components/ui/badge'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Eye, FileText, MessageSquare, Building2, Users } from 'lucide-react'
+import { Eye, FileText, MessageSquare } from 'lucide-react'
 import { TabType } from './index'
 import { cn } from '@/lib/utils'
 import { USER_ROLES, PROJECT_STATUSES } from '@/lib/constants'
@@ -40,18 +39,7 @@ export function ProjectViewTabs({ activeTab, onTabChange, userRole, availableTab
     }
   }
 
-  const getTabDescription = (tab: TabType) => {
-    switch (tab) {
-      case 'details': return 'Project details, photos, and requirements'
-      case 'proposals':
-        if (userRole === USER_ROLES.HOMEOWNER) {
-          return 'Review and manage contractor proposals'
-        }
-        return userRole === USER_ROLES.CONTRACTOR ? 'Track your submitted proposals' : 'View all proposals'
-      case 'messages': return 'Communicate with project stakeholders'
-      default: return 'Project details, photos, and requirements'
-    }
-  }
+
 
   const isTabDisabled = (tab: TabType) => {
     if (tab === 'proposals' && userRole === USER_ROLES.CONTRACTOR && project.status === PROJECT_STATUSES.COMPLETED) return true
