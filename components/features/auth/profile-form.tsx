@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAuth } from '@/contexts/AuthContext'
+import { USER_ROLES, UserRole } from '@/lib/constants'
 import { Loader2, Building2, Home } from 'lucide-react'
 
 // Homeowner onboarding schema
@@ -55,7 +56,7 @@ const specialties = [
 ]
 
 export function OnboardingForm() {
-  const [userType, setUserType] = useState<'homeowner' | 'contractor' | null>(null)
+  const [userType, setUserType] = useState<UserRole | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
   const { user, createUserProfile, fetchUserProfile } = useAuth()
@@ -73,7 +74,7 @@ export function OnboardingForm() {
 
     setIsLoading(true)
     try {
-      const result = await createUserProfile(user.id, 'homeowner', data)
+              const result = await createUserProfile(user.id, USER_ROLES.HOMEOWNER, data)
       if (result.error) {
         toast.error(result.error)
         return
@@ -94,7 +95,7 @@ export function OnboardingForm() {
 
     setIsLoading(true)
     try {
-      const result = await createUserProfile(user.id, 'contractor', data)
+              const result = await createUserProfile(user.id, USER_ROLES.CONTRACTOR, data)
       if (result.error) {
         toast.error(result.error)
         return
@@ -112,7 +113,7 @@ export function OnboardingForm() {
 
   if (!userType) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
         <Card className="w-full max-w-2xl">
           <CardHeader className="text-center">
             <CardTitle className="text-3xl font-bold">Complete Your Profile</CardTitle>
@@ -124,12 +125,12 @@ export function OnboardingForm() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Card 
                 className={`cursor-pointer transition-all hover:shadow-lg ${
-                  userType === 'homeowner' ? 'ring-2 ring-blue-500 bg-blue-50' : ''
-                }`}
-                onClick={() => setUserType('homeowner')}
+                                  userType === USER_ROLES.HOMEOWNER ? 'ring-2 ring-orange-500 bg-orange-50' : ''
+              }`}
+              onClick={() => setUserType(USER_ROLES.HOMEOWNER)}
               >
                 <CardContent className="p-6 text-center">
-                  <Home className="w-12 h-12 mx-auto mb-4 text-blue-600" />
+                  <Home className="w-12 h-12 mx-auto mb-4 text-gray-900" />
                   <h3 className="text-xl font-semibold mb-2">I&apos;m a Homeowner</h3>
                   <p className="text-gray-600">
                     I need help with home improvement projects and want to find qualified contractors.
@@ -139,12 +140,12 @@ export function OnboardingForm() {
 
               <Card 
                 className={`cursor-pointer transition-all hover:shadow-lg ${
-                  userType === 'contractor' ? 'ring-2 ring-blue-500 bg-blue-50' : ''
-                }`}
-                onClick={() => setUserType('contractor')}
+                                  userType === USER_ROLES.CONTRACTOR ? 'ring-2 ring-orange-500 bg-orange-50' : ''
+              }`}
+              onClick={() => setUserType(USER_ROLES.CONTRACTOR)}
               >
                 <CardContent className="p-6 text-center">
-                  <Building2 className="w-12 h-12 mx-auto mb-4 text-green-600" />
+                  <Building2 className="w-12 h-12 mx-auto mb-4 text-gray-900" />
                   <h3 className="text-xl font-semibold mb-2">I&apos;m a Contractor</h3>
                   <p className="text-gray-600">
                     I provide construction and renovation services and want to find new clients.
@@ -159,18 +160,18 @@ export function OnboardingForm() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
       <Card className="w-full max-w-2xl">
         <CardHeader className="text-center">
           <CardTitle className="text-3xl font-bold">
-            {userType === 'homeowner' ? 'Homeowner Profile' : 'Contractor Profile'}
+            {userType === USER_ROLES.HOMEOWNER ? 'Homeowner Profile' : 'Contractor Profile'}
           </CardTitle>
           <CardDescription>
             Complete your profile to get started
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {userType === 'homeowner' ? (
+          {userType === USER_ROLES.HOMEOWNER ? (
             <form onSubmit={homeownerForm.handleSubmit(onSubmitHomeowner)} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">

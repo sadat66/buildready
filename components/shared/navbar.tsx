@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import UserMenu from "./UserMenu";
+import { UserMenu } from "./UserMenu";
 import { Menu } from "lucide-react";
 
 interface NavbarProps {
@@ -41,9 +41,9 @@ export default function Navbar({
               variant="ghost"
               size="sm"
               onClick={onMobileMenuToggle}
-              className="lg:hidden group cursor-pointer p-2 mr-3 h-10 w-10 rounded-lg bg-gray-100 hover:bg-orange-100  transition-colors duration-200"
+              className="lg:hidden group cursor-pointer p-2 mr-3 h-10 w-10 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors duration-200"
             >
-              <Menu className="h-8 w-8 text-gray-600 group-hover:text-orange-600" />
+              <Menu className="h-8 w-8 text-gray-600 group-hover:text-gray-900" />
             </Button>
           )}
 
@@ -64,9 +64,9 @@ export default function Navbar({
           {isHomePage && user && (
             <Link
               href={`/${
-                user?.user_metadata?.role || user?.role || "homeowner"
+                user?.user_role || "homeowner"
               }/dashboard`}
-              className="bg-orange-400 hover:bg-orange-500 text-white px-3 py-1.5 rounded-md text-sm font-medium transition-colors"
+              className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1.5 rounded-md text-sm font-medium transition-colors"
             >
               Dashboard
             </Link>
@@ -86,7 +86,7 @@ export default function Navbar({
               <Link href="/register">
                 <Button
                   size="sm"
-                  className="text-sm font-medium bg-orange-600 hover:bg-orange-700"
+                  className="text-sm font-medium bg-orange-500 hover:bg-orange-600"
                 >
                   Get Started
                 </Button>

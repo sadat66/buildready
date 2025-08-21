@@ -1,97 +1,215 @@
 'use client'
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Building, ClipboardList, Search, Briefcase } from 'lucide-react'
-import Link from 'next/link'
+import { useState, useEffect } from 'react'
+import { createClient } from '@/lib/supabase'
+import { Project } from '@/types'
 
-interface ContractorDashboardProps {
-  userEmail?: string
+import ContractorStats from './ContractorStats'
+import RecentProposals from './RecentProposals'
+import RecentOpportunities from './RecentOpportunities'
+import { useAuth } from '@/contexts/AuthContext'
+
+interface Proposal {
+  id: string
+  title: string
+  status: string
+  subtotal_amount: number | null
+  total_amount: number | null
+  created_at: string
+  description_of_work: string
+  proposed_start_date: string | null
+  proposed_end_date: string | null
+  project?: {
+    id: string
+    project_title: string
+    statement_of_work: string
+    category: string
+    location: string
+    status: string
+    budget: number | null
+    creator: string
+  }
 }
 
-export default function ContractorDashboard({ userEmail }: ContractorDashboardProps) {
-  const quickActions = [
-    {
-      title: 'Available Projects',
-      description: 'Browse projects from homeowners',
-      icon: Building,
-      href: '/contractor/projects',
-      color: 'bg-green-500'
-    },
-    {
-      title: 'My Proposals',
-      description: 'Track your submitted proposals',
-      icon: ClipboardList,
-      href: '/contractor/proposals',
-      color: 'bg-blue-600'
+export default function ContractorDashboard() {
+  const { user } = useAuth()
+  const [projects, setProjects] = useState<Project[]>([])
+  const [proposals, setProposals] = useState<Proposal[]>([])
+  const [loading, setLoading] = useState(true)
+
+  // Function to capitalize first letter of each word
+  const capitalizeWords = (str: string) => {
+    return str.split(' ').map(word => 
+      word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+    ).join(' ')
+  }
+
+  const fetchData = async () => {
+    try {
+      const supabase = createClient()
+      const currentUser = user || (await supabase.auth.getUser()).data.user
+      
+      if (!currentUser) {
+        console.log('No authenticated user found, skipping data fetch')
+        setLoading(false)
+        return
+      }
+      
+      console.log('Fetching contractor dashboard data for user:', currentUser.id)
+      
+      // Debug: Log the current user ID
+      console.log('Current user ID for proposals query:', currentUser.id)
+      
+      // Fetch available projects
+      const { data: projectsData, error: projectsError } = await supabase
+        .from('projects')
+        .select(`
+          id,
+          project_title,
+          statement_of_work,
+          budget,
+          category,
+          pid,
+          location,
+          project_type,
+          status,
+          start_date,
+          end_date,
+          expiry_date,
+          created_at,
+          updated_at
+        `)
+        .in('status', ['Draft', 'Open for Proposals'])
+        .order('created_at', { ascending: false })
+      
+      if (projectsError) {
+        throw projectsError
+      }
+      
+      // Cast the data to Project type (we know the structure matches)
+      setProjects((projectsData || []) as Project[])
+
+      // Fetch contractor's proposals
+      try {
+        const { data: proposalsData, error: proposalsError } = await supabase
+          .from('proposals')
+          .select(`
+            id,
+            title,
+            status,
+            subtotal_amount,
+            total_amount,
+            created_at,
+            description_of_work,
+            proposed_start_date,
+            proposed_end_date,
+            project:projects (
+              id,
+              project_title,
+              statement_of_work,
+              category,
+              location,
+              status,
+              budget,
+              creator
+            )
+          `)
+          .eq('contractor', currentUser.id)
+          .eq('is_deleted', 'no')
+          .order('created_at', { ascending: false })
+        
+        if (proposalsError) {
+          console.warn('Proposals table query failed:', proposalsError)
+          setProposals([])
+        } else {
+          // Transform the data to match our Proposal interface
+          const transformedProposals = (proposalsData || []).map(proposal => ({
+            ...proposal,
+            project: Array.isArray(proposal.project) ? proposal.project[0] : proposal.project
+          }))
+          console.log('Proposals fetched successfully:', transformedProposals.length, 'proposals')
+          console.log('Sample proposal data:', transformedProposals[0])
+          setProposals(transformedProposals as Proposal[])
+        }
+      } catch (proposalsError) {
+        console.warn('Proposals table might not exist yet:', proposalsError)
+        setProposals([])
+      }
+      
+    } catch (error) {
+      // Only log errors if we have a user (avoid logging auth-related errors)
+      if (user) {
+        console.error('Error fetching contractor dashboard data:', error)
+        console.error('Error details:', JSON.stringify(error, null, 2))
+      }
+      // Don't set error state - render dashboard with empty data instead
+    } finally {
+      setLoading(false)
     }
-  ]
+  }
+
+  useEffect(() => {
+    fetchData()
+  }, [user])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white relative">
+        <div className="relative flex items-center justify-center min-h-screen">
+          <div className="text-center space-y-8">
+            {/* Minimalist Loading Spinner */}
+            <div className="relative">
+              <div className="w-16 h-16 border-4 border-gray-200 border-t-orange-500 rounded-full animate-spin"></div>
+            </div>
+            <div className="space-y-4">
+              <h2 className="text-2xl font-bold text-gray-900">Loading Your Dashboard</h2>
+              <p className="text-gray-600">Preparing your contractor overview...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Calculate contractor statistics
+  const submittedProposals = proposals.filter(p => ['submitted', 'viewed'].includes(p.status)).length
+  const acceptedProposals = proposals.filter(p => p.status === 'accepted').length
+  const winRate = proposals.length > 0 ? Math.round((acceptedProposals / proposals.length) * 100) : 0
+  
+  // Calculate earnings from accepted proposals
+  const totalEarnings = proposals
+    .filter(p => p.status === 'accepted')
+    .reduce((sum, p) => sum + (p.total_amount || p.subtotal_amount || 0), 0)
+
+  const stats = {
+    activeProposals: submittedProposals,
+    acceptedProposals,
+    totalEarnings,
+    winRate
+  }
 
   return (
-    <div className="space-y-6">
-      {/* Welcome Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl flex items-center gap-2">
-            <Briefcase className="h-6 w-6 text-blue-600" />
-            Welcome back, Contractor!
-          </CardTitle>
-          <CardDescription>
-            {userEmail && `You are signed in as ${userEmail}`}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="text-gray-600">
-            Find new project opportunities, manage your proposals, and grow your construction business.
-          </p>
-        </CardContent>
-      </Card>
+    <div className="min-h-screen bg-white">
+      <div className="container mx-auto px-4 py-6">
+        {/* Dashboard Content */}
+        <div className="space-y-6">
+          {/* Greeting */}
+          <div className="mb-4">
+            <h1 className="text-sm font-medium text-gray-800">
+              Hello, {user?.user_metadata?.full_name ? capitalizeWords(user.user_metadata.full_name) : user?.email?.split('@')[0] ? capitalizeWords(user.email.split('@')[0]) : 'There'}
+            </h1>
+            <p className="text-xs text-gray-600 mt-1">Welcome to your contractor dashboard</p>
+          </div>
 
-      {/* Quick Browse Projects */}
-      <Card className="border-blue-200 bg-blue-50">
-        <CardHeader>
-          <CardTitle className="text-lg text-blue-800">Looking for new projects?</CardTitle>
-          <CardDescription className="text-blue-600">
-            Browse available projects from homeowners and submit your proposals.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Link href="/contractor/projects">
-            <Button className="bg-blue-600 hover:bg-blue-700">
-              <Search className="h-4 w-4 mr-2" />
-              Browse Projects
-            </Button>
-          </Link>
-        </CardContent>
-      </Card>
+          {/* Contractor Statistics */}
+          <ContractorStats stats={stats} />
 
-      {/* Quick Actions Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {quickActions.map((action) => {
-          const Icon = action.icon
-          return (
-            <Card key={action.title} className="hover:shadow-lg transition-shadow">
-              <CardHeader className="pb-3">
-                <div className="flex items-center space-x-3">
-                  <div className={`p-2 rounded-lg ${action.color} text-white`}>
-                    <Icon className="h-5 w-5" />
-                  </div>
-                  <CardTitle className="text-lg">{action.title}</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <CardDescription className="mb-4">
-                  {action.description}
-                </CardDescription>
-                <Link href={action.href}>
-                  <Button className="w-full" variant="outline">
-                    Go to {action.title}
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
-          )
-        })}
+          {/* Recent Proposals */}
+          <RecentProposals proposals={proposals} />
+
+          {/* Recent Opportunities */}
+          <RecentOpportunities projects={projects} />
+        </div>
       </div>
     </div>
   )

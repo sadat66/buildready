@@ -1,47 +1,20 @@
 import { z } from 'zod'
 import { createTRPCRouter, protectedProcedure, publicProcedureWithSupabase } from '~/server/api/trpc'
 import { TRPCError } from '@trpc/server'
-
-const proposalSchema = z.object({
-  project_id: z.string().uuid(),
-  
-  // Financial details
-  net_amount: z.number().positive('Net amount must be positive'),
-  tax_amount: z.number().min(0, 'Tax amount must be non-negative'),
-  total_amount: z.number().positive('Total amount must be positive'),
-  deposit_amount: z.number().min(0, 'Deposit amount must be non-negative'),
-  deposit_due_date: z.string().min(1, 'Deposit due date is required'),
-  
-  // Timeline details
-  proposed_start_date: z.string().min(1, 'Proposed start date is required'),
-  proposed_end_date: z.string().min(1, 'Proposed end date is required'),
-  estimated_days: z.number().positive('Estimated days must be positive'),
-  
-  // Penalties
-  delay_penalty: z.number().min(0, 'Delay penalty must be non-negative'),
-  abandonment_penalty: z.number().min(0, 'Abandonment penalty must be non-negative'),
-  
-  // Description and additional info
-  description: z.string().min(10, 'Description must be at least 10 characters'),
-  timeline: z.string().min(1, 'Timeline is required'),
-  materials_included: z.boolean().default(false),
-  warranty_period: z.string().optional(),
-  additional_notes: z.string().optional(),
-  
-  // Files
-  uploaded_files: z.array(z.string()).optional(),
-})
+import { proposalSchema, proposalCreateSchema, proposalUpdateSchema } from '~/lib/database/schemas/proposals'
+import { VISIBILITY_SETTINGS, PROPOSAL_STATUSES, REJECTION_REASONS } from '~/lib/constants'
 
 export const proposalsRouter = createTRPCRouter({
   // Create a new proposal
   create: protectedProcedure
-    .input(proposalSchema)
+    .input(proposalCreateSchema)
     .mutation(async ({ input, ctx }) => {
       // Check if project exists and is not completed/cancelled
       const { data: project, error: projectError } = await ctx.supabase
         .from('projects')
-        .select('id, status, homeowner_id')
-        .eq('id', input.project_id)
+
+        .select('id, status, homeowner')
+        .eq('id', input.project)
         .single()
 
       if (projectError) {
@@ -58,7 +31,7 @@ export const proposalsRouter = createTRPCRouter({
         })
       }
 
-      if (project.homeowner_id === ctx.user.id) {
+      if (project.homeowner === ctx.user.id) {
         throw new TRPCError({
           code: 'BAD_REQUEST',
           message: 'You cannot submit a proposal for your own project',
@@ -69,8 +42,9 @@ export const proposalsRouter = createTRPCRouter({
       const { data: existingProposal } = await ctx.supabase
         .from('proposals')
         .select('id')
-        .eq('project_id', input.project_id)
-        .eq('contractor_id', ctx.user.id)
+        .eq('project', input.project)
+        .eq('contractor', ctx.user.id)
+        .eq('status', 'draft')
         .single()
 
       if (existingProposal) {
@@ -80,40 +54,45 @@ export const proposalsRouter = createTRPCRouter({
         })
       }
 
-      // Calculate total amount if not provided
-      const calculatedTotal = input.total_amount || (input.net_amount + input.tax_amount)
-      
-      // Calculate estimated days if not provided
-      const startDate = new Date(input.proposed_start_date)
-      const endDate = new Date(input.proposed_end_date)
-      const calculatedDays = input.estimated_days || Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
-      
       const { data, error } = await ctx.supabase
         .from('proposals')
         .insert({
-          ...input,
-          total_amount: calculatedTotal,
-          estimated_days: calculatedDays,
-          contractor_id: ctx.user.id,
-          status: 'pending',
+          title: input.title,
+          description_of_work: input.description_of_work,
+          project: input.project,
+        contractor: input.contractor,
+        homeowner: input.homeowner,
+          subtotal_amount: input.subtotal_amount,
+          tax_included: input.tax_included,
+          total_amount: input.total_amount,
+          deposit_amount: input.deposit_amount,
+          deposit_due_on: input.deposit_due_on,
+          proposed_start_date: input.proposed_start_date,
+          proposed_end_date: input.proposed_end_date,
+          expiry_date: input.expiry_date,
+          clause_preview_html: input.clause_preview_html,
+          attached_files: input.attached_files || [],
+          notes: input.notes,
+          visibility_settings: input.visibility_settings || 'private',
+          status: 'draft',
+          created_by: ctx.user.id,
+        last_modified_by: ctx.user.id,
+          last_updated: new Date(),
         })
         .select(`
           *,
-          projects (
+          project:projects (
             id,
             title,
             homeowner_id,
-            profiles!projects_homeowner_id_fkey (
+            users!projects_homeowner_id_fkey (
               id,
               full_name
             )
           ),
-          profiles!proposals_contractor_id_fkey (
+          contractor:users!proposals_contractor_fkey (
             id,
-            full_name,
-            bio,
-            hourly_rate,
-            years_experience
+            full_name
           )
         `)
         .single()
@@ -138,19 +117,13 @@ export const proposalsRouter = createTRPCRouter({
         .from('proposals')
         .select(`
           *,
-          profiles!proposals_contractor_id_fkey (
+          contractor:users!proposals_contractor_fkey (
             id,
-            full_name,
-            bio,
-            location,
-            hourly_rate,
-            years_experience,
-            skills,
-            license_number,
-            insurance_verified
+            full_name
           )
         `)
-        .eq('project_id', input.projectId)
+        .eq('project', input.projectId)
+        .eq('is_deleted', 'no')
         .order('created_at', { ascending: false })
 
       if (error) {
@@ -167,7 +140,7 @@ export const proposalsRouter = createTRPCRouter({
   getMy: protectedProcedure
     .input(
       z.object({
-        status: z.enum(['pending', 'accepted', 'rejected', 'withdrawn']).optional(),
+        status: z.enum([PROPOSAL_STATUSES.DRAFT, PROPOSAL_STATUSES.SUBMITTED, PROPOSAL_STATUSES.VIEWED, PROPOSAL_STATUSES.ACCEPTED, PROPOSAL_STATUSES.REJECTED, PROPOSAL_STATUSES.WITHDRAWN, PROPOSAL_STATUSES.EXPIRED]).optional(),
         limit: z.number().min(1).max(50).default(10),
         offset: z.number().min(0).default(0),
       })
@@ -177,7 +150,7 @@ export const proposalsRouter = createTRPCRouter({
         .from('proposals')
         .select(`
           *,
-          projects (
+          project:projects (
             id,
             title,
             description,
@@ -185,15 +158,16 @@ export const proposalsRouter = createTRPCRouter({
             location,
             status,
             budget,
-            homeowner_id,
-            profiles!projects_homeowner_id_fkey (
+            creator,
+            users!projects_creator_fkey (
               id,
               full_name,
               location
             )
           )
         `)
-        .eq('contractor_id', ctx.user.id)
+        .eq('contractor', ctx.user.id)
+        .eq('is_deleted', 'no')
 
       if (input.status) {
         query = query.eq('status', input.status)
@@ -218,7 +192,7 @@ export const proposalsRouter = createTRPCRouter({
     .input(
       z.object({
         projectId: z.string().uuid().optional(),
-        status: z.enum(['pending', 'accepted', 'rejected', 'withdrawn']).optional(),
+        status: z.enum([PROPOSAL_STATUSES.DRAFT, PROPOSAL_STATUSES.SUBMITTED, PROPOSAL_STATUSES.VIEWED, PROPOSAL_STATUSES.ACCEPTED, PROPOSAL_STATUSES.REJECTED, PROPOSAL_STATUSES.WITHDRAWN, PROPOSAL_STATUSES.EXPIRED]).optional(),
         limit: z.number().min(1).max(50).default(10),
         offset: z.number().min(0).default(0),
       })
@@ -228,7 +202,7 @@ export const proposalsRouter = createTRPCRouter({
         .from('proposals')
         .select(`
           *,
-          projects!inner (
+          project:projects!inner (
             id,
             title,
             description,
@@ -238,22 +212,16 @@ export const proposalsRouter = createTRPCRouter({
             budget,
             homeowner_id
           ),
-          profiles!proposals_contractor_id_fkey (
+          contractor:users!proposals_contractor_fkey (
             id,
-            full_name,
-            bio,
-            location,
-            hourly_rate,
-            years_experience,
-            skills,
-            license_number,
-            insurance_verified
+            full_name
           )
         `)
-        .eq('projects.homeowner_id', ctx.user.id)
+        .eq('homeowner', ctx.user.id)
+        .eq('is_deleted', 'no')
 
       if (input.projectId) {
-        query = query.eq('project_id', input.projectId)
+        query = query.eq('project', input.projectId)
       }
 
       if (input.status) {
@@ -282,7 +250,7 @@ export const proposalsRouter = createTRPCRouter({
         .from('proposals')
         .select(`
           *,
-          projects (
+          project:projects (
             id,
             title,
             description,
@@ -291,25 +259,19 @@ export const proposalsRouter = createTRPCRouter({
             status,
             budget,
             homeowner_id,
-            profiles!projects_homeowner_id_fkey (
+            users!projects_homeowner_id_fkey (
               id,
               full_name,
               location
             )
           ),
-          profiles!proposals_contractor_id_fkey (
+          contractor:users!proposals_contractor_fkey (
             id,
-            full_name,
-            bio,
-            location,
-            hourly_rate,
-            years_experience,
-            skills,
-            license_number,
-            insurance_verified
+            full_name
           )
         `)
         .eq('id', input.id)
+        .eq('is_deleted', 'no')
         .single()
 
       if (error) {
@@ -320,8 +282,8 @@ export const proposalsRouter = createTRPCRouter({
       }
 
       // Check if user has access to this proposal
-      const isContractor = data.contractor_id === ctx.user.id
-      const isHomeowner = data.projects?.homeowner_id === ctx.user.id
+      const isContractor = data.contractor === ctx.user.id
+      const isHomeowner = data.homeowner === ctx.user.id
 
       if (!isContractor && !isHomeowner) {
         throw new TRPCError({
@@ -333,48 +295,23 @@ export const proposalsRouter = createTRPCRouter({
       return data
     }),
 
-  // Note: updateStatus endpoint removed - proposal status updates now handled directly via Supabase in frontend
-
-  // Update proposal (contractor only)
-  update: protectedProcedure
+  // Update proposal status
+  updateStatus: protectedProcedure
     .input(
       z.object({
         id: z.string().uuid(),
-        
-        // Financial details
-        net_amount: z.number().positive().optional(),
-        tax_amount: z.number().min(0).optional(),
-        total_amount: z.number().positive().optional(),
-        deposit_amount: z.number().min(0).optional(),
-        deposit_due_date: z.string().optional(),
-        
-        // Timeline details
-        proposed_start_date: z.string().optional(),
-        proposed_end_date: z.string().optional(),
-        estimated_days: z.number().positive().optional(),
-        
-        // Penalties
-        delay_penalty: z.number().min(0).optional(),
-        abandonment_penalty: z.number().min(0).optional(),
-        
-        // Description and additional info
-        timeline: z.string().optional(),
-        description: z.string().min(10).optional(),
-        materials_included: z.boolean().optional(),
-        warranty_period: z.string().optional(),
-        additional_notes: z.string().optional(),
-        
-        // Files
-        uploaded_files: z.array(z.string()).optional(),
+        status: z.enum([PROPOSAL_STATUSES.DRAFT, PROPOSAL_STATUSES.SUBMITTED, PROPOSAL_STATUSES.VIEWED, PROPOSAL_STATUSES.ACCEPTED, PROPOSAL_STATUSES.REJECTED, PROPOSAL_STATUSES.WITHDRAWN, PROPOSAL_STATUSES.EXPIRED]),
+        rejection_reason: z.enum([REJECTION_REASONS.INCOMPLETE_PROPOSAL, REJECTION_REASONS.TOO_EXPENSIVE, REJECTION_REASONS.TIMELINE_TOO_LONG, REJECTION_REASONS.OUT_OF_SCOPE_ITEMS, REJECTION_REASONS.OTHER]).optional(),
+        rejection_reason_notes: z.string().optional(),
       })
     )
     .mutation(async ({ input, ctx }) => {
-      const { id, ...updateData } = input
+      const { id, status, rejection_reason, rejection_reason_notes } = input
 
-      // Check if user owns the proposal and it's still pending
+      // Check if user has access to this proposal
       const { data: existingProposal, error: fetchError } = await ctx.supabase
         .from('proposals')
-        .select('contractor_id, status')
+        .select('contractor, homeowner, status')
         .eq('id', id)
         .single()
 
@@ -385,55 +322,142 @@ export const proposalsRouter = createTRPCRouter({
         })
       }
 
-      if (existingProposal.contractor_id !== ctx.user.id) {
+      const isContractor = existingProposal.contractor === ctx.user.id
+      const isHomeowner = existingProposal.homeowner === ctx.user.id
+
+      if (!isContractor && !isHomeowner) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'You do not have access to this proposal',
+        })
+      }
+
+      // Only contractors can submit/withdraw, only homeowners can accept/reject
+      if (status === PROPOSAL_STATUSES.SUBMITTED || status === PROPOSAL_STATUSES.WITHDRAWN) {
+        if (!isContractor) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'Only contractors can submit or withdraw proposals',
+          })
+        }
+      }
+
+      if (status === PROPOSAL_STATUSES.ACCEPTED || status === PROPOSAL_STATUSES.REJECTED) {
+        if (!isHomeowner) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'Only homeowners can accept or reject proposals',
+          })
+        }
+      }
+
+      // Prepare update data
+      const updateData: any = {
+        status,
+        last_updated: new Date(),
+        last_modified_by: ctx.user.id,
+      }
+
+      // Add status-specific fields
+      if (status === PROPOSAL_STATUSES.SUBMITTED) {
+        updateData.submitted_date = new Date()
+      } else if (status === PROPOSAL_STATUSES.ACCEPTED) {
+        updateData.accepted_date = new Date()
+      } else if (status === PROPOSAL_STATUSES.REJECTED) {
+        updateData.rejected_date = new Date()
+        updateData.rejected_by_id = ctx.user.id
+        if (rejection_reason) {
+          updateData.rejection_reason = rejection_reason
+        }
+        if (rejection_reason_notes) {
+          updateData.rejection_reason_notes = rejection_reason_notes
+        }
+      } else if (status === PROPOSAL_STATUSES.WITHDRAWN) {
+        updateData.withdrawn_date = new Date()
+      }
+
+      const { data, error } = await ctx.supabase
+        .from('proposals')
+        .update(updateData)
+        .eq('id', id)
+        .select()
+        .single()
+
+      if (error) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: error.message,
+        })
+      }
+
+      return data
+    }),
+
+  // Update proposal (contractor only)
+  update: protectedProcedure
+    .input(
+      z.object({
+        id: z.string().uuid(),
+        title: z.string().optional(),
+        description_of_work: z.string().optional(),
+        subtotal_amount: z.number().positive().optional(),
+        tax_included: z.enum(['yes', 'no']).optional(),
+        total_amount: z.number().positive().optional(),
+        deposit_amount: z.number().positive().optional(),
+        deposit_due_on: z.date().optional(),
+        proposed_start_date: z.date().optional(),
+        proposed_end_date: z.date().optional(),
+        expiry_date: z.date().optional(),
+        clause_preview_html: z.string().optional(),
+        attached_files: z.array(z.object({
+          id: z.string().uuid(),
+          filename: z.string(),
+          url: z.string().url(),
+          size: z.number().positive().optional(),
+          mimeType: z.string().optional(),
+          uploadedAt: z.date().optional(),
+        })).optional(),
+        notes: z.string().optional(),
+                  visibility_settings: z.enum([VISIBILITY_SETTINGS.PRIVATE, VISIBILITY_SETTINGS.SHARED_WITH_TARGET_USER, VISIBILITY_SETTINGS.SHARED_WITH_PARTICIPANT, VISIBILITY_SETTINGS.PUBLIC_TO_INVITEES, VISIBILITY_SETTINGS.PUBLIC_TO_MARKETPLACE, VISIBILITY_SETTINGS.ADMIN_ONLY]).optional(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const { id, ...updateData } = input
+
+      // Check if user owns the proposal and it's still editable
+      const { data: existingProposal, error: fetchError } = await ctx.supabase
+        .from('proposals')
+        .select('contractor, status')
+        .eq('id', id)
+        .single()
+
+      if (fetchError) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Proposal not found',
+        })
+      }
+
+      if (existingProposal.contractor !== ctx.user.id) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'You can only update your own proposals',
         })
       }
 
-      if (existingProposal.status !== 'pending') {
+      if (![PROPOSAL_STATUSES.DRAFT, PROPOSAL_STATUSES.SUBMITTED].includes(existingProposal.status)) {
         throw new TRPCError({
           code: 'BAD_REQUEST',
-          message: 'Can only update pending proposals',
+          message: 'Can only update draft or submitted proposals',
         })
       }
 
-      // Calculate total amount and estimated days if relevant fields are updated
-      const finalUpdateData = { ...updateData, updated_at: new Date().toISOString() }
-      
-      if (updateData.net_amount !== undefined || updateData.tax_amount !== undefined) {
-        const { data: currentProposal } = await ctx.supabase
-          .from('proposals')
-          .select('net_amount, tax_amount')
-          .eq('id', id)
-          .single()
-        
-        const netAmount = updateData.net_amount ?? currentProposal?.net_amount
-        const taxAmount = updateData.tax_amount ?? currentProposal?.tax_amount
-        
-        if (netAmount !== undefined && taxAmount !== undefined) {
-          finalUpdateData.total_amount = netAmount + taxAmount
-        }
+      const finalUpdateData = {
+        ...updateData,
+        last_updated: new Date(),
+        last_modified_by: ctx.user.id,
       }
-      
-      if (updateData.proposed_start_date !== undefined || updateData.proposed_end_date !== undefined) {
-        const { data: currentProposal } = await ctx.supabase
-          .from('proposals')
-          .select('proposed_start_date, proposed_end_date')
-          .eq('id', id)
-          .single()
-        
-        const startDate = updateData.proposed_start_date ?? currentProposal?.proposed_start_date
-        const endDate = updateData.proposed_end_date ?? currentProposal?.proposed_end_date
-        
-        if (startDate && endDate) {
-          const start = new Date(startDate)
-          const end = new Date(endDate)
-          finalUpdateData.estimated_days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
-        }
-      }
-      
+
       const { data, error } = await ctx.supabase
         .from('proposals')
         .update(finalUpdateData)
@@ -451,11 +475,11 @@ export const proposalsRouter = createTRPCRouter({
       return data
     }),
 
-  // Delete proposal (contractor only)
+  // Soft delete proposal (contractor only)
   delete: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ input, ctx }) => {
-      // Check if user owns the proposal and it's still pending
+      // Check if user owns the proposal
       const { data: existingProposal, error: fetchError } = await ctx.supabase
         .from('proposals')
         .select('contractor_id, status')
@@ -476,16 +500,14 @@ export const proposalsRouter = createTRPCRouter({
         })
       }
 
-      if (existingProposal.status !== 'pending') {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Can only delete pending proposals',
-        })
-      }
-
+      // Soft delete by setting is_deleted flag
       const { error } = await ctx.supabase
         .from('proposals')
-        .delete()
+        .update({
+          is_deleted: 'yes',
+          last_updated: new Date(),
+          last_modified_by: ctx.user.id,
+        })
         .eq('id', input.id)
 
       if (error) {
@@ -498,82 +520,39 @@ export const proposalsRouter = createTRPCRouter({
       return { success: true }
     }),
 
-  // Resubmit proposal (contractor only)
-  resubmit: protectedProcedure
-    .input(
-      z.object({
-        originalProposalId: z.string().uuid(),
-        ...proposalSchema.omit({ project_id: true }).shape,
-      })
-    )
+  // Mark proposal as viewed (homeowner only)
+  markAsViewed: protectedProcedure
+    .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ input, ctx }) => {
-      const { originalProposalId, ...proposalData } = input
-
-      // Get the original proposal to check status and get project_id
-      const { data: originalProposal, error: fetchError } = await ctx.supabase
+      // Check if user is the homeowner for this proposal
+      const { data: existingProposal, error: fetchError } = await ctx.supabase
         .from('proposals')
-        .select('project_id, contractor_id, status')
-        .eq('id', originalProposalId)
+        .select('homeowner')
+        .eq('id', input.id)
         .single()
 
       if (fetchError) {
         throw new TRPCError({
           code: 'NOT_FOUND',
-          message: 'Original proposal not found',
+          message: 'Proposal not found',
         })
       }
 
-      // Check if user owns the original proposal
-      if (originalProposal.contractor_id !== ctx.user.id) {
+      if (existingProposal.homeowner !== ctx.user.id) {
         throw new TRPCError({
           code: 'FORBIDDEN',
-          message: 'You can only resubmit your own proposals',
+          message: 'You can only mark your own proposals as viewed',
         })
       }
 
-      // Check if original proposal is rejected or withdrawn
-      if (!['rejected', 'withdrawn'].includes(originalProposal.status)) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Can only resubmit rejected or withdrawn proposals',
-        })
-      }
-
-      // Check if there's already a pending proposal for this project
-      const { data: existingPending } = await ctx.supabase
+      const { error } = await ctx.supabase
         .from('proposals')
-        .select('id')
-        .eq('project_id', originalProposal.project_id)
-        .eq('contractor_id', ctx.user.id)
-        .eq('status', 'pending')
-        .single()
-
-      if (existingPending) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'You already have a pending proposal for this project',
+        .update({
+          viewed_date: new Date(),
+          last_updated: new Date(),
+          last_modified_by: ctx.user.id,
         })
-      }
-
-      // Calculate total amount and estimated days
-      const totalAmount = proposalData.net_amount + proposalData.tax_amount
-      const startDate = new Date(proposalData.proposed_start_date)
-      const endDate = new Date(proposalData.proposed_end_date)
-      const estimatedDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
-
-      // Create new proposal
-      const { data, error } = await ctx.supabase
-        .from('proposals')
-        .insert({
-          project_id: originalProposal.project_id,
-          contractor_id: ctx.user.id,
-          ...proposalData,
-          total_amount: totalAmount,
-          estimated_days: estimatedDays,
-          status: 'pending',
-        })
-        .select()
-        .single()
+        .eq('id', input.id)
 
       if (error) {
         throw new TRPCError({
@@ -582,6 +561,6 @@ export const proposalsRouter = createTRPCRouter({
         })
       }
 
-      return data
+      return { success: true }
     }),
 })

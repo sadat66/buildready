@@ -2,24 +2,53 @@
 
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 import { createClient } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Lock, Eye, EyeOff, Building2, CheckCircle } from 'lucide-react'
+import { AuthHero, AuthFooter } from '@/components/features/auth'
+import { AuthInput, InlinePasswordStrength } from '@/components/shared/form-input'
+import { CheckCircle } from 'lucide-react'
 import Link from 'next/link'
 
+// Password reset confirmation schema - using same validation as registration
+const resetPasswordConfirmSchema = z.object({
+  password: z.string()
+    .min(8, 'Add at least 8 characters')
+    .max(128, 'Password is too long (max 128 characters)')
+    .regex(/^(?=.*[a-z])/, 'Add a lowercase letter (a-z)')
+    .regex(/^(?=.*[A-Z])/, 'Add an uppercase letter (A-Z)')
+    .regex(/^(?=.*\d)/, 'Add a number (0-9)')
+    .regex(/^(?=.*[@$!%*?&])/, 'Add a special character (@$!%*?&)'),
+  confirmPassword: z
+    .string()
+    .min(1, 'Please confirm your password'),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match. Please try again",
+  path: ["confirmPassword"],
+})
+
+type ResetPasswordConfirmFormData = z.infer<typeof resetPasswordConfirmSchema>
+
 function ResetPasswordConfirmContent() {
-  const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   
   const router = useRouter()
   const supabase = createClient()
+  
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors, isSubmitting },
+  } = useForm<ResetPasswordConfirmFormData>({
+    resolver: zodResolver(resetPasswordConfirmSchema),
+    mode: 'onBlur',
+  })
 
   useEffect(() => {
     // Handle the auth callback
@@ -33,26 +62,13 @@ function ResetPasswordConfirmContent() {
     handleAuthCallback()
   }, [supabase.auth])
 
-  const handleUpdatePassword = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleUpdatePassword = async (data: ResetPasswordConfirmFormData) => {
     setLoading(true)
     setError('')
 
-    if (password !== confirmPassword) {
-      setError('Passwords do not match')
-      setLoading(false)
-      return
-    }
-
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters long')
-      setLoading(false)
-      return
-    }
-
     try {
       const { error } = await supabase.auth.updateUser({
-        password: password
+        password: data.password
       })
 
       if (error) throw error
@@ -70,9 +86,9 @@ function ResetPasswordConfirmContent() {
 
   if (success) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="max-w-md w-full space-y-8">
-          <Card className="shadow-2xl border-0 bg-white/80 backdrop-blur-sm">
+      <div className="flex-1 flex items-center justify-center">
+        <div className="w-full max-w-lg space-y-6">
+          <Card className="w-full">
             <CardContent className="p-8 text-center">
               <div className="mx-auto h-16 w-16 bg-green-100 rounded-full flex items-center justify-center mb-6">
                 <CheckCircle className="h-8 w-8 text-green-600" />
@@ -84,7 +100,7 @@ function ResetPasswordConfirmContent() {
                 Your password has been updated. You will be redirected to the sign-in page in a few seconds.
               </p>
               <Link href="/login">
-                <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold px-6 py-2 rounded-lg">
+                <Button className="w-full h-10 bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200">
                   Go to Sign In
                 </Button>
               </Link>
@@ -96,108 +112,65 @@ function ResetPasswordConfirmContent() {
   }
 
   return (
-    <div className="flex items-center justify-center py-12">
-      <div className="max-w-md w-full space-y-8">
-        {/* Header */}
-        <div className="text-center">
-          <div className="mx-auto h-16 w-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg">
-            <Building2 className="h-8 w-8 text-white" />
-          </div>
-          <h2 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            Set New Password
-          </h2>
-          <p className="mt-3 text-gray-600 text-lg">
-            Enter your new password below
-          </p>
-        </div>
+    <div className="flex-1 flex items-center justify-center">
+      <div className="w-full max-w-lg space-y-6">
+        <AuthHero
+          title={
+            <>
+              Set Your New
+              <span className="block text-orange-600">Password</span>
+            </>
+          }
+          description="Enter a strong password to secure your BuildReady account."
+          maxWidth="md"
+        />
 
-        {/* Main Card */}
-        <Card className="shadow-2xl border-0 bg-white/80 backdrop-blur-sm">
-          <CardHeader className="space-y-1 pb-6">
-            <CardTitle className="text-2xl font-semibold text-center text-gray-800">
+        <Card className="w-full">
+          <CardHeader className="text-center pb-6">
+            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-orange-700 bg-clip-text text-transparent">
               Update Password
             </CardTitle>
-            <CardDescription className="text-center text-gray-600">
+            <CardDescription className="text-base text-gray-600">
               Choose a strong password for your account
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
-            <form onSubmit={handleUpdatePassword} className="space-y-5">
-              {/* New Password Field */}
-              <div className="space-y-2">
-                <label htmlFor="password" className="block text-sm font-semibold text-gray-700">
-                  New Password
-                </label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                  <Input
-                    id="password"
-                    type={showPassword ? 'text' : 'password'}
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Enter your new password"
-                    className="pl-10 pr-10 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500 rounded-lg"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  >
-                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                  </button>
-                </div>
-              </div>
 
-              {/* Confirm Password Field */}
-              <div className="space-y-2">
-                <label htmlFor="confirmPassword" className="block text-sm font-semibold text-gray-700">
-                  Confirm New Password
-                </label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                  <Input
-                    id="confirmPassword"
-                    type={showConfirmPassword ? 'text' : 'password'}
-                    required
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Confirm your new password"
-                    className="pl-10 pr-10 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500 rounded-lg"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  >
-                    {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                  </button>
-                </div>
-              </div>
-
-              {/* Password Requirements */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                <p className="text-sm text-blue-800 font-medium mb-1">Password Requirements:</p>
-                <ul className="text-xs text-blue-700 space-y-1">
-                  <li>• At least 6 characters long</li>
-                  <li>• Must match confirmation password</li>
-                </ul>
-              </div>
-
-              {/* Error Message */}
+          <CardContent className="px-6 pb-6">
+            <form onSubmit={handleSubmit(handleUpdatePassword)} className="space-y-5">
               {error && (
                 <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
                   {error}
                 </div>
               )}
 
-              {/* Submit Button */}
+              <div className="space-y-2">
+                <AuthInput
+                  type="password"
+                  label="New Password"
+                  error={errors.password?.message}
+                  showPasswordToggle={true}
+                  {...register('password')}
+                />
+                {/* Password Strength Indicator */}
+                <InlinePasswordStrength 
+                  password={watch('password') || ''} 
+                />
+              </div>
+
+              <AuthInput
+                type="password"
+                label="Confirm New Password"
+                error={errors.confirmPassword?.message}
+                showPasswordToggle={true}
+                {...register('confirmPassword')}
+              />
+
               <Button
                 type="submit"
-                className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
-                disabled={loading}
+                className="w-full h-10 bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
+                disabled={loading || isSubmitting}
               >
-                {loading ? (
+                {loading || isSubmitting ? (
                   <div className="flex items-center justify-center">
                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
                     Updating...
@@ -208,17 +181,18 @@ function ResetPasswordConfirmContent() {
               </Button>
             </form>
 
-            {/* Back to Sign In */}
-            <div className="text-center">
+            <div className="text-center mt-4">
               <Link
                 href="/login"
-                className="text-blue-600 hover:text-blue-700 font-medium transition-colors duration-200"
+                className="text-sm text-orange-600 hover:text-orange-700 font-medium transition-colors duration-200"
               >
                 Back to Sign In
               </Link>
             </div>
           </CardContent>
         </Card>
+
+        <AuthFooter />
       </div>
     </div>
   )
@@ -226,15 +200,14 @@ function ResetPasswordConfirmContent() {
 
 export default function ResetPasswordConfirmPage() {
   return (
-    <Suspense fallback={
-      <div className="flex items-center justify-center p-4">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
+    <div className="min-h-screen flex flex-col">
+      <Suspense fallback={
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
         </div>
-      </div>
-    }>
-      <ResetPasswordConfirmContent />
-    </Suspense>
+      }>
+        <ResetPasswordConfirmContent />
+      </Suspense>
+    </div>
   )
 }

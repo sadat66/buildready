@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { USER_ROLE_VALUES } from '@/lib/constants'
 
 // Login Schema
 export const loginSchema = z.object({
@@ -26,7 +27,7 @@ export type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>
 
 // Registration Schema
 export const registrationSchema = z.object({
-  user_role: z.enum(['homeowner', 'contractor'] as const),
+  user_role: z.enum(USER_ROLE_VALUES),
   first_name: z.string()
     .min(2, 'First name needs at least 2 characters')
     .max(50, 'First name is too long (max 50 characters)')
@@ -50,7 +51,7 @@ export const registrationSchema = z.object({
     .min(1, 'Please confirm your password'),
   user_agreed_to_terms: z.boolean().refine(val => val === true, 'Please agree to the terms and conditions'),
 }).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match. Please try again",
+  message: "Passwords don't match. Please try again.",
   path: ["confirmPassword"],
 })
 

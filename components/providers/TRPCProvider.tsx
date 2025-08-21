@@ -96,7 +96,10 @@ export type RouterInputs = inferRouterInputs<AppRouter>
 export type RouterOutputs = inferRouterOutputs<AppRouter>
 
 function getBaseUrl() {
-  if (typeof window !== 'undefined') return ''
+  if (typeof window !== 'undefined') {
+    // Browser: use current origin
+    return window.location.origin
+  }
   if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`
   return `http://localhost:${process.env.PORT ?? 3000}`
 }
@@ -159,6 +162,12 @@ export function TRPCProvider(props: { children: React.ReactNode }) {
           headers() {
             const headers = new Map<string, string>()
             headers.set('x-trpc-source', 'nextjs-react')
+            
+            // Include cookies for authentication
+            if (typeof window !== 'undefined') {
+              headers.set('cookie', document.cookie)
+            }
+            
             return Object.fromEntries(headers)
           },
           // Add error handling to prevent unhandled errors

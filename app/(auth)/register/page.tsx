@@ -10,19 +10,13 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { api } from "@/components/providers/TRPCProvider";
 import toast from "react-hot-toast";
+import { UserRole } from "@/lib/constants";
 
 export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const { user, userRole } = useAuth();
-
-  useEffect(() => {
-    if (user && userRole) {
-      const roleDashboard = `/${userRole}/dashboard`;
-      router.push(roleDashboard);
-    }
-  }, [user, userRole, router]);
 
   const signUpMutation = api.auth.signUp.useMutation({
     onError: (error) => {
@@ -49,12 +43,20 @@ export default function RegisterPage() {
     },
   });
 
+  useEffect(() => {
+    if (user && userRole) {
+      const roleDashboard = `/${userRole}/dashboard`;
+      router.push(roleDashboard);
+    }
+  }, [user, userRole, router]);
+
   const handleRegistration = async (data: {
     email: string;
     password: string;
     first_name: string;
     last_name: string;
-    user_role: "homeowner" | "contractor";
+    user_role: UserRole;
+    user_agreed_to_terms: boolean;
   }) => {
     setIsLoading(true);
     setError(null);
@@ -64,7 +66,9 @@ export default function RegisterPage() {
         !data.email ||
         !data.password ||
         !data.first_name ||
-        !data.user_role
+        !data.last_name ||
+        !data.user_role ||
+        !data.user_agreed_to_terms
       ) {
         const errorMessage = "Please fill in all required fields";
         setError(errorMessage);
@@ -73,12 +77,31 @@ export default function RegisterPage() {
         return;
       }
 
-      signUpMutation.mutate({
+      // Use the working TRPC approach with correct field names
+      console.log('About to call TRPC mutation with:', {
         email: data.email,
         password: data.password,
-        fullName: `${data.first_name} ${data.last_name}`,
-        role: data.user_role,
+        first_name: data.first_name,
+        last_name: data.last_name,
+        user_role: data.user_role,
+        user_agreed_to_terms: data.user_agreed_to_terms,
       });
+      
+      try {
+        signUpMutation.mutate({
+          email: data.email,
+          password: data.password,
+          first_name: data.first_name,
+          last_name: data.last_name,
+          user_role: data.user_role,
+          user_agreed_to_terms: data.user_agreed_to_terms,
+        });
+      } catch (mutationError) {
+        console.error('TRPC mutation error:', mutationError);
+        setError('Failed to submit registration. Please try again.');
+        toast.error('Registration failed. Please try again.');
+        setIsLoading(false);
+      }
     } catch (error) {
       console.error("Unexpected error in handleRegistration:", error);
       const errorMessage = "An unexpected error occurred. Please try again.";

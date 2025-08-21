@@ -17,7 +17,6 @@ export default function DashboardLayout({
   const router = useRouter();
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const [accessDenied, setAccessDenied] = useState(false);
 
@@ -43,15 +42,25 @@ export default function DashboardLayout({
       const pathSegments = pathname.split("/");
       const routeRole = pathSegments[1];
 
+      console.log('Access control check:', {
+        userRole,
+        routeRole,
+        pathname,
+        pathSegments
+      });
+
+      // Allow access to role-specific routes (not just dashboard)
+      // Users can access: /{their-role}/dashboard, /{their-role}/projects, /{their-role}/profile, etc.
       if (routeRole && routeRole !== "dashboard" && userRole !== routeRole) {
         console.log(
-          `Access denied: User role ${userRole} cannot access ${routeRole} dashboard`
+          `Access denied: User role ${userRole} cannot access ${routeRole} routes`
         );
         setAccessDenied(true);
         setTimeout(() => {
           router.push(`/${userRole}/dashboard`);
         }, 2000);
       } else {
+        console.log('Access granted');
         setAccessDenied(false);
       }
     }
@@ -73,10 +82,7 @@ export default function DashboardLayout({
     setSidebarOpen(!sidebarOpen);
   };
 
-  // Handle sidebar collapse toggle
-  const handleSidebarToggleCollapse = () => {
-    setSidebarCollapsed(!sidebarCollapsed);
-  };
+
 
   // Close sidebar on mobile when screen size changes
   useEffect(() => {
@@ -131,7 +137,7 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen  bg-white">
       {/* Top Navbar - Full width, fixed */}
       <Navbar 
         onMobileMenuToggle={handleMobileMenuToggle}
@@ -144,13 +150,11 @@ export default function DashboardLayout({
         <Sidebar
           isOpen={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
-          isCollapsed={sidebarCollapsed}
-          onToggleCollapse={handleSidebarToggleCollapse}
         />
 
         {/* Main Content - Fixed position, sidebar expands on top */}
-        <main className="transition-all duration-300 min-h-[calc(100vh-4rem)] lg:pl-16">
-          <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+        <main className="transition-all duration-300 min-h-[calc(100vh-4rem)] lg:pl-64">
+          <div className="max-w-[1440px]  mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
             {children}
           </div>
         </main>

@@ -3,19 +3,22 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
+import { USER_ROLES, VISIBILITY_SETTINGS, TRADE_CATEGORIES } from '@/lib/constants'
 import { createClient } from '@/lib/supabase'
-import { Project } from '@/types/database'
+import { proposalService } from '@/lib/services'
+import { Project } from '@/types'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
-import { Calendar, DollarSign, FileText, AlertTriangle, Upload, ArrowLeft } from 'lucide-react'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Calendar, DollarSign, FileText, Upload, ArrowLeft } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 export default function SubmitProposalPage() {
-  const { user, loading } = useAuth()
+  const { user, userRole, loading } = useAuth()
   const router = useRouter()
   const params = useParams()
   const projectId = params?.projectId as string
@@ -28,92 +31,107 @@ export default function SubmitProposalPage() {
   
   // Form state
   const [formData, setFormData] = useState({
-    // Financial details
-    net_amount: '',
-    tax_amount: '',
+    // Core proposal fields
+    title: '',
+    description_of_work: '',
+    
+    // Financial fields
+    subtotal_amount: '',
+    tax_included: 'no' as 'yes' | 'no',
     total_amount: '',
     deposit_amount: '',
-    deposit_due_date: '',
+    deposit_due_on: '',
     
-    // Timeline details
+    // Timeline fields
     proposed_start_date: '',
     proposed_end_date: '',
-    estimated_days: '',
+    expiry_date: '',
     
-    // Penalties
-    delay_penalty: '',
-    abandonment_penalty: '',
+    // Content and documentation
+    clause_preview_html: '',
+    attached_files: [] as File[],
+    notes: '',
     
-    // Description and additional info
-    description: '',
-    timeline: '',
-    materials_included: false,
-    warranty_period: '',
-    additional_notes: '',
+    // Trade category
+    trade_category: 'General Contractor',
     
-    // Files
-    uploaded_files: [] as File[],
+    // Visibility settings
+    visibility_settings: VISIBILITY_SETTINGS.PRIVATE,
   })
 
   useEffect(() => {
     const fetchProject = async () => {
-      if (!projectId) return
+      if (!projectId) {
+        setError('Project ID is required')
+        setProjectLoading(false)
+        return
+      }
       
       try {
         const supabase = createClient()
+        console.log('Fetching project with ID:', projectId)
+        console.log('User authentication status:', { user: !!user, userRole, loading })
+        
+        // First, let's check if any projects exist at all
+        const { data: allProjects, error: allProjectsError } = await supabase
+          .from('projects')
+          .select('id, project_title, status')
+          .limit(5)
+          
+        console.log('All projects sample:', { allProjects, error: allProjectsError })
+        
         const { data, error: fetchError } = await supabase
           .from('projects')
           .select(`
             *,
-            homeowner:users!projects_homeowner_id_fkey(
-              full_name,
-              rating,
-              review_count
+            homeowner:users!creator(
+              full_name
             )
           `)
           .eq('id', projectId)
-          .eq('status', 'open')
+          .in('status', ['Draft', 'Open for Proposals'])
           .single()
+          
+        console.log('Project fetch result:', { data, error: fetchError })
         
         if (fetchError) {
+          console.error('Fetch error details:', fetchError)
           throw fetchError
         }
         
         setProject(data)
       } catch (error) {
         console.error('Error fetching project:', error)
-        setError('Failed to load project details')
+        setError(`Failed to load project details: ${error instanceof Error ? error.message : 'Unknown error'}`)
       } finally {
         setProjectLoading(false)
       }
     }
     
-    if (!loading && user && user.user_metadata?.role === 'contractor') {
+    if (!loading && user && userRole === USER_ROLES.CONTRACTOR) {
       fetchProject()
+    } else if (!loading) {
+      console.log('Not fetching project - authentication check failed:', { user: !!user, userRole, loading })
+      setProjectLoading(false)
     }
-  }, [projectId, user, loading])
+  }, [projectId, user, userRole, loading])
 
-  const handleInputChange = (field: string, value: string | boolean | number) => {
+  const handleInputChange = (field: string, value: string | boolean) => {
     setFormData(prev => {
       const newFormData = { ...prev, [field]: value }
       
-      // Auto-calculate total amount when net or tax amounts change
-      if (field === 'net_amount' || field === 'tax_amount') {
-        const netAmount = field === 'net_amount' ? parseFloat(value as string) || 0 : parseFloat(prev.net_amount) || 0
-        const taxAmount = field === 'tax_amount' ? parseFloat(value as string) || 0 : parseFloat(prev.tax_amount) || 0
-        newFormData.total_amount = (netAmount + taxAmount).toString()
-      }
-      
-      // Auto-calculate estimated days when dates change
-      if (field === 'proposed_start_date' || field === 'proposed_end_date') {
-        const startDate = field === 'proposed_start_date' ? value as string : prev.proposed_start_date
-        const endDate = field === 'proposed_end_date' ? value as string : prev.proposed_end_date
+      // Auto-calculate total amount when subtotal changes or tax inclusion changes
+      if (field === 'subtotal_amount' || field === 'tax_included') {
+        const subtotal = field === 'subtotal_amount' ? parseFloat(value as string) || 0 : parseFloat(prev.subtotal_amount) || 0
+        const taxIncluded = field === 'tax_included' ? value as string : prev.tax_included
         
-        if (startDate && endDate) {
-          const start = new Date(startDate)
-          const end = new Date(endDate)
-          const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
-          newFormData.estimated_days = days.toString()
+        if (taxIncluded === 'yes') {
+          // If tax is included, total = subtotal
+          newFormData.total_amount = subtotal.toString()
+        } else {
+          // If tax is not included, add 13% HST (Ontario standard)
+          const taxAmount = subtotal * 0.13
+          newFormData.total_amount = (subtotal + taxAmount).toString()
         }
       }
       
@@ -123,19 +141,66 @@ export default function SubmitProposalPage() {
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || [])
-    setFormData(prev => ({ ...prev, uploaded_files: [...prev.uploaded_files, ...files] }))
+    setFormData(prev => ({ ...prev, attached_files: [...prev.attached_files, ...files] }))
   }
 
   const removeFile = (index: number) => {
     setFormData(prev => ({
       ...prev,
-      uploaded_files: prev.uploaded_files.filter((_, i) => i !== index)
+      attached_files: prev.attached_files.filter((_, i) => i !== index)
     }))
   }
 
   const validateForm = () => {
-    if (!formData.net_amount || !formData.tax_amount || !formData.total_amount) {
-      setError('All financial amounts are required')
+    // Title validation
+    if (!formData.title || formData.title.trim().length < 3) {
+      setError('Title must be at least 3 characters')
+      return false
+    }
+    
+    // Description validation
+    if (!formData.description_of_work || formData.description_of_work.trim().length < 10) {
+      setError('Description of work must be at least 10 characters')
+      return false
+    }
+    
+    // Amount validations
+    const subtotalAmount = parseFloat(formData.subtotal_amount)
+    const totalAmount = parseFloat(formData.total_amount)
+    const depositAmount = parseFloat(formData.deposit_amount)
+    
+    if (!formData.subtotal_amount || isNaN(subtotalAmount) || subtotalAmount <= 0) {
+      setError('Subtotal amount must be a positive number')
+      return false
+    }
+    
+    if (!formData.total_amount || isNaN(totalAmount) || totalAmount <= 0) {
+      setError('Total amount must be a positive number')
+      return false
+    }
+    
+    if (!formData.deposit_amount || isNaN(depositAmount) || depositAmount <= 0) {
+      setError('Deposit amount must be a positive number')
+      return false
+    }
+    
+    if (depositAmount > totalAmount) {
+      setError('Deposit amount cannot exceed total amount')
+      return false
+    }
+    
+    // Date validations
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    
+    if (!formData.deposit_due_on) {
+      setError('Deposit due date is required')
+      return false
+    }
+    
+    const depositDueDate = new Date(formData.deposit_due_on)
+    if (depositDueDate < today) {
+      setError('Deposit due date cannot be in the past')
       return false
     }
     
@@ -144,18 +209,32 @@ export default function SubmitProposalPage() {
       return false
     }
     
-    if (!formData.description || formData.description.length < 10) {
-      setError('Description must be at least 10 characters')
+    const startDate = new Date(formData.proposed_start_date)
+    const endDate = new Date(formData.proposed_end_date)
+    
+    if (startDate < today) {
+      setError('Proposed start date cannot be in the past')
       return false
     }
     
-    if (!formData.timeline) {
-      setError('Timeline is required')
+    if (endDate <= startDate) {
+      setError('Proposed end date must be after start date')
       return false
     }
     
-    if (!formData.deposit_due_date) {
-      setError('Deposit due date is required')
+    if (!formData.expiry_date) {
+      setError('Proposal expiry date is required')
+      return false
+    }
+    
+    const expiryDate = new Date(formData.expiry_date)
+    if (expiryDate < today) {
+      setError('Proposal expiry date cannot be in the past')
+      return false
+    }
+    
+    if (expiryDate > startDate) {
+      setError('Proposal expiry date should be before the proposed start date')
       return false
     }
     
@@ -165,7 +244,7 @@ export default function SubmitProposalPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!user || user.user_metadata?.role !== 'contractor') {
+    if (!user || userRole !== USER_ROLES.CONTRACTOR) {
       setError('Only contractors can submit proposals')
       return
     }
@@ -180,39 +259,46 @@ export default function SubmitProposalPage() {
     try {
       // For now, we'll store file names as placeholders
       // In a real implementation, you'd upload files to storage first
-      const fileUrls = formData.uploaded_files.map(file => file.name)
+      const fileReferences = formData.attached_files.map(file => ({
+        id: crypto.randomUUID(),
+        filename: file.name,
+        url: `placeholder://${file.name}`, // Placeholder URL
+        size: file.size,
+        mimeType: file.type,
+        uploadedAt: new Date()
+      }))
       
-      const supabase = createClient()
-      const { error: insertError } = await supabase
-        .from('proposals')
-        .insert({
-          project_id: projectId,
-          contractor_id: user.id,
-          net_amount: parseFloat(formData.net_amount),
-          tax_amount: parseFloat(formData.tax_amount),
-          total_amount: parseFloat(formData.total_amount),
-          deposit_amount: parseFloat(formData.deposit_amount),
-          deposit_due_date: formData.deposit_due_date,
-          proposed_start_date: formData.proposed_start_date,
-          proposed_end_date: formData.proposed_end_date,
-          estimated_days: parseInt(formData.estimated_days),
-          delay_penalty: parseFloat(formData.delay_penalty) || 0,
-          abandonment_penalty: parseFloat(formData.abandonment_penalty) || 0,
-          description: formData.description,
-          timeline: formData.timeline,
-          materials_included: formData.materials_included,
-          warranty_period: formData.warranty_period || null,
-          additional_notes: formData.additional_notes || null,
-          uploaded_files: fileUrls,
-          status: 'pending'
-        })
+      const proposalData = {
+        title: formData.title,
+        description_of_work: formData.description_of_work,
+        project: projectId,
+        contractor: user.id,
+        homeowner: project?.creator || '',
+        subtotal_amount: parseFloat(formData.subtotal_amount),
+        tax_included: formData.tax_included as 'yes' | 'no',
+        total_amount: parseFloat(formData.total_amount),
+        deposit_amount: parseFloat(formData.deposit_amount),
+        deposit_due_on: new Date(formData.deposit_due_on),
+        proposed_start_date: new Date(formData.proposed_start_date),
+        proposed_end_date: new Date(formData.proposed_end_date),
+        expiry_date: new Date(formData.expiry_date),
+        clause_preview_html: formData.clause_preview_html || '',
+        attached_files: fileReferences,
+        notes: formData.notes || '',
+        trade_category: formData.trade_category,
+        visibility_settings: formData.visibility_settings,
+        created_by: user.id
+      }
       
-      if (insertError) {
-        throw insertError
+      console.log('Proposal data being submitted:', proposalData)
+      
+      const result = await proposalService.createProposal(proposalData, user.id)
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to submit proposal')
       }
       
       toast.success("Your proposal has been submitted successfully. The homeowner will review it and get back to you.")
-      
       router.push('/contractor/proposals')
     } catch (error) {
       console.error('Error submitting proposal:', error)
@@ -238,7 +324,7 @@ export default function SubmitProposalPage() {
     )
   }
 
-  if (!user || user.user_metadata?.role !== 'contractor') {
+      if (!user || userRole !== USER_ROLES.CONTRACTOR) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-lg">Access denied. Only contractors can submit proposals.</div>
@@ -270,7 +356,7 @@ export default function SubmitProposalPage() {
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Submit Proposal</h1>
           <p className="text-gray-600 mt-2">
-            Submit your detailed proposal for: <span className="font-semibold">{project.title}</span>
+            Submit your detailed proposal for: <span className="font-semibold">{project.project_title}</span>
           </p>
         </div>
       </div>
@@ -287,11 +373,11 @@ export default function SubmitProposalPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label className="text-sm font-medium text-gray-600">Category</Label>
-              <p className="text-sm">{project.category.replace('_', ' ')}</p>
+              <p className="text-sm">{Array.isArray(project.category) ? project.category.join(', ') : 'Not specified'}</p>
             </div>
             <div>
               <Label className="text-sm font-medium text-gray-600">Location</Label>
-              <p className="text-sm">{project.location}</p>
+              <p className="text-sm">{project.location?.address || 'Not specified'}</p>
             </div>
             <div>
               <Label className="text-sm font-medium text-gray-600">Budget Range</Label>
@@ -299,18 +385,74 @@ export default function SubmitProposalPage() {
             </div>
             <div>
               <Label className="text-sm font-medium text-gray-600">Proposal Deadline</Label>
-              <p className="text-sm">{new Date(project.proposal_deadline).toLocaleDateString()}</p>
+              <p className="text-sm">{new Date(project.expiry_date).toLocaleDateString()}</p>
             </div>
           </div>
           <div className="mt-4">
             <Label className="text-sm font-medium text-gray-600">Description</Label>
-            <p className="text-sm text-gray-700 mt-1">{project.description}</p>
+            <p className="text-sm text-gray-700 mt-1">{project.statement_of_work}</p>
           </div>
         </CardContent>
       </Card>
 
       {/* Proposal Form */}
       <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Basic Information */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              Proposal Information
+            </CardTitle>
+            <CardDescription>
+              Provide basic information about your proposal
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="title">Proposal Title</Label>
+              <Input
+                id="title"
+                value={formData.title}
+                onChange={(e) => handleInputChange('title', e.target.value)}
+                placeholder="Enter a descriptive title for your proposal"
+                required
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="description_of_work">Description of Work</Label>
+              <Textarea
+                id="description_of_work"
+                value={formData.description_of_work}
+                onChange={(e) => handleInputChange('description_of_work', e.target.value)}
+                placeholder="Provide a detailed description of the work you'll perform..."
+                rows={4}
+                required
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="trade_category">Trade Category</Label>
+              <Select
+                value={formData.trade_category}
+                onValueChange={(value) => handleInputChange('trade_category', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select your trade category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(TRADE_CATEGORIES).map(([key, value]) => (
+                    <SelectItem key={key} value={value}>
+                      {value}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Financial Details */}
         <Card>
           <CardHeader>
@@ -325,30 +467,25 @@ export default function SubmitProposalPage() {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <Label htmlFor="net_amount">Net Amount ($)</Label>
+                <Label htmlFor="subtotal_amount">Subtotal Amount ($)</Label>
                 <Input
-                  id="net_amount"
+                  id="subtotal_amount"
                   type="number"
                   step="0.01"
                   min="0"
-                  value={formData.net_amount}
-                  onChange={(e) => handleInputChange('net_amount', e.target.value)}
+                  value={formData.subtotal_amount}
+                  onChange={(e) => handleInputChange('subtotal_amount', e.target.value)}
                   placeholder="0.00"
                   required
                 />
               </div>
-              <div>
-                <Label htmlFor="tax_amount">Tax Amount ($)</Label>
-                <Input
-                  id="tax_amount"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={formData.tax_amount}
-                  onChange={(e) => handleInputChange('tax_amount', e.target.value)}
-                  placeholder="0.00"
-                  required
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="tax_included"
+                  checked={formData.tax_included === 'yes'}
+                  onCheckedChange={(checked) => handleInputChange('tax_included', checked ? 'yes' : 'no')}
                 />
+                <Label htmlFor="tax_included">Tax Included in Subtotal</Label>
               </div>
               <div>
                 <Label htmlFor="total_amount">Total Amount ($)</Label>
@@ -382,12 +519,12 @@ export default function SubmitProposalPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="deposit_due_date">Deposit Due Date</Label>
+                <Label htmlFor="deposit_due_on">Deposit Due Date</Label>
                 <Input
-                  id="deposit_due_date"
+                  id="deposit_due_on"
                   type="date"
-                  value={formData.deposit_due_date}
-                  onChange={(e) => handleInputChange('deposit_due_date', e.target.value)}
+                  value={formData.deposit_due_on}
+                  onChange={(e) => handleInputChange('deposit_due_on', e.target.value)}
                   required
                 />
               </div>
@@ -403,7 +540,7 @@ export default function SubmitProposalPage() {
               Timeline Details
             </CardTitle>
             <CardDescription>
-              Specify your proposed project timeline
+              Specify your proposed project timeline and proposal validity
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -429,130 +566,76 @@ export default function SubmitProposalPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="estimated_days">Estimated Days</Label>
+                <Label htmlFor="expiry_date">Proposal Expiry Date</Label>
                 <Input
-                  id="estimated_days"
-                  type="number"
-                  min="1"
-                  value={formData.estimated_days}
-                  onChange={(e) => handleInputChange('estimated_days', e.target.value)}
-                  placeholder="0"
+                  id="expiry_date"
+                  type="date"
+                  value={formData.expiry_date}
+                  onChange={(e) => handleInputChange('expiry_date', e.target.value)}
                   required
-                  readOnly
-                  className="bg-gray-50"
                 />
+                <p className="text-sm text-gray-500 mt-1">
+                  Date until which this proposal remains valid
+                </p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Penalties */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5" />
-              Penalties & Guarantees
-            </CardTitle>
-            <CardDescription>
-              Specify penalties for delays or project abandonment
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="delay_penalty">Delay Penalty ($/day)</Label>
-                <Input
-                  id="delay_penalty"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={formData.delay_penalty}
-                  onChange={(e) => handleInputChange('delay_penalty', e.target.value)}
-                  placeholder="0.00"
-                />
-              </div>
-              <div>
-                <Label htmlFor="abandonment_penalty">Abandonment Penalty ($)</Label>
-                <Input
-                  id="abandonment_penalty"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={formData.abandonment_penalty}
-                  onChange={(e) => handleInputChange('abandonment_penalty', e.target.value)}
-                  placeholder="0.00"
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Project Details */}
+        {/* Additional Details */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FileText className="h-5 w-5" />
-              Project Details
+              Additional Details
             </CardTitle>
             <CardDescription>
-              Provide detailed description and timeline
+              Provide additional information and contract preview
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="description">Detailed Description</Label>
+              <Label htmlFor="clause_preview_html">Contract Clause Preview</Label>
               <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) => handleInputChange('description', e.target.value)}
-                placeholder="Provide a detailed description of how you'll approach this project, materials you'll use, and your methodology..."
+                id="clause_preview_html"
+                value={formData.clause_preview_html}
+                onChange={(e) => handleInputChange('clause_preview_html', e.target.value)}
+                placeholder="Enter key contract clauses or terms that will be included in the agreement..."
                 rows={4}
-                required
               />
+              <p className="text-sm text-gray-500 mt-1">
+                This will be displayed to the homeowner as a preview of contract terms
+              </p>
             </div>
             
             <div>
-              <Label htmlFor="timeline">Project Timeline</Label>
+              <Label htmlFor="notes">Additional Notes</Label>
               <Textarea
-                id="timeline"
-                value={formData.timeline}
-                onChange={(e) => handleInputChange('timeline', e.target.value)}
-                placeholder="Describe the project phases, milestones, and timeline breakdown..."
-                rows={3}
-                required
-              />
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="materials_included"
-                  checked={formData.materials_included}
-                  onCheckedChange={(checked) => handleInputChange('materials_included', checked)}
-                />
-                <Label htmlFor="materials_included">Materials Included in Price</Label>
-              </div>
-              
-              <div>
-                <Label htmlFor="warranty_period">Warranty Period</Label>
-                <Input
-                  id="warranty_period"
-                  value={formData.warranty_period}
-                  onChange={(e) => handleInputChange('warranty_period', e.target.value)}
-                  placeholder="e.g., 1 year, 2 years"
-                />
-              </div>
-            </div>
-            
-            <div>
-              <Label htmlFor="additional_notes">Additional Notes</Label>
-              <Textarea
-                id="additional_notes"
-                value={formData.additional_notes}
-                onChange={(e) => handleInputChange('additional_notes', e.target.value)}
+                id="notes"
+                value={formData.notes}
+                onChange={(e) => handleInputChange('notes', e.target.value)}
                 placeholder="Any additional information, special considerations, or clarifications..."
                 rows={3}
               />
+            </div>
+            
+            <div>
+              <Label htmlFor="visibility_settings">Proposal Visibility</Label>
+              <Select
+                value={formData.visibility_settings}
+                onValueChange={(value) => handleInputChange('visibility_settings', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select visibility setting" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(VISIBILITY_SETTINGS).map(([key, value]) => (
+                    <SelectItem key={key} value={value}>
+                      {value}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </CardContent>
         </Card>
@@ -584,10 +667,10 @@ export default function SubmitProposalPage() {
               </p>
             </div>
             
-            {formData.uploaded_files.length > 0 && (
+            {formData.attached_files.length > 0 && (
               <div className="space-y-2">
-                <Label>Uploaded Files:</Label>
-                {formData.uploaded_files.map((file, index) => (
+                <Label>Attached Files:</Label>
+                {formData.attached_files.map((file, index) => (
                   <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
                     <span className="text-sm">{file.name}</span>
                     <Button

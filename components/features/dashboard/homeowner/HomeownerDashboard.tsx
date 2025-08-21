@@ -2,133 +2,166 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase'
-import { Project } from '@/types/database'
-import { LoadingSpinner } from '@/components/shared'
-import UserGreeting from './UserGreeting'
-import QuickActions from './QuickActions'
+import { Project } from '@/types'
+import { PROJECT_STATUSES } from "@/lib/constants"
+
 import ProjectStats from './ProjectStats'
 import RecentProjects from './RecentProjects'
 import { useAuth } from '@/contexts/AuthContext'
 
-interface HomeownerDashboardProps {
-  userEmail?: string
-}
-
-export default function HomeownerDashboard({ userEmail }: HomeownerDashboardProps) {
+export default function HomeownerDashboard() {
   const { user } = useAuth()
   const [projects, setProjects] = useState<Project[]>([])
-  const [proposalsCount, setProposalsCount] = useState(0)
+  const [acceptedProposalsCount, setAcceptedProposalsCount] = useState(0)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+
+  // Function to capitalize first letter of each word
+  const capitalizeWords = (str: string) => {
+    return str.split(' ').map(word => 
+      word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+    ).join(' ')
+  }
+
+  const fetchData = async () => {
+    try {
+      const supabase = createClient()
+      const currentUser = user || (await supabase.auth.getUser()).data.user
+      
+      if (!currentUser) {
+        console.log('No authenticated user found, skipping data fetch')
+        setLoading(false)
+        return
+      }
+      
+      console.log('Fetching dashboard data for user:', currentUser.id)
+      
+      // Fetch projects with all schema fields
+      const { data: projectsData, error: projectsError } = await supabase
+        .from('projects')
+        .select(`
+          id,
+          project_title,
+          statement_of_work,
+          budget,
+          category,
+          pid,
+          location,
+          certificate_of_title,
+          project_type,
+          status,
+          visibility_settings,
+          start_date,
+          end_date,
+          expiry_date,
+          decision_date,
+          permit_required,
+          substantial_completion,
+          is_verified_project,
+          project_photos,
+          files,
+          creator,
+          proposal_count,
+          created_at,
+          updated_at
+        `)
+        .eq('creator', currentUser.id)
+        .order('created_at', { ascending: false })
+      
+      if (projectsError) {
+        throw projectsError
+      }
+      
+      setProjects(projectsData || [])
+
+      // Fetch accepted proposals count
+      try {
+        const { count: acceptedCount, error: proposalsError } = await supabase
+          .from('proposals')
+          .select('*', { count: 'exact', head: true })
+          .eq('homeowner', currentUser.id)
+          .eq('status', 'accepted')
+          .eq('is_deleted', 'no')
+        
+        if (proposalsError) {
+          console.warn('Proposals table query failed:', proposalsError)
+        } else {
+          setAcceptedProposalsCount(acceptedCount || 0)
+        }
+      } catch (proposalsError) {
+        console.warn('Proposals table might not exist yet:', proposalsError)
+      }
+      
+    } catch (error) {
+      // Only log errors if we have a user (avoid logging auth-related errors)
+      if (user) {
+        console.error('Error fetching dashboard data:', error)
+        console.error('Error details:', JSON.stringify(error, null, 2))
+      }
+      // Don't set error state - render dashboard with empty data instead
+      // setError('Failed to load dashboard data')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const supabase = createClient()
-        const currentUser = user || (await supabase.auth.getUser()).data.user
-        
-        if (!currentUser) {
-          setLoading(false)
-          return
-        }
-        
-        // Fetch projects
-        const { data: projectsData, error: projectsError } = await supabase
-          .from('projects')
-          .select('*')
-          .eq('homeowner_id', currentUser.id)
-          .order('created_at', { ascending: false })
-        
-        if (projectsError) {
-          throw projectsError
-        }
-        
-        setProjects(projectsData || [])
-        
-        // Try to fetch proposals count - handle gracefully if table doesn't exist
-        try {
-          const { count: proposalsCount, error: proposalsError } = await supabase
-            .from('proposals')
-            .select('*', { count: 'exact', head: true })
-            .eq('project_owner_id', currentUser.id)
-            .eq('status', 'pending')
-          
-          if (proposalsError) {
-            console.warn('Proposals table query failed:', proposalsError)
-            setProposalsCount(0)
-          } else {
-            setProposalsCount(proposalsCount || 0)
-          }
-        } catch (proposalsError) {
-          console.warn('Proposals table might not exist yet:', proposalsError)
-          setProposalsCount(0)
-        }
-        
-      } catch (error) {
-        console.error('Error fetching dashboard data:', error)
-        setError('Failed to load dashboard data')
-      } finally {
-        setLoading(false)
-      }
-    }
-    
     fetchData()
   }, [user])
 
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <LoadingSpinner />
-        </div>
-      </div>
-    )
+  // Function to refresh data after project deletion
+  const handleProjectDeleted = () => {
+    fetchData()
   }
 
-  if (error) {
+  if (loading) {
     return (
-      <div className="space-y-6">
-        <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
-          <div className="p-6">
-            <div className="text-center text-red-600">{error}</div>
+      <div className="min-h-screen bg-white relative">
+        <div className="relative flex items-center justify-center min-h-screen">
+          <div className="text-center space-y-8">
+            {/* Minimalist Loading Spinner */}
+            <div className="relative">
+              <div className="w-16 h-16 border-4 border-gray-200 border-t-orange-500 rounded-full animate-spin"></div>
+            </div>
+            <div className="space-y-4">
+              <h2 className="text-2xl font-bold text-gray-900">Loading Your Dashboard</h2>
+              <p className="text-gray-600">Preparing your construction project overview...</p>
+            </div>
           </div>
         </div>
       </div>
     )
   }
 
-  // Calculate stats
-  const stats = {
-    total: projects.length,
-    open: projects.filter(p => p.status === 'open').length,
-    bidding: projects.filter(p => p.status === 'bidding').length,
-    awarded: projects.filter(p => p.status === 'awarded').length,
-    completed: projects.filter(p => p.status === 'completed').length,
-    cancelled: projects.filter(p => p.status === 'cancelled').length,
-    totalBudget: projects.reduce((sum, p) => sum + (p.budget || 0), 0),
-    upcomingDeadlines: projects.filter(p => {
-      if (!p.proposal_deadline) return false
-      const deadline = new Date(p.proposal_deadline)
-      const now = new Date()
-      const diffTime = deadline.getTime() - now.getTime()
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-      return diffDays > 0 && diffDays <= 30
-    }).length
-  }
-
-  const projectStats = {
-    total: stats.total,
-    totalBudget: stats.totalBudget,
-    activeProjects: stats.open + stats.bidding + stats.awarded,
-    upcomingDeadlines: stats.upcomingDeadlines
-  }
-
   return (
-    <div className="space-y-8">
-      <UserGreeting userEmail={userEmail} />
-      <QuickActions proposalsCount={proposalsCount} />
-      <ProjectStats stats={projectStats} />
-      <RecentProjects projects={projects} />
+    <div className="min-h-screen bg-white">
+      <div className="container mx-auto px-4 py-8">
+        {/* Error Display */}
+        {/* Error Display */}
+
+        {/* Dashboard Content */}
+        <div className="space-y-8">
+          {/* Greeting */}
+          <div className="mb-6">
+            <h1 className="text-sm font-medium text-gray-800">
+              Hello, {user?.user_metadata?.full_name ? capitalizeWords(user.user_metadata.full_name) : user?.email?.split('@')[0] ? capitalizeWords(user.email.split('@')[0]) : 'There'}
+            </h1>
+            <p className="text-xs text-gray-600 mt-1">Welcome to your project dashboard</p>
+          </div>
+
+          {/* Project Statistics */}
+          <ProjectStats 
+            stats={{
+              total: projects.length,
+              open: projects.filter(p => ['Draft', 'Open for Proposals'].includes(p.status)).length,
+              accepted: acceptedProposalsCount,
+              completed: projects.filter(p => p.status === PROJECT_STATUSES.COMPLETED).length
+            }}
+          />
+
+          {/* Recent Projects */}
+          <RecentProjects projects={projects.slice(0, 5)} onProjectDeleted={handleProjectDeleted} />
+        </div>
+      </div>
     </div>
   )
 }

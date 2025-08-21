@@ -1,22 +1,252 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { AuthFooter, AuthHero, LoginForm } from "@/components/features/auth";
 import { useAuth } from "@/contexts/AuthContext";
+import { USER_ROLES } from "@/lib/constants";
+import LoadingSpinner from "@/components/shared/loading-spinner";
+import toast from "react-hot-toast";
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
+  const [isConfirmingEmail, setIsConfirmingEmail] = useState(false);
+  const [emailConfirmed, setEmailConfirmed] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hasShownToast, setHasShownToast] = useState(false);
   const router = useRouter();
-  const { user, signIn, userRole } = useAuth();
+  const searchParams = useSearchParams();
+  const { user, signIn, userRole, loading: authLoading } = useAuth();
 
   useEffect(() => {
-    if (user && userRole) {
-      const roleDashboard = `/${userRole}/dashboard`;
-      router.push(roleDashboard);
+    // Check for confirmation error from URL parameters
+    const confirmationError = searchParams.get('error');
+    if (confirmationError === 'confirmation_failed') {
+      setError("Email confirmation failed. Please try signing up again or contact support.");
     }
-  }, [user, userRole, router]);
+    
+    // Check if we have a pending confirmation from sessionStorage (page refresh case)
+    const tempUserRole = sessionStorage.getItem('tempUserRole');
+    if (tempUserRole && !user) {
+      setEmailConfirmed(true);
+    }
+    
+    // Handle email confirmation tokens in URL hash (when Supabase redirects here)
+    const handleEmailConfirmation = async () => {
+      const hash = window.location.hash;
+             if (hash && hash.includes('access_token')) {
+         setIsConfirmingEmail(true);
+         setError(null);
+         setHasShownToast(false); // Reset toast flag for new confirmation
+        
+        const params = new URLSearchParams(hash.substring(1));
+        const accessToken = params.get('access_token');
+        const refreshToken = params.get('refresh_token');
+        const type = params.get('type');
+        
+        if (type === 'signup' && accessToken && refreshToken) {
+          try {
+            // Use the main Supabase client from the app context
+            const { createClient } = await import('~/lib/supabase');
+            const supabase = createClient();
+            
+            // Set the session
+            const { data, error } = await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken,
+            });
+            
+            if (!error && data.user) {
+              // Get user's role from users table
+              let userRole = USER_ROLES.HOMEOWNER; // default fallback
+              try {
+                const { data: userData, error: userError } = await supabase
+                  .from('users')
+                  .select('user_role')
+                  .eq('id', data.user.id)
+                  .single();
+                
+                if (!userError && userData?.user_role) {
+                  userRole = userData.user_role;
+                }
+              } catch (roleError) {
+                console.error('Failed to fetch user role:', roleError);
+                // Use default role if we can't fetch it
+              }
+              
+              // Update user's is_verified_email field to true in the database
+              try {
+                const { error: updateError } = await supabase
+                  .from('users')
+                  .update({ is_verified_email: true })
+                  .eq('id', data.user.id);
+                
+                if (updateError) {
+                  console.error('Failed to update email verification status:', updateError);
+                  // Don't fail the whole process for this, just log it
+                } else {
+                  console.log('Successfully updated is_verified_email to true for user:', data.user.id);
+                }
+              } catch (updateError) {
+                console.error('Error updating email verification status:', updateError);
+              }
+              
+              // Clear the hash from URL to prevent re-processing
+              window.location.hash = '';
+              
+              // Show success state briefly before redirect
+              setEmailConfirmed(true);
+              setIsConfirmingEmail(false);
+              
+              // Show success toast only once
+              if (!hasShownToast) {
+                const tempUserRole = userRole || USER_ROLES.HOMEOWNER;
+                toast.success(
+                  `Welcome to BuildReady! Your ${tempUserRole} account has been successfully verified.`,
+                  {
+                    duration: 4000,
+                    position: 'top-center',
+                  }
+                );
+                setHasShownToast(true);
+              }
+              
+              // Store the role temporarily for the success message
+              sessionStorage.setItem('tempUserRole', userRole);
+              
+              // Instead of manually redirecting, let the AuthContext handle it
+              // The onAuthStateChange listener should detect the new session
+              // and the useEffect in this component will redirect to dashboard
+              return;
+            } else {
+              setError("Failed to confirm email. Please try signing up again or contact support.");
+              setIsConfirmingEmail(false);
+            }
+          } catch (error) {
+            console.error('Failed to handle email confirmation:', error);
+            setError("An error occurred while confirming your email. Please try again or contact support.");
+          } finally {
+            setIsConfirmingEmail(false);
+          }
+        } else {
+          // No valid tokens found, stop loading
+          setIsConfirmingEmail(false);
+        }
+      }
+    };
+    
+    handleEmailConfirmation();
+    
+    // Cleanup function to reset toast flag
+    return () => {
+      setHasShownToast(false);
+    };
+  }, [searchParams, router, user, hasShownToast]);
+
+  // Auto-clear success state after 3 seconds as fallback
+  useEffect(() => {
+    if (emailConfirmed) {
+      const timeout = setTimeout(() => {
+        setEmailConfirmed(false);
+        // Clean up sessionStorage
+        sessionStorage.removeItem('tempUserRole');
+      }, 3000);
+      
+      return () => clearTimeout(timeout);
+    }
+  }, [emailConfirmed]);
+
+     // Clean up sessionStorage when user is authenticated and redirected
+   // Only redirect after a delay to ensure session is stable
+   useEffect(() => {
+     if (user && userRole) {
+       console.log('User authenticated, preparing redirect:', { userId: user.id, userRole });
+       sessionStorage.removeItem('tempUserRole');
+       
+       // Add a longer delay to ensure session is fully established and stable
+       const redirectTimer = setTimeout(() => {
+         const roleDashboard = `/${userRole}/dashboard`;
+         console.log(`Redirecting to ${roleDashboard} after session stabilization`);
+         router.push(roleDashboard);
+       }, 1000); // 1 second delay to ensure session stability
+       
+       return () => clearTimeout(redirectTimer);
+     }
+   }, [user, userRole, router]);
+
+  // Show loading state while auth context is initializing
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-full max-w-lg space-y-6">
+          <div className="text-center">
+            <LoadingSpinner 
+              text="Initializing..."
+              subtitle="Please wait while we set up your session"
+              size="lg"
+              className="py-12"
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show loading state while confirming email
+  if (isConfirmingEmail) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-full max-w-lg space-y-6">
+          <div className="text-center">
+            <LoadingSpinner 
+              text="Confirming your email..."
+              subtitle="Please wait while we set up your account"
+              size="lg"
+              className="py-12"
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show success state briefly after email confirmation
+  if (emailConfirmed) {
+    // Don't render anything special - the toast will handle the success message
+    // Just show the loading spinner for redirect
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-full max-w-lg space-y-6">
+          <div className="text-center">
+            <LoadingSpinner 
+              text="Redirecting to dashboard..."
+              subtitle="Setting up your account"
+              size="lg"
+              className="py-12"
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show loading state while user is authenticated and waiting for redirect
+  if (user && userRole) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-full max-w-lg space-y-6">
+          <div className="text-center">
+            <LoadingSpinner 
+              text="Redirecting to dashboard..."
+              subtitle="Please wait while we redirect you"
+              size="lg"
+              className="py-12"
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const handleSignIn = async (email: string, password: string) => {
     setIsLoading(true);
@@ -48,38 +278,16 @@ export default function LoginPage() {
         } else {
           setError(error);
         }
-      } else if (signedInUser) {
-        console.log(
-          "Sign-in successful, redirecting to role-specific dashboard..."
-        );
-
-        if (signInUserRole) {
-          const roleDashboard = `/${signInUserRole}/dashboard`;
-          console.log(`Redirecting to ${roleDashboard}`);
-
-          try {
-            router.push(roleDashboard);
-
-            setTimeout(() => {
-              if (window.location.pathname !== roleDashboard) {
-                console.log("Router failed, using window.location fallback");
-                window.location.href = roleDashboard;
-              }
-            }, 1000);
-          } catch (error) {
-            console.error(
-              "Router error, using window.location fallback:",
-              error
-            );
-            window.location.href = roleDashboard;
-          }
-        } else {
-          console.log(
-            "User role not available, redirecting to generic dashboard"
-          );
-          router.push("/dashboard");
-        }
-      }
+             } else if (signedInUser) {
+         console.log(
+           "Sign-in successful, waiting for session to stabilize..."
+         );
+         
+         // Don't redirect here - let the useEffect handle the redirect
+         // after the session is fully established and stable
+         // The AuthContext will update the user and userRole states,
+         // which will trigger the redirect useEffect
+       }
     } catch (error) {
       console.error("Sign-in error:", error);
       setError("An unexpected error occurred. Please try again.");

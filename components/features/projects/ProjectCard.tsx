@@ -1,10 +1,17 @@
 'use client'
 
-import { Calendar, MapPin, DollarSign, Clock, Eye, User } from 'lucide-react'
+import { Calendar, MapPin, DollarSign, Clock, Eye, User, MoreHorizontal, Edit, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import { Project } from '@/types/database'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { Project } from '@/types'
+import { PROJECT_STATUSES } from "@/lib/constants"
 
 interface ProjectCardProps {
   projects: Project[]
@@ -12,47 +19,22 @@ interface ProjectCardProps {
 }
 
 export default function ProjectCard({ projects, onProjectClick }: ProjectCardProps) {
-  if (projects.length === 0) {
-    return (
-      <div className="text-center py-12">
-        <div className="mx-auto h-12 w-12 text-muted-foreground">
-          <svg
-            className="h-12 w-12"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            aria-hidden="true"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-            />
-          </svg>
-        </div>
-        <h3 className="mt-2 text-sm font-medium text-gray-900">No projects found</h3>
-        <p className="mt-1 text-sm text-gray-500">
-          Get started by creating a new project.
-        </p>
-      </div>
-    )
-  }
 
   const getStatusConfig = (status: string) => {
     const statusConfig = {
-      open: { label: 'Open', variant: 'default' as const, color: 'bg-green-100 text-green-800' },
-      bidding: { label: 'Bidding', variant: 'secondary' as const, color: 'bg-blue-100 text-blue-800' },
-      awarded: { label: 'Awarded', variant: 'outline' as const, color: 'bg-purple-100 text-purple-800' },
-      completed: { label: 'Completed', variant: 'outline' as const, color: 'bg-gray-100 text-gray-800' },
-      cancelled: { label: 'Cancelled', variant: 'destructive' as const, color: 'bg-red-100 text-red-800' },
+      [PROJECT_STATUSES.OPEN_FOR_PROPOSALS]: { label: PROJECT_STATUSES.OPEN_FOR_PROPOSALS, variant: 'default' as const, color: 'bg-gray-100 text-gray-800' },
+      [PROJECT_STATUSES.PROPOSAL_SELECTED]: { label: PROJECT_STATUSES.PROPOSAL_SELECTED, variant: 'secondary' as const, color: 'bg-orange-100 text-orange-800' },
+      [PROJECT_STATUSES.IN_PROGRESS]: { label: PROJECT_STATUSES.IN_PROGRESS, variant: 'outline' as const, color: 'bg-orange-100 text-orange-800' },
+      [PROJECT_STATUSES.COMPLETED]: { label: PROJECT_STATUSES.COMPLETED, variant: 'outline' as const, color: 'bg-gray-900 text-white' },
+      [PROJECT_STATUSES.CANCELLED]: { label: PROJECT_STATUSES.CANCELLED, variant: 'destructive' as const, color: 'bg-gray-100 text-gray-800' },
     }
     
-    return statusConfig[status as keyof typeof statusConfig] || statusConfig.open
+    return statusConfig[status as keyof typeof statusConfig] || statusConfig[PROJECT_STATUSES.OPEN_FOR_PROPOSALS]
   }
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+  const formatDate = (date: Date | string) => {
+    const dateObj = typeof date === 'string' ? new Date(date) : date
+    return dateObj.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -79,24 +61,60 @@ export default function ProjectCard({ projects, onProjectClick }: ProjectCardPro
               <div className="flex items-start justify-between">
                 <div className="space-y-1 flex-1">
                   <CardTitle className="text-lg leading-tight group-hover:text-primary transition-colors">
-                    {project.title}
+                    {project.project_title}
                   </CardTitle>
                   <CardDescription className="line-clamp-2 text-sm">
-                    {project.description || 'No description available'}
+                    {project.statement_of_work || 'No description available'}
                   </CardDescription>
                 </div>
-                <Badge variant={statusConfig.variant} className={statusConfig.color}>
-                  {statusConfig.label}
-                </Badge>
+                <div className="flex items-center gap-4">
+                  <Badge variant={statusConfig.variant} className={statusConfig.color}>
+                    {statusConfig.label}
+                  </Badge>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-8 w-8 p-0 hover:bg-gray-100"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <MoreHorizontal className="h-4 w-4" />
+                        <span className="sr-only">Actions</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={(e) => {
+                        e.stopPropagation()
+                        onProjectClick?.(project)
+                      }}>
+                        <Eye className="h-4 w-4 mr-2" />
+                        View Details
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
+                        <Edit className="h-4 w-4 mr-2" />
+                        Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuItem className="text-red-600 focus:text-red-600" onClick={(e) => e.stopPropagation()}>
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </div>
             </CardHeader>
             
             <CardContent className="space-y-4">
               {/* Location */}
-              {project.location && (
+              {project.location && (project.location.address || project.location.city || project.location.province) && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <MapPin className="h-4 w-4 flex-shrink-0" />
-                  <span className="line-clamp-1">{project.location}</span>
+                  <span className="line-clamp-1">
+                    {[project.location.address, project.location.city, project.location.province]
+                      .filter(Boolean)
+                      .join(', ')}
+                  </span>
                 </div>
               )}
               
@@ -107,10 +125,10 @@ export default function ProjectCard({ projects, onProjectClick }: ProjectCardPro
               </div>
               
               {/* Deadline */}
-              {project.proposal_deadline && (
+              {project.expiry_date && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Calendar className="h-4 w-4 flex-shrink-0" />
-                  <span>Due: {formatDate(project.proposal_deadline)}</span>
+                  <span>Due: {formatDate(project.expiry_date)}</span>
                 </div>
               )}
               
@@ -121,27 +139,16 @@ export default function ProjectCard({ projects, onProjectClick }: ProjectCardPro
               </div>
               
               {/* Owner */}
-              {project.homeowner_id && (
+              {project.creator && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <User className="h-4 w-4 flex-shrink-0" />
-                  <span>Owner ID: {project.homeowner_id}</span>
+                  <span>Creator ID: {project.creator}</span>
                 </div>
               )}
             </CardContent>
             
             <CardFooter className="pt-3">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onProjectClick?.(project)
-                }}
-              >
-                <Eye className="h-4 w-4 mr-2" />
-                View Details
-              </Button>
+              {/* Actions moved to header */}
             </CardFooter>
           </Card>
         )

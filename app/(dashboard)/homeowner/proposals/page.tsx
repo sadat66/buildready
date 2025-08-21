@@ -1,228 +1,366 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useAuth } from '@/contexts/AuthContext'
-import { createClient } from '@/lib/supabase'
-import { Proposal } from '@/types/database'
+import { useState, useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  USER_ROLES,
+  ProposalStatus,
+  PROPOSAL_STATUSES,
+  RejectionReason,
+  PROJECT_STATUSES,
+  ProjectStatus,
+  PROJECT_STATUS_VALUES,
+} from "@/lib/constants";
+import { createClient } from "@/lib/supabase";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Calendar,
+  DollarSign,
+  Search,
+  CheckCircle,
+  XCircle,
+  FileText,
+  Clock,
+} from "lucide-react";
+import HomeownerProposalTable from "@/components/features/projects/HomeownerProposalTable";
+import toast from "react-hot-toast";
+import { Label } from "@/components/ui/label";
 
 interface Project {
-  id: string
-  title: string
-  status?: string
+  id: string;
+  project_title: string;
+  status?: ProjectStatus;
 }
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { MapPin, Calendar, DollarSign, Search, CheckCircle, XCircle, User, FileText, Clock, AlertTriangle } from 'lucide-react'
-import toast from 'react-hot-toast'
-import { Label } from '@/components/ui/label'
+
+// Type for proposals with joined data from Supabase query
+interface ProposalWithJoins {
+  id: string;
+  project: string;
+  project_id: string;
+  contractor_id: string;
+  homeowner: string;
+  title: string;
+  description_of_work: string;
+  subtotal_amount: number;
+  tax_included: "yes" | "no";
+  total_amount: number;
+  deposit_amount: number;
+  deposit_due_on: string;
+  proposed_start_date: string;
+  proposed_end_date: string;
+  expiry_date: string;
+  status: ProposalStatus;
+  is_selected: "yes" | "no";
+  is_deleted: "yes" | "no";
+  submitted_date?: string;
+  accepted_date?: string;
+  rejected_date?: string;
+  withdrawn_date?: string;
+  viewed_date?: string;
+  last_updated: string;
+  rejected_by?: string;
+  rejection_reason?: RejectionReason;
+  rejection_reason_notes?: string;
+  clause_preview_html?: string;
+  attached_files?: Array<{
+    id: string;
+    filename: string;
+    url: string;
+    size?: number;
+    mimeType?: string;
+    uploadedAt?: string;
+  }>;
+  notes?: string;
+  agreement?: string;
+  proposals: string[];
+  created_by: string;
+  last_modified_by: string;
+  visibility_settings: "private" | "public" | "shared";
+  created_at: string;
+  updated_at: string;
+  // Joined data
+  project_details: {
+    id: string;
+    project_title: string;
+    statement_of_work: string;
+    category: string[];
+    location: Record<string, unknown>;
+    status: ProjectStatus;
+    budget: number;
+  };
+  contractor_profile?: {
+    id: string;
+    full_name: string;
+    email: string;
+    phone_number?: string;
+    address?: string;
+  };
+}
 
 export default function HomeownerProposalsPage() {
-  const { user } = useAuth()
-  
-  const [proposals, setProposals] = useState<Proposal[]>([])
-  const [searchTerm, setSearchTerm] = useState('')
-  const [statusFilter, setStatusFilter] = useState('all')
-  const [projectFilter, setProjectFilter] = useState('all')
-  const [projects, setProjects] = useState<Project[]>([])
-  const [proposalsLoading, setProposalsLoading] = useState(true)
-  const [error, setError] = useState('')
-  const [actionLoading, setActionLoading] = useState<string | null>(null)
+  const { user, userRole } = useAuth();
+
+  const [proposals, setProposals] = useState<ProposalWithJoins[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [projectFilter, setProjectFilter] = useState("all");
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [proposalsLoading, setProposalsLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
       if (!user) {
-        setProposalsLoading(false)
-        return
+        setProposalsLoading(false);
+        return;
       }
-      
+
       try {
-        const supabase = createClient()
-        
+        const supabase = createClient();
+
         // Fetch projects first
         const { data: projectsData, error: projectsError } = await supabase
-          .from('projects')
-          .select('id, title')
-          .eq('homeowner_id', user.id)
-        
-        if (projectsError) throw projectsError
-        setProjects(projectsData || [])
-        
+          .from("projects")
+          .select("id, project_title")
+          .eq("creator", user.id);
+
+        if (projectsError) throw projectsError;
+        setProjects(projectsData || []);
+
         // Fetch proposals - first get project IDs for this homeowner
         const { data: projectIds, error: projectIdsError } = await supabase
-          .from('projects')
-          .select('id')
-          .eq('homeowner_id', user.id)
-        
-        if (projectIdsError) throw projectIdsError
-        
-                if (projectIds && projectIds.length > 0) {
-          const projectIdList = projectIds.map(p => p.id)
-          console.log('Fetching proposals for projects:', projectIdList)
-          
+          .from("projects")
+          .select("id")
+          .eq("creator", user.id);
+
+        if (projectIdsError) throw projectIdsError;
+
+        if (projectIds && projectIds.length > 0) {
+          const projectIdList = projectIds.map((p) => p.id);
+          console.log("Fetching proposals for projects:", projectIdList);
+
           // Fetch proposals for these projects
           const { data: proposalsData, error: proposalsError } = await supabase
-            .from('proposals')
-            .select(`
-              *,
-              projects (
-                id,
-                title,
-                description,
-                category,
-                location,
-                status,
-                budget
-              ),
-              users!proposals_contractor_id_fkey (
-                id,
-                full_name,
-                bio,
-                location,
-                rating,
-                review_count
-              )
-            `)
-            .in('project_id', projectIdList)
-            .order('created_at', { ascending: false })
-          
+            .from("proposals")
+            .select(
+              `
+            *,
+            project_details:projects!proposals_project_fkey (
+              id,
+              project_title,
+              statement_of_work,
+              category,
+              location,
+              status,
+              budget
+            ),
+            contractor_profile:users!proposals_contractor_fkey (
+              id,
+              full_name,
+              email,
+              phone_number,
+              address
+            )
+          `
+            )
+            .in("project", projectIdList)
+            .eq("is_deleted", "no")
+            .in("status", [
+              PROPOSAL_STATUSES.SUBMITTED,
+              PROPOSAL_STATUSES.VIEWED,
+              PROPOSAL_STATUSES.ACCEPTED,
+              PROPOSAL_STATUSES.REJECTED,
+            ])
+            .order("created_at", { ascending: false });
+
           if (proposalsError) {
-            console.error('Proposals query error:', proposalsError)
-            throw proposalsError
+            console.error("Proposals query error:", proposalsError);
+            throw proposalsError;
           }
-          
-          console.log('Proposals fetched successfully:', proposalsData?.length || 0)
-          setProposals(proposalsData || [])
+
+          console.log(
+            "Proposals fetched successfully:",
+            proposalsData?.length || 0
+          );
+          console.log("Sample proposal structure:", proposalsData?.[0]);
+          setProposals(proposalsData || []);
         } else {
-          console.log('No projects found for homeowner, setting empty proposals')
-          setProposals([])
+          console.log(
+            "No projects found for homeowner, setting empty proposals"
+          );
+          setProposals([]);
         }
       } catch (error: unknown) {
-        console.error('Error fetching data:', error)
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-        console.error('Error details:', errorMessage)
-        setError('Failed to load proposals')
+        console.error("Error fetching data:", error);
+        console.error("Error details:", JSON.stringify(error, null, 2));
+        if (error && typeof error === "object" && "message" in error) {
+          const errorObj = error as {
+            message?: string;
+            code?: string;
+            hint?: string;
+          };
+          console.error("Error message:", errorObj.message);
+          console.error("Error code:", errorObj.code);
+          console.error("Error hint:", errorObj.hint);
+        }
+        setError(
+          error instanceof Error ? error.message : "Failed to fetch data"
+        );
       } finally {
-        setProposalsLoading(false)
+        setProposalsLoading(false);
       }
-    }
-    
-    if (user && user.user_metadata?.role === 'homeowner') {
-      fetchData()
-    }
-  }, [user])
+    };
 
-  const handleStatusUpdate = async (proposalId: string, status: 'accepted' | 'rejected', feedback?: string) => {
-    if (!user) return
-    
-    setActionLoading(proposalId)
-    
+    fetchData();
+  }, [user]);
+
+  const handleStatusUpdate = async (
+    proposalId: string,
+    status: ProposalStatus,
+    feedback?: string
+  ) => {
+    if (!user) return;
+
+    setActionLoading(proposalId);
+
     try {
-      const supabase = createClient()
-      
+      const supabase = createClient();
+
       // Update proposal status
-      const updateData: Record<string, unknown> = { 
-        status,
-        updated_at: new Date().toISOString()
-      }
-      
-      // Only include feedback if it's provided (field might not exist in DB yet)
-      // Note: This field requires the migration to be applied first
-      if (feedback !== undefined && feedback !== null) {
-        updateData.feedback = feedback
-      }
-      
-      // Try to update with feedback first, fallback to without feedback if field doesn't exist
       const { error: updateError } = await supabase
-        .from('proposals')
-        .update(updateData)
-        .eq('id', proposalId)
-      
-      // If feedback field doesn't exist, try without it
-      if (updateError && updateError.message?.includes('feedback')) {
-        console.log('Feedback field not found, updating without feedback field')
-        const { ...updateDataWithoutFeedback } = updateData
-        const { error: retryError } = await supabase
-          .from('proposals')
-          .update(updateDataWithoutFeedback)
-          .eq('id', proposalId)
-        
-        if (retryError) throw retryError
-      } else if (updateError) {
-        throw updateError
-      }
-      
-      // If accepted, update project status to awarded
-      if (status === 'accepted') {
-        const proposal = proposals.find(p => p.id === proposalId)
-        if (proposal) {
+        .from("proposals")
+        .update({
+          status,
+          ...(feedback && { rejection_reason_notes: feedback }),
+          ...(status === PROPOSAL_STATUSES.REJECTED && {
+            rejected_date: new Date().toISOString(),
+          }),
+          ...(status === PROPOSAL_STATUSES.ACCEPTED && {
+            accepted_date: new Date().toISOString(),
+          }),
+        })
+        .eq("id", proposalId);
+
+      if (updateError) throw updateError;
+
+                    // If accepted, update project status to proposal selected
+      if (status === PROPOSAL_STATUSES.ACCEPTED) {
+        const proposal = proposals.find((p) => p.id === proposalId);
+        console.log("Found proposal for status update:", proposal);
+        console.log("Proposal project_details:", proposal?.project_details);
+        if (proposal && proposal.project_details) {
           const { error: projectError } = await supabase
-            .from('projects')
-            .update({ status: 'awarded' })
-            .eq('id', proposal.project_id)
-          
-          if (projectError) throw projectError
+            .from("projects")
+            .update({ status: PROJECT_STATUSES.PROPOSAL_SELECTED })
+            .eq("id", proposal.project_details.id);
+
+          if (projectError) throw projectError;
+        } else {
+          console.error(
+            "Proposal or project_details not found for proposalId:",
+            proposalId
+          );
+          toast.error(
+            "Failed to update project status. Project details not found."
+          );
         }
       }
-      
-      // Update local state
-      setProposals(prev => prev.map(p => 
-        p.id === proposalId 
-          ? { ...p, status, ...(feedback !== undefined && feedback !== null && { feedback }) }
-          : p
-      ))
-      
-      toast.success(`Proposal ${status === 'accepted' ? 'Accepted!' : 'Rejected'}. ${
-        status === 'accepted' 
-          ? 'The contractor has been notified and the project is now awarded.'
-          : 'The contractor has been notified of your decision.'
-      }`)
-      
-    } catch (error) {
-      console.error('Error updating proposal status:', error)
-      console.error('Error type:', typeof error)
-      console.error('Error message:', error instanceof Error ? error.message : 'Unknown error')
-      console.error('Error details:', JSON.stringify(error, null, 2))
-      toast.error("Failed to update proposal status. Please try again.")
-    } finally {
-      setActionLoading(null)
-    }
-  }
 
-  const filteredProposals = proposals.filter(proposal => {
-    const matchesSearch = proposal.projects?.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         proposal.users?.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         proposal.description?.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesStatus = statusFilter === 'all' || proposal.status === statusFilter
-    const matchesProject = projectFilter === 'all' || proposal.project_id === projectFilter
-    return matchesSearch && matchesStatus && matchesProject
-  })
+      // Update local state
+      setProposals((prev) =>
+        prev.map((p) =>
+          p.id === proposalId
+            ? {
+                ...p,
+                status,
+                ...(feedback !== undefined &&
+                  feedback !== null && { rejection_reason_notes: feedback }),
+              }
+            : p
+        )
+      );
+
+      toast.success(
+        `Proposal ${
+          status === PROPOSAL_STATUSES.ACCEPTED ? "Accepted!" : "Rejected"
+        }. ${
+          status === PROPOSAL_STATUSES.ACCEPTED
+            ? "The contractor has been notified and the project is now in proposal selected status."
+            : "The contractor has been notified of your decision."
+        }`
+      );
+    } catch (error) {
+      console.error("Error updating proposal status:", error);
+      console.error("Error type:", typeof error);
+      console.error(
+        "Error message:",
+        error instanceof Error ? error.message : "Unknown error"
+      );
+      console.error("Error details:", JSON.stringify(error, null, 2));
+      toast.error("Failed to update proposal status. Please try again.");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const filteredProposals = proposals.filter((proposal) => {
+    const matchesSearch =
+      proposal.project_details?.project_title
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      proposal.contractor_profile?.full_name
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      proposal.description_of_work
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase());
+    const matchesStatus =
+      statusFilter === "all" || proposal.status === statusFilter;
+    const matchesProject =
+      projectFilter === "all" || proposal.project_details?.id === projectFilter;
+    return matchesSearch && matchesStatus && matchesProject;
+  });
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    }).format(amount)
-  }
+    }).format(amount);
+  };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    })
-  }
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
 
   if (proposalsLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-lg">Loading proposals...</div>
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -230,15 +368,17 @@ export default function HomeownerProposalsPage() {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-lg text-red-600">{error}</div>
       </div>
-    )
+    );
   }
 
-  if (!user || user.user_metadata?.role !== 'homeowner') {
+  if (!user || userRole !== USER_ROLES.HOMEOWNER) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg">Access denied. Only homeowners can view project proposals.</div>
+        <div className="text-lg">
+          Access denied. Only homeowners can view project proposals.
+        </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -254,52 +394,60 @@ export default function HomeownerProposalsPage() {
             Review and manage proposals from contractors for your projects
           </p>
         </div>
-        <div className="text-sm text-gray-500">
-          {filteredProposals.length} proposal(s) received
-        </div>
       </div>
 
-      {/* Search and Filters */}
+      {/* Filters */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Search className="h-5 w-5" />
-            Search & Filter
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <Input
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search proposals by project, contractor, or description..."
-                className="pl-10"
-              />
+        <CardContent className="pt-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <Label htmlFor="search" className="text-sm font-medium">
+                Search
+              </Label>
+              <div className="relative mt-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  id="search"
+                  placeholder="Search proposals..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
             </div>
-            <div className="w-full md:w-48">
+
+            <div>
+              <Label htmlFor="status-filter" className="text-sm font-medium">
+                Status
+              </Label>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Status" />
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Filter by status" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="accepted">Accepted</SelectItem>
-                  <SelectItem value="rejected">Rejected</SelectItem>
+                  {PROJECT_STATUS_VALUES.map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {status}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
-            <div className="w-full md:w-48">
+
+            <div>
+              <Label htmlFor="project-filter" className="text-sm font-medium">
+                Project
+              </Label>
               <Select value={projectFilter} onValueChange={setProjectFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Project" />
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Filter by project" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Projects</SelectItem>
-                  {projects.map(project => (
+                  {projects.map((project) => (
                     <SelectItem key={project.id} value={project.id}>
-                      {project.title}
+                      {project.project_title}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -309,226 +457,31 @@ export default function HomeownerProposalsPage() {
         </CardContent>
       </Card>
 
-      {/* Proposals List */}
-      <div className="space-y-4">
-        {filteredProposals.map((proposal) => (
-          <Card key={proposal.id} className="hover:shadow-md transition-shadow">
-            <CardHeader>
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <CardTitle className="text-xl flex items-center gap-2">
-                    {proposal.projects?.title}
-                    <Badge variant="outline" className="capitalize">
-                      {proposal.projects?.category?.replace('_', ' ')}
-                    </Badge>
-                  </CardTitle>
-                  <CardDescription className="text-sm mt-2">
-                    Proposal from <span className="font-medium">{proposal.users?.full_name}</span>
-                  </CardDescription>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge 
-                    variant={
-                      proposal.status === 'accepted' ? 'default' : 
-                      proposal.status === 'rejected' ? 'destructive' : 
-                      'secondary'
-                    }
-                  >
-                    {proposal.status}
-                  </Badge>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Financial Summary */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-gray-50 rounded-lg">
-                <div className="text-center">
-                  <Label className="text-xs font-medium text-gray-600">Net Amount</Label>
-                  <p className="text-lg font-semibold text-green-600">
-                    {proposal.net_amount ? formatCurrency(proposal.net_amount) : 'N/A'}
-                  </p>
-                </div>
-                <div className="text-center">
-                  <Label className="text-xs font-medium text-gray-600">Tax</Label>
-                  <p className="text-lg font-semibold text-orange-600">
-                    {proposal.tax_amount ? formatCurrency(proposal.tax_amount) : 'N/A'}
-                  </p>
-                </div>
-                <div className="text-center">
-                  <Label className="text-xs font-medium text-gray-600">Total</Label>
-                  <p className="text-xl font-bold text-blue-600">
-                    {proposal.total_amount ? formatCurrency(proposal.total_amount) : 'N/A'}
-                  </p>
-                </div>
-                <div className="text-center">
-                  <Label className="text-xs font-medium text-gray-600">Deposit</Label>
-                  <p className="text-lg font-semibold text-purple-600">
-                    {proposal.deposit_amount ? formatCurrency(proposal.deposit_amount) : 'N/A'}
-                  </p>
-                </div>
-              </div>
+      {/* Proposals Table */}
+      <HomeownerProposalTable
+        proposals={filteredProposals}
+        onStatusUpdate={handleStatusUpdate}
+        actionLoading={actionLoading}
+      />
 
-              {/* Timeline and Details */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-gray-500" />
-                  <span>
-                    {proposal.proposed_start_date && proposal.proposed_end_date 
-                      ? `${formatDate(proposal.proposed_start_date)} - ${formatDate(proposal.proposed_end_date)}`
-                      : 'Dates not specified'
-                    }
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-gray-500" />
-                  <span>
-                    {proposal.estimated_days ? `${proposal.estimated_days} days` : 'Duration not specified'}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <DollarSign className="h-4 w-4 text-gray-500" />
-                  <span>Due: {proposal.deposit_due_date ? formatDate(proposal.deposit_due_date) : 'Not specified'}</span>
-                </div>
-              </div>
-
-              {/* Contractor Info */}
-              <div className="flex items-center justify-between pt-2 border-t">
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <User className="h-4 w-4 text-gray-500" />
-                    <span className="font-medium">{proposal.users?.full_name}</span>
-                    {proposal.users?.rating && (
-                      <span className="text-sm">⭐ {proposal.users.rating} ({proposal.users.review_count} reviews)</span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm">{proposal.users?.location || 'Location not specified'}</span>
-                  </div>
-                </div>
-                <div className="text-sm text-gray-600">
-                  {proposal.users?.bio && `${proposal.users.bio.substring(0, 50)}...`}
-                </div>
-              </div>
-
-              {/* Description */}
-              <div className="pt-2 border-t">
-                <Label className="text-sm font-medium text-gray-600">Proposal Description</Label>
-                <p className="text-sm text-gray-700 mt-1">{proposal.description}</p>
-              </div>
-
-              {/* Additional Details */}
-              {(proposal.materials_included || proposal.warranty_period || proposal.additional_notes) && (
-                <div className="pt-2 border-t space-y-2">
-                  {proposal.materials_included && (
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4 text-green-600" />
-                      <span className="text-sm text-green-600">Materials included in price</span>
-                    </div>
-                  )}
-                  {proposal.warranty_period && (
-                    <div className="text-sm">
-                      <span className="font-medium">Warranty:</span> {proposal.warranty_period}
-                    </div>
-                  )}
-                  {proposal.additional_notes && (
-                    <div className="text-sm">
-                      <span className="font-medium">Additional Notes:</span> {proposal.additional_notes}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Penalties */}
-              {(proposal.delay_penalty || proposal.abandonment_penalty) && (
-                <div className="pt-2 border-t">
-                  <Label className="text-sm font-medium text-gray-600">Penalties & Guarantees</Label>
-                  <div className="flex gap-4 mt-1">
-                    {proposal.delay_penalty && (
-                      <div className="flex items-center gap-2">
-                        <AlertTriangle className="h-4 w-4 text-orange-500" />
-                        <span className="text-sm">Delay: {formatCurrency(proposal.delay_penalty)}/day</span>
-                      </div>
-                    )}
-                    {proposal.abandonment_penalty && (
-                      <div className="flex items-center gap-2">
-                        <AlertTriangle className="h-4 w-4 text-red-500" />
-                        <span className="text-sm">Abandonment: {formatCurrency(proposal.abandonment_penalty)}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Files */}
-              {proposal.uploaded_files && proposal.uploaded_files.length > 0 && (
-                <div className="pt-2 border-t">
-                  <Label className="text-sm font-medium text-gray-600">Supporting Documents</Label>
-                  <div className="flex flex-wrap gap-2 mt-1">
-                    {proposal.uploaded_files.map((file, index) => (
-                      <Badge key={index} variant="outline" className="text-xs">
-                        {file}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Action Buttons */}
-              {proposal.status === 'pending' && (
-                <div className="flex gap-2 pt-4 border-t">
-                  <Button
-                    // onClick={() => handleStatusUpdate(proposal.id, 'accepted')}
-                    disabled={actionLoading === proposal.id}
-                    className="flex-1 bg-green-600 hover:bg-green-700 pointer-events-none opacity-50"
-                  >
-                    {actionLoading === proposal.id ? 'Processing...' : (
-                      <>
-                        <CheckCircle className="h-4 w-4 mr-2" />
-                        Accept Proposal
-                      </>
-                    )}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => handleStatusUpdate(proposal.id, 'rejected')}
-                    disabled={actionLoading === proposal.id}
-                  >
-                    {actionLoading === proposal.id ? 'Processing...' : (
-                      <>
-                        <XCircle className="h-4 w-4 mr-2" />
-                        Reject Proposal
-                      </>
-                    )}
-                  </Button>
-                </div>
-              )}
-
-              {/* Feedback Display */}
-              {proposal.feedback && (
-                <div className="pt-2 border-t">
-                  <Label className="text-sm font-medium text-gray-600">Your Feedback</Label>
-                  <p className="text-sm text-gray-700 mt-1">{proposal.feedback}</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        ))}
-        
-        {filteredProposals.length === 0 && (
-          <Card>
-            <CardContent className="text-center py-12">
+      {/* Empty State */}
+      {filteredProposals.length === 0 && !proposalsLoading && (
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-center py-12">
               <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No proposals found</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                No proposals found
+              </h3>
               <p className="text-gray-600">
-                {searchTerm || statusFilter !== 'all' || projectFilter !== 'all'
-                  ? 'Try adjusting your search criteria or filters.'
-                  : 'No proposals have been submitted for your projects yet. Contractors will submit proposals once you post projects.'}
+                {searchTerm || statusFilter !== "all" || projectFilter !== "all"
+                  ? "Try adjusting your search or filters"
+                  : "You haven't received any proposals yet. Check back later or create a new project to attract contractors."}
               </p>
-            </CardContent>
-          </Card>
-        )}
-      </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
-  )
+  );
 }

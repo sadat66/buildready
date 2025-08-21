@@ -139,7 +139,7 @@ export default function TermsPage() {
         {/* Footer */}
         <div className="text-center">
           <Link href="/register">
-            <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold px-8 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200">
+            <Button className="bg-gray-900 hover:bg-black text-white font-semibold px-8 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200">
               I Agree to Terms - Continue to Sign Up
             </Button>
           </Link>

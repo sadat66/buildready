@@ -3,34 +3,29 @@
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, MapPin, Calendar, DollarSign, FileText, Camera, Paperclip, Clock, CheckCircle, AlertCircle } from 'lucide-react'
-import Link from 'next/link'
+import { HomeownerProjectView } from '@/components/features/projects'
 import { createClient } from '@/lib/supabase'
-import { Project } from '@/types/database'
-import dynamic from 'next/dynamic'
 import toast from 'react-hot-toast'
+import { USER_ROLES, PROJECT_STATUSES, ProjectStatus, PROJECT_STATUS_VALUES, PROPOSAL_STATUSES } from '@/lib/constants'
+import { Project } from '@/types/database/projects'
+import { Proposal } from '@/types/database/proposals'
+import { User } from '@/types/database/auth'
 
-
-const LocationMap = dynamic(() => import('@/components/features/projects').then(mod => ({ default: mod.LocationMap })), {
-  ssr: false,
-  loading: () => <div className="h-48 bg-gray-100 rounded-lg flex items-center justify-center">Loading map...</div>
-})
-
-export default function ProjectViewPage() {
+export default function HomeownerProjectViewPage() {
   const params = useParams()
   const router = useRouter()
   const id = params?.id as string
   const { user } = useAuth()
   const [project, setProject] = useState<Project | null>(null)
+  const [proposals, setProposals] = useState<Proposal[]>([])
   const [loading, setLoading] = useState(true)
+  const [proposalsLoading, setProposalsLoading] = useState(true)
   const [error, setError] = useState('')
-
+  const [deleting, setDeleting] = useState(false)
+  const [updatingProposal, setUpdatingProposal] = useState<string | null>(null)
 
   useEffect(() => {
-    const fetchProject = async () => {
+    const fetchHomeownerProject = async () => {
       if (!id || !user) {
         setLoading(false)
         return
@@ -42,61 +37,121 @@ export default function ProjectViewPage() {
           .from('projects')
           .select('*')
           .eq('id', id)
-          .eq('homeowner_id', user.id)
+          .eq('creator', user.id)
           .single()
         
         if (fetchError) {
           throw fetchError
         }
         
-        setProject(data)
+        if (data) {
+          // Transform the data to match the expected Project interface
+          const transformedProject: Project = {
+            ...data,
+            start_date: new Date(data.start_date),
+            end_date: new Date(data.end_date),
+            expiry_date: new Date(data.expiry_date),
+            decision_date: data.decision_date ? new Date(data.decision_date) : undefined,
+            substantial_completion: data.substantial_completion ? new Date(data.substantial_completion) : undefined,
+            created_at: new Date(data.created_at),
+            updated_at: new Date(data.updated_at),
+            // Ensure required fields are present with defaults if missing
+            project_photos: data.project_photos || [],
+            files: data.files || [],
+            proposal_count: data.proposal_count || 0,
+            is_verified_project: data.is_verified_project || false,
+            permit_required: data.permit_required || false
+          }
+          setProject(transformedProject)
+        }
       } catch (error) {
-        console.error('Error fetching project:', error)
-        setError('Failed to load project details')
+        console.error('Error fetching homeowner project:', error)
+        setError('Failed to load your project details')
       } finally {
         setLoading(false)
       }
     }
     
-    fetchProject()
+    const fetchHomeownerProposals = async () => {
+      if (!id || !user) {
+        setProposalsLoading(false)
+        return
+      }
+      
+      try {
+        const supabase = createClient()
+        const { data, error: fetchError } = await supabase
+          .from('proposals')
+          .select(`
+            *,
+            contractor_profile:users!proposals_contractor_fkey (
+              id,
+              full_name,
+              email,
+              phone_number,
+              address
+            )
+          `)
+          .eq('project', id)
+          .eq('homeowner', user.id)
+          .eq('is_deleted', 'no')
+          .in('status', [PROPOSAL_STATUSES.SUBMITTED, PROPOSAL_STATUSES.VIEWED, PROPOSAL_STATUSES.ACCEPTED, PROPOSAL_STATUSES.REJECTED])
+          .order('created_at', { ascending: false })
+        
+        if (fetchError) {
+          throw fetchError
+        }
+        
+        if (data) {
+          // Transform the data to match the expected Proposal interface
+          const transformedProposals: Proposal[] = data.map(proposal => ({
+            ...proposal,
+            createdAt: new Date(proposal.created_at),
+            updatedAt: new Date(proposal.updated_at),
+            proposed_start_date: new Date(proposal.proposed_start_date),
+            proposed_end_date: new Date(proposal.proposed_end_date),
+            expiry_date: new Date(proposal.expiry_date),
+            deposit_due_on: new Date(proposal.deposit_due_on),
+            submitted_date: proposal.submitted_date ? new Date(proposal.submitted_date) : undefined,
+            accepted_date: proposal.accepted_date ? new Date(proposal.accepted_date) : undefined,
+            rejected_date: proposal.rejected_date ? new Date(proposal.rejected_date) : undefined,
+            withdrawn_date: proposal.withdrawn_date ? new Date(proposal.withdrawn_date) : undefined,
+            viewed_date: proposal.viewed_date ? new Date(proposal.viewed_date) : undefined,
+            last_updated: new Date(proposal.updated_at),
+            // Ensure required fields are present with defaults if missing
+            attached_files: proposal.attached_files || [],
+            proposals: proposal.proposals || [],
+            visibility_settings: proposal.visibility_settings || 'private',
+            created_by: proposal.created_by || proposal.contractor,
+            last_modified_by: proposal.last_modified_by || proposal.contractor
+          }))
+          setProposals(transformedProposals)
+        }
+      } catch (error) {
+        console.error('Error fetching homeowner proposals:', error)
+      } finally {
+        setProposalsLoading(false)
+      }
+    }
+    
+    fetchHomeownerProject()
+    fetchHomeownerProposals()
   }, [id, user])
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'open': return 'bg-green-500'
-      case 'bidding': return 'bg-blue-500'
-      case 'awarded': return 'bg-purple-500'
-      case 'completed': return 'bg-gray-500'
-      case 'cancelled': return 'bg-red-500'
-      default: return 'bg-gray-500'
+  const handleEditHomeownerProject = () => {
+    if (project) {
+      router.push(`/homeowner/projects/edit/${project.id}`)
     }
   }
 
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'open': return 'Open for Bidding'
-      case 'bidding': return 'Bidding in Progress'
-      case 'awarded': return 'Awarded to Contractor'
-      case 'completed': return 'Project Completed'
-      case 'cancelled': return 'Project Cancelled'
-      default: return status
-    }
-  }
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    })
-  }
-
-  const formatBudget = (budget: number) => {
-    return `$${budget.toLocaleString()}`
-  }
-
-  const handleDeleteProject = async () => {
+  const handleDeleteHomeownerProject = async () => {
     if (!project || !user) return
+    
+    if (!confirm('Are you sure you want to delete this project? This action cannot be undone and will remove all associated proposals.')) {
+      return
+    }
+    
+    setDeleting(true)
     
     try {
       const supabase = createClient()
@@ -104,292 +159,287 @@ export default function ProjectViewPage() {
         .from('projects')
         .delete()
         .eq('id', project.id)
-        .eq('homeowner_id', user.id)
+        .eq('creator', user.id)
       
       if (deleteError) {
         throw deleteError
       }
       
-      toast.success('Project deleted successfully!')
+      toast.success('Your project has been deleted successfully')
       router.push('/homeowner/projects')
     } catch (error) {
-      console.error('Error deleting project:', error)
-      toast.error('Failed to delete project. Please try again.')
-      setError('Failed to delete project. Please try again.')
+      console.error('Error deleting homeowner project:', error)
+      toast.error('Failed to delete your project')
+    } finally {
+      setDeleting(false)
     }
+  }
+
+  const handleAcceptContractorProposal = async (proposalId: string) => {
+    if (!user) return
+    
+    if (!confirm('Are you sure you want to accept this contractor\'s proposal? This will automatically reject all other proposals for this project.')) {
+      return
+    }
+    
+    setUpdatingProposal(proposalId)
+    
+    try {
+      const supabase = createClient()
+      
+      // First, mark the selected proposal as viewed (if not already)
+      await supabase
+        .from('proposals')
+        .update({
+          status: 'viewed',
+          viewed_date: new Date().toISOString(),
+          last_updated: new Date().toISOString(),
+          last_modified_by: user.id
+        })
+        .eq('id', proposalId)
+        .eq('status', PROPOSAL_STATUSES.SUBMITTED)
+      
+      // Accept the selected proposal
+      const { error: acceptError } = await supabase
+        .from('proposals')
+        .update({
+          status: PROPOSAL_STATUSES.ACCEPTED,
+          is_selected: 'yes',
+          accepted_date: new Date().toISOString(),
+          last_updated: new Date().toISOString(),
+          last_modified_by: user.id
+        })
+        .eq('id', proposalId)
+        .eq('homeowner', user.id)
+      
+      if (acceptError) {
+        throw acceptError
+      }
+      
+      // Reject all other proposals for this project
+      const { error: rejectError } = await supabase
+        .from('proposals')
+        .update({
+          status: PROPOSAL_STATUSES.REJECTED,
+          rejected_date: new Date().toISOString(),
+          rejection_reason: 'other',
+          rejection_reason_notes: 'Another proposal was selected by the homeowner',
+          last_updated: new Date().toISOString(),
+          last_modified_by: user.id
+        })
+        .eq('project', id)
+        .neq('id', proposalId)
+        .in('status', [PROPOSAL_STATUSES.SUBMITTED, PROPOSAL_STATUSES.VIEWED])
+      
+      if (rejectError) {
+        throw rejectError
+      }
+      
+      // Update project status to proposal selected
+      await supabase
+        .from('projects')
+        .update({
+          status: PROJECT_STATUSES.PROPOSAL_SELECTED,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id)
+      
+      toast.success('Contractor proposal accepted successfully! Your project is now in proposal selected status.')
+      
+      // Refresh proposals
+      const { data: updatedProposals } = await supabase
+        .from('proposals')
+        .select(`
+          *,
+          contractor_profile:users!proposals_contractor_fkey (
+            id,
+            full_name,
+            email,
+            phone_number,
+            address
+          )
+        `)
+        .eq('project', id)
+        .eq('homeowner', user.id)
+        .eq('is_deleted', 'no')
+        .in('status', ['submitted', 'viewed', 'accepted', 'rejected'])
+        .order('created_at', { ascending: false })
+      
+      if (updatedProposals) {
+        const transformedProposals: Proposal[] = updatedProposals.map(proposal => ({
+          ...proposal,
+          createdAt: new Date(proposal.created_at),
+          updatedAt: new Date(proposal.updated_at),
+          proposed_start_date: new Date(proposal.proposed_start_date),
+          proposed_end_date: new Date(proposal.proposed_end_date),
+          expiry_date: new Date(proposal.expiry_date),
+          deposit_due_on: new Date(proposal.deposit_due_on),
+          submitted_date: proposal.submitted_date ? new Date(proposal.submitted_date) : undefined,
+          accepted_date: proposal.accepted_date ? new Date(proposal.accepted_date) : undefined,
+          rejected_date: proposal.rejected_date ? new Date(proposal.rejected_date) : undefined,
+          withdrawn_date: proposal.withdrawn_date ? new Date(proposal.withdrawn_date) : undefined,
+          viewed_date: proposal.viewed_date ? new Date(proposal.viewed_date) : undefined,
+          last_updated: new Date(proposal.updated_at),
+          attached_files: proposal.attached_files || [],
+          proposals: proposal.proposals || [],
+          visibility_settings: proposal.visibility_settings || 'private',
+          created_by: proposal.created_by || proposal.contractor,
+          last_modified_by: proposal.last_modified_by || proposal.contractor
+        }))
+        setProposals(transformedProposals)
+      }
+      
+    } catch (error) {
+      console.error('Error accepting contractor proposal:', error)
+      toast.error('Failed to accept the contractor proposal')
+    } finally {
+      setUpdatingProposal(null)
+    }
+  }
+
+  const handleRejectContractorProposal = async (proposalId: string, reason?: string, notes?: string) => {
+    if (!user) return
+    
+    if (!confirm('Are you sure you want to reject this contractor\'s proposal?')) {
+      return
+    }
+    
+    setUpdatingProposal(proposalId)
+    
+    try {
+      const supabase = createClient()
+      
+      // First, mark the proposal as viewed (if not already)
+      await supabase
+        .from('proposals')
+        .update({
+          status: PROPOSAL_STATUSES.VIEWED,
+          viewed_date: new Date().toISOString(),
+          last_updated: new Date().toISOString(),
+          last_modified_by: user.id
+        })
+        .eq('id', proposalId)
+        .eq('status', PROPOSAL_STATUSES.SUBMITTED)
+      
+      // Reject the proposal
+      const { error: rejectError } = await supabase
+        .from('proposals')
+        .update({
+          status: PROPOSAL_STATUSES.REJECTED,
+          rejected_date: new Date().toISOString(),
+          rejection_reason: reason || 'other',
+          rejection_reason_notes: notes,
+          last_updated: new Date().toISOString(),
+          last_modified_by: user.id
+        })
+        .eq('id', proposalId)
+        .eq('homeowner', user.id)
+      
+      if (rejectError) {
+        throw rejectError
+      }
+      
+      toast.success('Contractor proposal rejected successfully')
+      
+      // Refresh proposals
+      const { data: updatedProposals } = await supabase
+        .from('proposals')
+        .select(`
+          *,
+          contractor_profile:users!proposals_contractor_fkey (
+            id,
+            full_name,
+            email,
+            phone_number,
+            address
+          )
+        `)
+        .eq('project', id)
+        .eq('homeowner', user.id)
+        .eq('is_deleted', 'no')
+        .in('status', [PROPOSAL_STATUSES.SUBMITTED, PROPOSAL_STATUSES.VIEWED, PROPOSAL_STATUSES.ACCEPTED, PROPOSAL_STATUSES.REJECTED])
+        .order('created_at', { ascending: false })
+      
+      if (updatedProposals) {
+        const transformedProposals: Proposal[] = updatedProposals.map(proposal => ({
+          ...proposal,
+          createdAt: new Date(proposal.created_at),
+          updatedAt: new Date(proposal.updated_at),
+          proposed_start_date: new Date(proposal.proposed_start_date),
+          proposed_end_date: new Date(proposal.proposed_end_date),
+          expiry_date: new Date(proposal.expiry_date),
+          deposit_due_on: new Date(proposal.deposit_due_on),
+          submitted_date: proposal.submitted_date ? new Date(proposal.submitted_date) : undefined,
+          accepted_date: proposal.accepted_date ? new Date(proposal.accepted_date) : undefined,
+          rejected_date: proposal.rejected_date ? new Date(proposal.rejected_date) : undefined,
+          withdrawn_date: proposal.withdrawn_date ? new Date(proposal.withdrawn_date) : undefined,
+          viewed_date: proposal.viewed_date ? new Date(proposal.viewed_date) : undefined,
+          last_updated: new Date(proposal.updated_at),
+          attached_files: proposal.attached_files || [],
+          proposals: proposal.proposals || [],
+          visibility_settings: proposal.visibility_settings || 'private',
+          created_by: proposal.created_by || proposal.contractor,
+          last_modified_by: proposal.last_modified_by || proposal.contractor
+        }))
+        setProposals(transformedProposals)
+      }
+      
+    } catch (error) {
+      console.error('Error rejecting contractor proposal:', error)
+      toast.error('Failed to reject the contractor proposal')
+    } finally {
+      setUpdatingProposal(null)
+    }
+  }
+
+  const handleViewContractorProposal = (proposalId: string) => {
+    // Navigate to proposal detail view for homeowner
+    router.push(`/homeowner/proposals/${proposalId}`)
   }
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center space-x-4">
-          <Link href="/homeowner/projects">
-            <Button variant="outline" size="sm">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Projects
-            </Button>
-          </Link>
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Loading your project details...</p>
         </div>
-        <Card>
-          <CardContent className="p-6">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p>Loading project details...</p>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     )
   }
 
-  if (error || !project) {
+  if (error || !project || !user) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center space-x-4">
-          <Link href="/homeowner/projects">
-            <Button variant="outline" size="sm">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Projects
-            </Button>
-          </Link>
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center text-red-600">
+          {error || 'Project not found or you don\'t have access to view it'}
         </div>
-        <Card>
-          <CardContent className="p-6">
-            <div className="text-center text-red-600">
-              {error || 'Project not found'}
-            </div>
-          </CardContent>
-        </Card>
+        <div className="text-center mt-4">
+          <button 
+            onClick={() => router.push('/homeowner/projects')}
+            className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+          >
+            Back to Your Projects
+          </button>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Link href="/homeowner/projects">
-            <Button variant="outline" size="sm">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Projects
-            </Button>
-          </Link>
-        </div>
-        <div className="flex items-center space-x-2">
-          <div className={`w-3 h-3 rounded-full ${getStatusColor(project.status)}`}></div>
-          <Badge variant="outline" className="capitalize">
-            {getStatusText(project.status)}
-          </Badge>
-        </div>
-      </div>
-
-      {/* Project Title and Status */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-start justify-between">
-            <div className="space-y-2">
-              <CardTitle className="text-3xl">{project.title}</CardTitle>
-              <CardDescription className="text-lg">
-                {project.description}
-              </CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="flex items-center space-x-3">
-              <MapPin className="h-5 w-5 text-gray-500" />
-              <div>
-                <p className="text-sm font-medium text-gray-900">Location</p>
-                <p className="text-sm text-gray-600">{project.location}</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-3">
-              <DollarSign className="h-5 w-5 text-gray-500" />
-              <div>
-                <p className="text-sm font-medium text-gray-900">Budget</p>
-                <p className="text-sm text-gray-600">{formatBudget(project.budget)}</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-3">
-              <FileText className="h-5 w-5 text-gray-500" />
-              <div>
-                <p className="text-sm font-medium text-gray-900">Category</p>
-                <p className="text-sm text-gray-600 capitalize">{project.category.replace('_', ' ')}</p>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Project Details Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Timeline Information */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Clock className="h-5 w-5" />
-              <span>Timeline</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Proposal Deadline</span>
-                <span className="text-sm font-medium">{formatDate(project.proposal_deadline)}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Decision Date</span>
-                <span className="text-sm font-medium">{formatDate(project.decision_date)}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Preferred Start</span>
-                <span className="text-sm font-medium">{formatDate(project.preferred_start_date)}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Preferred End</span>
-                <span className="text-sm font-medium">{formatDate(project.preferred_end_date)}</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Project Requirements */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <CheckCircle className="h-5 w-5" />
-              <span>Requirements</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex items-center space-x-3">
-                {project.permit_required ? (
-                  <AlertCircle className="h-5 w-5 text-orange-500" />
-                ) : (
-                  <CheckCircle className="h-5 w-5 text-green-500" />
-                )}
-                <span className="text-sm">
-                  {project.permit_required ? 'Permits required' : 'No permits required'}
-                </span>
-              </div>
-              <div className="flex items-center space-x-3">
-                <Calendar className="h-5 w-5 text-gray-500" />
-                <span className="text-sm">Posted on {formatDate(project.created_at)}</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Project Location Map */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <MapPin className="h-5 w-5" />
-              <span>Project Location</span>
-            </CardTitle>
-            <CardDescription>
-              {project.location}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {project.latitude && project.longitude ? (
-              <div className="h-48 border rounded-lg overflow-hidden">
-                <LocationMap 
-                  onLocationSelect={() => {}} // Read-only in view mode
-                  initialCoordinates={{ lat: project.latitude, lng: project.longitude }}
-                  className="h-full"
-                  readOnly={true}
-                />
-              </div>
-            ) : (
-              <div className="h-48 bg-gray-100 rounded-lg flex items-center justify-center">
-                <p className="text-gray-500 text-sm">Location coordinates not available</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Site Photos - Compact View */}
-      {project.site_photos && project.site_photos.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Camera className="h-5 w-5" />
-              <span>Site Photos ({project.site_photos.length})</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-              {project.site_photos.map((photo, index) => (
-                <div key={index} className="aspect-square bg-gray-100 rounded-lg overflow-hidden border">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={photo}
-                    alt={`Site photo ${index + 1}`}
-                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-200"
-                  />
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Project Files */}
-      {project.project_files && project.project_files.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Paperclip className="h-5 w-5" />
-              <span>Project Files</span>
-            </CardTitle>
-            <CardDescription>
-              {project.project_files.length} file{project.project_files.length !== 1 ? 's' : ''} uploaded
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {project.project_files.map((file, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <Paperclip className="h-4 w-4 text-gray-400" />
-                    <span className="text-sm font-medium text-gray-700">{file}</span>
-                  </div>
-                  <Button variant="outline" size="sm">
-                    Download
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Action Buttons */}
-      <div className="flex justify-end space-x-4 pt-6">
-        <Link href="/homeowner/projects">
-          <Button variant="outline">
-            Back to Projects
-          </Button>
-        </Link>
-        <Link href={`/homeowner/projects/edit/${project.id}`}>
-          <Button>
-            Edit Project
-          </Button>
-        </Link>
-                 <Button 
-           variant="destructive" 
-           onClick={handleDeleteProject}
-         >
-           Delete Project
-                  </Button>
-       </div>
-
-
-     </div>
-   )
- }
+    <HomeownerProjectView
+      project={project} 
+      proposals={proposals}
+      user={user as unknown as User}
+      userRole={USER_ROLES.HOMEOWNER}
+      onEditProject={handleEditHomeownerProject}
+      onDeleteProject={handleDeleteHomeownerProject}
+      onAcceptProposal={handleAcceptContractorProposal}
+      onRejectProposal={handleRejectContractorProposal}
+      onViewProposal={handleViewContractorProposal}
+      loading={loading}
+      proposalsLoading={proposalsLoading}
+      updatingProposal={updatingProposal}
+    />
+  )
+}

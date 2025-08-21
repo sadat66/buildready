@@ -3,10 +3,12 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { User as SupabaseUser } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase'
-import { UserRole } from '@/types/database'
+import { UserRole } from '@/types'
 
-interface ExtendedUser extends SupabaseUser {
-  role?: UserRole
+export interface ExtendedUser extends SupabaseUser {
+  user_role?: UserRole
+  first_name?: string
+  last_name?: string
   full_name?: string
 }
 
@@ -32,11 +34,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!user?.id) return
 
     try {
-      const { data, error } = await supabase
-        .from('users')
-        .select('role, full_name')
-        .eq('id', user.id)
-        .single()
+              const { data, error } = await supabase
+          .from('users')
+          .select('user_role, first_name, last_name, full_name')
+          .eq('id', user.id)
+          .single()
 
       if (error) {
         console.error('Error fetching user profile:', error)
@@ -44,8 +46,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (data) {
-        setUserRole(data.role)
-        setUser(prev => prev ? { ...prev, role: data.role, full_name: data.full_name } : null)
+        console.log('Fetched user profile:', data)
+        setUserRole(data.user_role)
+        setUser(prev => prev ? { ...prev, user_role: data.user_role, first_name: data.first_name, last_name: data.last_name, full_name: data.full_name } : null)
       }
     } catch (error) {
       console.error('Error fetching user profile:', error)
@@ -66,13 +69,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('Initial session check:', session ? 'User found' : 'No user')
       if (session?.user) {
         // Set initial user without extended properties
-        const initialUser: ExtendedUser = { ...session.user, role: undefined, full_name: undefined }
+        const initialUser: ExtendedUser = { ...session.user, user_role: undefined, first_name: undefined, last_name: undefined, full_name: undefined }
         setUser(initialUser)
         console.log('Fetching user profile for:', session.user.id)
         // Fetch user profile data including role
         const { data, error } = await supabase
           .from('users')
-          .select('role, full_name')
+          .select('user_role, first_name, last_name, full_name')
           .eq('id', session.user.id)
           .single()
 
@@ -80,8 +83,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           console.error('Error fetching user profile:', error)
         } else if (data) {
           console.log('User profile loaded:', data)
-          setUserRole(data.role)
-          setUser(prev => prev ? { ...prev, role: data.role, full_name: data.full_name } : null)
+          setUserRole(data.user_role)
+          setUser(prev => prev ? { ...prev, user_role: data.user_role, first_name: data.first_name, last_name: data.last_name, full_name: data.full_name } : null)
         } else {
           console.log('No user profile data found')
         }
@@ -97,18 +100,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
        async (event, session) => {
          if (session?.user) {
            // Set initial user without extended properties
-           const initialUser: ExtendedUser = { ...session.user, role: undefined, full_name: undefined }
+           const initialUser: ExtendedUser = { ...session.user, user_role: undefined, first_name: undefined, last_name: undefined, full_name: undefined }
            setUser(initialUser)
            // Fetch user profile data including role
            const { data, error } = await supabase
              .from('users')
-             .select('role, full_name')
+             .select('user_role, first_name, last_name, full_name')
              .eq('id', session.user.id)
              .single()
 
            if (!error && data) {
-             setUserRole(data.role)
-             setUser(prev => prev ? { ...prev, role: data.role, full_name: data.full_name } : null)
+             setUserRole(data.user_role)
+             setUser(prev => prev ? { ...prev, user_role: data.user_role, first_name: data.first_name, last_name: data.last_name, full_name: data.full_name } : null)
            }
          } else {
            setUser(null)
@@ -142,23 +145,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (data.user) {
         // Set initial user without extended properties
-        const initialUser: ExtendedUser = { ...data.user, role: undefined, full_name: undefined }
+        const initialUser: ExtendedUser = { ...data.user, user_role: undefined, first_name: undefined, last_name: undefined, full_name: undefined }
         setUser(initialUser)
         
         // Fetch user profile data including role
         const { data: profileData, error: profileError } = await supabase
           .from('users')
-          .select('role, full_name')
+          .select('user_role, first_name, last_name, full_name')
           .eq('id', data.user.id)
           .single()
 
         if (profileError) {
           console.error('Error fetching user profile during sign-in:', profileError)
         } else if (profileData) {
-          setUserRole(profileData.role)
-          const extendedUser = { ...data.user, role: profileData.role, full_name: profileData.full_name }
+          setUserRole(profileData.user_role)
+          const extendedUser = { ...data.user, user_role: profileData.user_role, first_name: profileData.first_name, last_name: profileData.last_name, full_name: profileData.full_name }
           setUser(extendedUser)
-          return { user: extendedUser, userRole: profileData.role, error: null }
+          return { user: extendedUser, userRole: profileData.user_role, error: null }
         }
 
         return { user: initialUser, userRole: null, error: null }
@@ -177,7 +180,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .from('users')
         .upsert({
           id: userId,
-          role: role,
+          user_role: role,
           ...profileData,
           updated_at: new Date().toISOString()
         })

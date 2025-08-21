@@ -1,16 +1,48 @@
 import { z } from 'zod'
 import { createTRPCRouter, protectedProcedure, publicProcedureWithSupabase } from '~/server/api/trpc'
 import { TRPCError } from '@trpc/server'
+import { VISIBILITY_SETTINGS, PROJECT_TYPES, PROJECT_STATUSES } from '~/lib/constants'
 
 const projectSchema = z.object({
-  title: z.string().min(1, 'Title is required'),
-  description: z.string().min(10, 'Description must be at least 10 characters'),
-  category: z.string().min(1, 'Category is required'),
-  budget: z.number().positive('Budget must be positive'),
-  location: z.string().min(1, 'Location is required'),
-  timeline: z.string().min(1, 'Timeline is required'),
-  requirements: z.array(z.string()).optional(),
-  images: z.array(z.string()).optional(),
+  project_title: z.string().min(1, 'Project title is required'),
+  statement_of_work: z.string().min(1, 'Statement of work is required'),
+  budget: z.number().positive('Budget must be a positive number'),
+  category: z.array(z.string()).min(1, 'At least one category is required'),
+  pid: z.string().min(1, 'PID is required'),
+  location: z.object({
+    address: z.string().min(1, 'Address is required'),
+    latitude: z.number().min(-90).max(90).optional(),
+    longitude: z.number().min(-180).max(180).optional(),
+    city: z.string().min(1, 'City is required'),
+    province: z.string().min(1, 'Province is required'),
+    postalCode: z.string().min(1, 'Postal code is required'),
+  }),
+  project_type: z.enum(Object.values(PROJECT_TYPES)),
+        visibility_settings: z.enum([VISIBILITY_SETTINGS.PRIVATE, VISIBILITY_SETTINGS.SHARED_WITH_TARGET_USER, VISIBILITY_SETTINGS.SHARED_WITH_PARTICIPANT, VISIBILITY_SETTINGS.PUBLIC_TO_INVITEES, VISIBILITY_SETTINGS.PUBLIC_TO_MARKETPLACE, VISIBILITY_SETTINGS.ADMIN_ONLY]),
+  start_date: z.date(),
+  end_date: z.date(),
+  expiry_date: z.date(),
+  decision_date: z.date(),
+  permit_required: z.boolean().default(false),
+  substantial_completion: z.date().optional(),
+  is_verified_project: z.boolean().default(false),
+  project_photos: z.array(z.object({
+    id: z.string().uuid(),
+    filename: z.string().min(1),
+    url: z.string().url(),
+    size: z.number().positive().optional(),
+    mimeType: z.string().optional(),
+    uploadedAt: z.date().optional(),
+  })).min(1, 'At least one project photo is required'),
+  certificate_of_title: z.string().url().optional(),
+  files: z.array(z.object({
+    id: z.string().uuid(),
+    filename: z.string().min(1),
+    url: z.string().url(),
+    size: z.number().positive().optional(),
+    mimeType: z.string().optional(),
+    uploadedAt: z.date().optional(),
+  })).default([]),
 })
 
 export const projectsRouter = createTRPCRouter({
@@ -18,17 +50,21 @@ export const projectsRouter = createTRPCRouter({
   create: protectedProcedure
     .input(projectSchema)
     .mutation(async ({ input, ctx }) => {
+
+      console.log('input', input)
       const { data, error } = await ctx.supabase
         .from('projects')
         .insert({
           ...input,
-          homeowner_id: ctx.user.id,
-          status: 'pending',
+          creator: ctx.user.id,
+          status: PROJECT_STATUSES.OPEN_FOR_PROPOSALS,
+          proposal_count: 0,
         })
         .select()
         .single()
 
       if (error) {
+        console.error('Database error:', error)
         throw new TRPCError({
           code: 'BAD_REQUEST',
           message: error.message,
@@ -46,7 +82,7 @@ export const projectsRouter = createTRPCRouter({
         location: z.string().optional(),
         minBudget: z.number().optional(),
         maxBudget: z.number().optional(),
-        status: z.enum(['open', 'bidding', 'awarded', 'completed', 'cancelled']).optional(),
+        status: z.enum(Object.values(PROJECT_STATUSES)).optional(),
         search: z.string().optional(),
         limit: z.number().min(1).max(50).default(10),
         offset: z.number().min(0).default(0),
@@ -59,7 +95,7 @@ export const projectsRouter = createTRPCRouter({
         .from('projects')
         .select(`
           *,
-          profiles!projects_homeowner_id_fkey (
+          profiles!projects_creator_fkey (
             id,
             full_name,
             location
@@ -122,26 +158,21 @@ export const projectsRouter = createTRPCRouter({
         .from('projects')
         .select(`
           *,
-          profiles!projects_homeowner_id_fkey (
+          profiles!projects_creator_fkey (
             id,
             full_name,
-            location,
-            bio
+            location
           ),
           proposals (
             id,
-            contractor_id,
+            contractor,
             amount,
             timeline,
             status,
             created_at,
-            profiles!proposals_contractor_id_fkey (
+            users!proposals_contractor_fkey (
               id,
-              full_name,
-              bio,
-              hourly_rate,
-              years_experience,
-              skills
+              full_name
             )
           )
         `)
@@ -162,7 +193,7 @@ export const projectsRouter = createTRPCRouter({
   getMy: protectedProcedure
     .input(
       z.object({
-        status: z.enum(['open', 'bidding', 'awarded', 'completed', 'cancelled']).optional(),
+        status: z.enum(Object.values(PROJECT_STATUSES)).optional(),
         limit: z.number().min(1).max(50).default(10),
         offset: z.number().min(0).default(0),
       })
@@ -177,13 +208,13 @@ export const projectsRouter = createTRPCRouter({
             contractor_id,
             amount,
             status,
-            profiles!proposals_contractor_id_fkey (
+            users!proposals_contractor_fkey (
               id,
               full_name
             )
           )
         `)
-        .eq('homeowner_id', ctx.user.id)
+        .eq('creator', ctx.user.id)
 
       if (input.status) {
         query = query.eq('status', input.status)
@@ -209,7 +240,7 @@ export const projectsRouter = createTRPCRouter({
       z.object({
         id: z.string().uuid(),
         ...projectSchema.partial().shape,
-        status: z.enum(['open', 'bidding', 'awarded', 'completed', 'cancelled']).optional(),
+        status: z.enum(Object.values(PROJECT_STATUSES)).optional(),
       })
     )
     .mutation(async ({ input, ctx }) => {
@@ -218,7 +249,7 @@ export const projectsRouter = createTRPCRouter({
       // Check if user owns the project
       const { data: existingProject, error: fetchError } = await ctx.supabase
         .from('projects')
-        .select('homeowner_id')
+        .select('creator')
         .eq('id', id)
         .single()
 
@@ -229,7 +260,7 @@ export const projectsRouter = createTRPCRouter({
         })
       }
 
-      if (existingProject.homeowner_id !== ctx.user.id) {
+      if (existingProject.creator !== ctx.user.id) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'You can only update your own projects',
@@ -263,7 +294,7 @@ export const projectsRouter = createTRPCRouter({
       // Check if user owns the project
       const { data: existingProject, error: fetchError } = await ctx.supabase
         .from('projects')
-        .select('homeowner_id')
+        .select('creator')
         .eq('id', input.id)
         .single()
 
@@ -274,7 +305,7 @@ export const projectsRouter = createTRPCRouter({
         })
       }
 
-      if (existingProject.homeowner_id !== ctx.user.id) {
+      if (existingProject.creator !== ctx.user.id) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'You can only delete your own projects',

@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Home, Briefcase, Shield } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { USER_ROLES } from '@/lib/constants'
 
 interface RoleSelectorProps {
   onRoleSelect?: (role: string) => void
@@ -23,12 +24,12 @@ export default function RoleSelector({ onRoleSelect }: RoleSelectorProps) {
 
   const roles = [
     {
-      id: 'homeowner',
+      id: USER_ROLES.HOMEOWNER,
       title: 'Homeowner',
       description: 'Post projects and manage home improvements',
       icon: Home,
-      color: 'bg-blue-500',
-      hoverColor: 'hover:bg-blue-600',
+      color: 'bg-gray-900',
+      hoverColor: 'hover:bg-black',
       features: [
         'Post new projects',
         'Review contractor proposals',
@@ -37,12 +38,12 @@ export default function RoleSelector({ onRoleSelect }: RoleSelectorProps) {
       ]
     },
     {
-      id: 'contractor',
+      id: USER_ROLES.CONTRACTOR,
       title: 'Contractor',
       description: 'Find projects and submit proposals',
       icon: Briefcase,
-      color: 'bg-green-500',
-      hoverColor: 'hover:bg-green-600',
+      color: 'bg-gray-900',
+      hoverColor: 'hover:bg-black',
       features: [
         'Browse available projects',
         'Submit competitive proposals',
@@ -51,12 +52,12 @@ export default function RoleSelector({ onRoleSelect }: RoleSelectorProps) {
       ]
     },
     {
-      id: 'admin',
+      id: USER_ROLES.ADMIN,
       title: 'Administrator',
       description: 'Manage platform and oversee operations',
       icon: Shield,
-      color: 'bg-purple-500',
-      hoverColor: 'hover:bg-purple-600',
+      color: 'bg-orange-500',
+      hoverColor: 'hover:bg-orange-600',
       features: [
         'User management',
         'Platform oversight',

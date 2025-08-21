@@ -12,10 +12,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import { Project } from "@/types/database";
+import { Project } from "@/types";
 import ProjectTable from "./ProjectTable";
 import ProjectCard from "./ProjectCard";
-import Link from "next/link";
 
 interface ProjectListProps {
   projects: Project[];
@@ -38,11 +37,12 @@ export default function ProjectList({
   const filteredProjects = useMemo(() => {
     return projects.filter((project) => {
       const matchesSearch =
-        project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        project.description
+        project.project_title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        project.statement_of_work
           ?.toLowerCase()
           .includes(searchQuery.toLowerCase()) ||
-        project.location?.toLowerCase().includes(searchQuery.toLowerCase());
+        project.location?.address?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        project.location?.city?.toLowerCase().includes(searchQuery.toLowerCase());
 
       const matchesStatus =
         statusFilter === "all" || project.status === statusFilter;
@@ -76,12 +76,10 @@ export default function ProjectList({
             Manage and track your construction projects
           </p>
         </div>
-        <Link href="/homeowner/projects/create">
-          <Button onClick={onPostProject} className="gap-2 cursor-pointer">
-            <Plus className="h-5 w-5" />
-            Post Project
-          </Button>
-        </Link>
+        <Button onClick={onPostProject} className="gap-2">
+          <Plus className="h-5 w-5" />
+          Post Project
+        </Button>
       </div>
 
       {/* Controls Bar */}

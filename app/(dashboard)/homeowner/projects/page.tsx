@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
+import { USER_ROLES } from '@/lib/constants'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
-import { Project } from '@/types/database'
+import { Project } from '@/types'
 import dynamic from 'next/dynamic'
 import { Breadcrumbs, LoadingSpinner } from '@/components/shared'
 
@@ -36,17 +37,42 @@ export default function HomeownerProjectsPage() {
       
       try {
         const supabase = createClient()
-        let query = supabase.from('projects').select('*')
+        let query = supabase.from('projects').select(`
+          id,
+          project_title,
+          statement_of_work,
+          budget,
+          category,
+          pid,
+          location,
+          project_type,
+          status,
+          visibility_settings,
+          start_date,
+          end_date,
+          expiry_date,
+          decision_date,
+          permit_required,
+          substantial_completion,
+          is_verified_project,
+          certificate_of_title,
+          project_photos,
+          files,
+          creator,
+          proposal_count,
+          created_at,
+          updated_at
+        `)
         
-        // Get user role from metadata
-        const userRole = user.user_metadata?.role || 'homeowner'
+        // Get user role from user object
+        const userRole = user.user_role || USER_ROLES.HOMEOWNER
         
         // If homeowner, show only their projects
         // If contractor, show all open projects
-        if (userRole === 'homeowner') {
-          query = query.eq('homeowner_id', user.id)
-        } else if (userRole === 'contractor') {
-          query = query.eq('status', 'open')
+        if (userRole === USER_ROLES.HOMEOWNER) {
+          query = query.eq('creator', user.id)
+        } else if (userRole === USER_ROLES.CONTRACTOR) {
+          query = query.eq('status', 'Open for Proposals')
         }
         
         const { data, error: fetchError } = await query.order('created_at', { ascending: false })
@@ -99,13 +125,16 @@ export default function HomeownerProjectsPage() {
 
   return (
     <div className="space-y-6">
-      <Breadcrumbs />
+      <div>
+        <Breadcrumbs
+          items={[
+            { label: 'Dashboard', href: '/homeowner/dashboard' },
+            { label: 'Projects', href: '/homeowner/projects' }
+          ]}
+        />
+      </div>
 
-      {/* Enhanced Projects Page Component */}
-      <ProjectsPage 
-        projects={projects}
-        userRole={user?.user_metadata?.role || 'homeowner'}
-      />
+      <ProjectsPage projects={projects} userRole={user?.user_role || USER_ROLES.HOMEOWNER} />
     </div>
   )
 }
