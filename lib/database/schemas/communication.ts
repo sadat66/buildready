@@ -41,38 +41,7 @@ export const messageSearchSchema = z.object({
   is_archived: z.boolean().optional(),
 })
 
-export const reviewSchema = z.object({
-  ...baseSchema,
-  reviewerId: validationPatterns.uuid,
-  reviewedId: validationPatterns.uuid,
-  projectId: validationPatterns.uuid,
-  rating: z.number().int().min(1).max(5),
-  comment: validationPatterns.nonEmptyString,
-})
 
-export const reviewCreateSchema = reviewSchema.omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-})
-
-export const reviewUpdateSchema = reviewSchema.partial().omit({
-  id: true,
-  createdAt: true,
-  reviewerId: true,
-  reviewedId: true,
-  projectId: true,
-})
-
-export const reviewSearchSchema = z.object({
-  reviewer_id: validationPatterns.uuid.optional(),
-  reviewed_id: validationPatterns.uuid.optional(),
-  project_id: validationPatterns.uuid.optional(),
-  rating_min: z.number().int().min(1).max(5).optional(),
-  rating_max: z.number().int().min(1).max(5).optional(),
-  date_from: validationPatterns.optionalDate,
-  date_to: validationPatterns.optionalDate,
-})
 
 export const notificationSchema = z.object({
   id: validationPatterns.uuid,
@@ -82,7 +51,7 @@ export const notificationSchema = z.object({
   type: z.enum(['info', 'success', 'warning', 'error', 'project', 'proposal', 'message']),
   is_read: z.boolean().default(false),
   related_id: validationPatterns.uuid.optional(),
-  related_type: z.enum(['project', 'proposal', 'message', 'review']).optional(),
+  related_type: z.enum(['project', 'proposal', 'message']).optional(),
   created_at: z.date(),
   updated_at: z.date(),
 })
@@ -115,10 +84,6 @@ export type MessageCreate = z.infer<typeof messageCreateSchema>
 export type MessageUpdate = z.infer<typeof messageUpdateSchema>
 export type MessageThread = z.infer<typeof messageThreadSchema>
 export type MessageSearch = z.infer<typeof messageSearchSchema>
-export type Review = z.infer<typeof reviewSchema>
-export type ReviewCreate = z.infer<typeof reviewCreateSchema>
-export type ReviewUpdate = z.infer<typeof reviewUpdateSchema>
-export type ReviewSearch = z.infer<typeof reviewSearchSchema>
 export type Notification = z.infer<typeof notificationSchema>
 export type NotificationCreate = z.infer<typeof notificationCreateSchema>
 export type NotificationUpdate = z.infer<typeof notificationUpdateSchema>
@@ -128,10 +93,6 @@ export const validateMessage = (data: unknown): Message => messageSchema.parse(d
 export const validateMessageCreate = (data: unknown): MessageCreate => messageCreateSchema.parse(data)
 export const validateMessageUpdate = (data: unknown): MessageUpdate => messageUpdateSchema.parse(data)
 export const validateMessageSearch = (data: unknown): MessageSearch => messageSearchSchema.parse(data)
-export const validateReview = (data: unknown): Review => reviewSchema.parse(data)
-export const validateReviewCreate = (data: unknown): ReviewCreate => reviewCreateSchema.parse(data)
-export const validateReviewUpdate = (data: unknown): ReviewUpdate => reviewUpdateSchema.parse(data)
-export const validateReviewSearch = (data: unknown): ReviewSearch => reviewSearchSchema.parse(data)
 export const validateNotification = (data: unknown): Notification => notificationSchema.parse(data)
 export const validateNotificationCreate = (data: unknown): NotificationCreate => notificationCreateSchema.parse(data)
 export const validateNotificationUpdate = (data: unknown): NotificationUpdate => notificationUpdateSchema.parse(data)

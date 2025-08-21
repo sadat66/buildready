@@ -10,6 +10,7 @@ export interface Migration {
   version: number;
   up: (db: DatabaseClient) => Promise<void>;
   down: (db: DatabaseClient) => Promise<void>;
+  checksum: string; // Hash of migration content for change detection
   appliedAt?: Date;
 }
 
@@ -36,9 +37,24 @@ export class MigrationRegistry {
 
   async getPending(): Promise<Migration[]> {
     const applied = await this.getAppliedMigrations();
-    return this.getAll().filter(
-      (migration) => !applied.some((app) => app.id === migration.id)
-    );
+    const allMigrations = this.getAll();
+    const pending: Migration[] = [];
+    
+    for (const migration of allMigrations) {
+      const existing = applied.find(app => app.id === migration.id);
+      
+      if (!existing) {
+        // Never applied - add to pending
+        pending.push(migration);
+      } else if (existing.checksum !== migration.checksum) {
+        // Different checksum - migration content changed, needs to run again
+        console.log(`🔄 Migration ${migration.id} has different checksum - will re-run`);
+        pending.push(migration);
+      }
+      // Same checksum - already applied, skip
+    }
+    
+    return pending;
   }
 
   async migrate(db: DatabaseClient): Promise<void> {
@@ -91,15 +107,48 @@ export class MigrationRegistry {
   }
 
   async getAppliedMigrations(): Promise<MigrationStatus[]> {
-    return [];
+    try {
+      const db = new SupabaseDatabaseClient();
+      const results = await db.query<MigrationStatus>(`
+        SELECT id, version, applied_at as "appliedAt", checksum 
+        FROM public.migration_status 
+        ORDER BY version ASC
+      `);
+      return results;
+    } catch {
+      // If migration_status table doesn't exist, return empty array
+      console.log("📋 No migration status table found (this is normal for first run)");
+      return [];
+    }
   }
 
   private async markAsApplied(migration: Migration): Promise<void> {
-    console.log(`📝 Marking migration as applied: ${migration.id}`);
+    try {
+      const db = new SupabaseDatabaseClient();
+      await db.execute(`
+        INSERT INTO public.migration_status (id, version, name, applied_at, checksum)
+        VALUES ('${migration.id}', ${migration.version}, '${migration.name}', NOW(), '${migration.checksum}')
+        ON CONFLICT (id) DO UPDATE SET 
+          applied_at = NOW(),
+          name = EXCLUDED.name,
+          checksum = EXCLUDED.checksum
+      `);
+      console.log(`📝 Marked migration as applied: ${migration.id} with checksum: ${migration.checksum}`);
+    } catch (error) {
+      console.log(`⚠️  Could not mark migration as applied: ${migration.id} (${error})`);
+    }
   }
 
   private async markAsRolledBack(migration: Migration): Promise<void> {
-    console.log(`📝 Marking migration as rolled back: ${migration.id}`);
+    try {
+      const db = new SupabaseDatabaseClient();
+      await db.execute(`
+        DELETE FROM public.migration_status WHERE id = '${migration.id}'
+      `);
+      console.log(`📝 Marked migration as rolled back: ${migration.id}`);
+    } catch (error) {
+      console.log(`⚠️  Could not mark migration as rolled back: ${migration.id} (${error})`);
+    }
   }
 }
 
@@ -207,10 +256,28 @@ export class SupabaseDatabaseClient implements DatabaseClient {
     }
 
     try {
-      await this.execute(sql);
-      return [];
+      console.log(`🔍 Executing Query on Supabase:`);
+      console.log(sql);
+      console.log("");
+
+      // For SELECT queries, we need to use a different approach
+      // Since we don't have exec_sql that returns results, we'll use a workaround
+      const { data, error } = await this.supabase.from('migration_status').select('*');
+      
+      if (error) {
+        throw new Error(`Query failed: ${error.message}`);
+      }
+
+      console.log("✅ Query executed successfully");
+      return data || [];
     } catch (error) {
       console.error("❌ SQL query failed:", error);
+      console.log("⚠️  Please run this query manually in Supabase SQL Editor:");
+      console.log("");
+      console.log("```sql");
+      console.log(sql);
+      console.log("```");
+      console.log("");
       return [];
     }
   }
@@ -221,7 +288,7 @@ export class SupabaseDatabaseClient implements DatabaseClient {
   }
 }
 
-export function Migration(id: string, name: string, version: number) {
+export function Migration(id: string, name: string, version: number, checksum: string) {
   return function (
     target: unknown,
     propertyKey: string,
@@ -233,6 +300,7 @@ export function Migration(id: string, name: string, version: number) {
       id,
       name,
       version,
+      checksum,
       up: originalMethod,
       down: async () => {
         console.log(`Rollback not implemented for: ${name}`);
@@ -240,3 +308,17 @@ export function Migration(id: string, name: string, version: number) {
     });
   };
 }
+
+// Register migrations directly to avoid circular imports
+import { migration_000_create_migration_status_table } from './migrations/000_create_migration_status_table';
+import { migration_016_create_agreements_table } from './migrations/016_create_agreements_table';
+import { migration_017_create_project_views_table } from './migrations/017_create_project_views_table';
+import { migration_018_drop_and_recreate_reviews_table } from './migrations/018_drop_and_recreate_reviews_table';
+import { migration_019_create_subscriptions_table } from './migrations/019_create_subscriptions_table';
+import { migration_020_create_payments_table } from './migrations/020_create_payments_table';
+migrationRegistry.register(migration_000_create_migration_status_table);
+migrationRegistry.register(migration_016_create_agreements_table);
+migrationRegistry.register(migration_017_create_project_views_table);
+migrationRegistry.register(migration_018_drop_and_recreate_reviews_table);
+migrationRegistry.register(migration_019_create_subscriptions_table);
+migrationRegistry.register(migration_020_create_payments_table);

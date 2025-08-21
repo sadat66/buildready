@@ -6,6 +6,16 @@ import { Input } from "@/components/ui/input";
 import { FormField } from "./FormField";
 import { CreateProjectFormInputData } from "@/lib/validation/projects";
 
+// Define the file type based on the validation schema
+type FileReference = {
+  id: string;
+  filename: string;
+  url: string;
+  size: number;
+  mimeType?: string;
+  uploadedAt?: Date;
+};
+
 interface FormPhotoInputProps {
   name: keyof CreateProjectFormInputData;
   label: string;
@@ -40,7 +50,7 @@ export function FormPhotoInput({
   return (
     <FormField name={name}>
       {({ field, error }) => {
-        const selectedPhotos = field.value || [];
+        const selectedPhotos = (field.value as FileReference[]) || [];
 
         const handleFileChange = (files: FileList | null) => {
           if (!files) return;
@@ -87,7 +97,7 @@ export function FormPhotoInput({
 
         const removePhoto = (index: number) => {
           const updatedPhotos = selectedPhotos.filter(
-            (_: any, i: number) => i !== index
+            (_: FileReference, i: number) => i !== index
           );
           field.onChange(updatedPhotos);
         };
@@ -138,7 +148,7 @@ export function FormPhotoInput({
                   Selected Photos ({selectedPhotos.length})
                 </p>
                 <div className="space-y-2">
-                  {selectedPhotos.map((photo: any, index: number) => (
+                  {selectedPhotos.map((photo: FileReference, index: number) => (
                     <div
                       key={photo.id || index}
                       className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
