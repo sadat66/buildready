@@ -133,7 +133,7 @@ export default function HomeownerProposalsPage() {
           .from('proposals')
           .select(`
             *,
-            project:projects!proposals_project_fkey (
+            project_details:projects!proposals_project_fkey (
               id,
               project_title,
               statement_of_work,
@@ -161,6 +161,7 @@ export default function HomeownerProposalsPage() {
           }
           
           console.log('Proposals fetched successfully:', proposalsData?.length || 0)
+          console.log('Sample proposal structure:', proposalsData?.[0])
           setProposals(proposalsData || [])
         } else {
           console.log('No projects found for homeowner, setting empty proposals')
@@ -208,13 +209,18 @@ export default function HomeownerProposalsPage() {
              // If accepted, update project status to awarded
        if (status === PROPOSAL_STATUSES.ACCEPTED) {
         const proposal = proposals.find(p => p.id === proposalId)
-        if (proposal) {
+        console.log('Found proposal for status update:', proposal)
+        console.log('Proposal project_details:', proposal?.project_details)
+        if (proposal && proposal.project_details) {
           const { error: projectError } = await supabase
             .from('projects')
             .update({ status: 'awarded' })
             .eq('id', proposal.project_details.id)
           
           if (projectError) throw projectError
+        } else {
+          console.error('Proposal or project_details not found for proposalId:', proposalId)
+          toast.error("Failed to update project status. Project details not found.")
         }
       }
       
@@ -365,130 +371,110 @@ export default function HomeownerProposalsPage() {
       </Card>
 
       {/* Proposals List */}
-      <div className="space-y-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {filteredProposals.map((proposal) => (
           <Card key={proposal.id} className="hover:shadow-md transition-shadow">
-            <CardHeader>
+            <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <CardTitle className="text-xl flex items-center gap-2">
+                <div className="flex-1 min-w-0">
+                  <CardTitle className="text-lg font-semibold text-gray-600 truncate">
                     {proposal.project_details?.project_title}
                   </CardTitle>
-                  <CardDescription className="text-sm mt-2">
-                    Proposal from <span className="font-medium">
-                      {proposal.contractor_profile?.full_name || 'Unknown Contractor'}
+                  <CardDescription className="text-sm text-gray-500 mt-1">
+                    <span className="font-medium text-gray-600">
+                      Contractor: {proposal.contractor_profile?.full_name 
+                        ? proposal.contractor_profile.full_name.split(' ').map(word => 
+                            word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+                          ).join(' ')
+                        : 'Unknown'}
                     </span>
                   </CardDescription>
                 </div>
-                <div className="flex items-center gap-2">
-                                     <Badge 
-                     variant={
-                       proposal.status === PROPOSAL_STATUSES.ACCEPTED ? 'default' : 
-                       proposal.status === PROPOSAL_STATUSES.REJECTED ? 'destructive' : 
-                       'secondary'
-                     }
-                   >
-                    {proposal.status}
-                  </Badge>
-                </div>
               </div>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Financial Summary */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-gray-50 rounded-lg">
+            
+            <CardContent className="pt-0 space-y-3">
+              {/* Financial Summary - Compact */}
+              <div className="grid grid-cols-2 gap-3 p-3 bg-gray-50 rounded-md">
                 <div className="text-center">
-                  <Label className="text-xs font-medium text-gray-600">Subtotal</Label>
-                  <p className="text-lg font-semibold text-green-600">
-                    {proposal.subtotal_amount ? formatCurrency(proposal.subtotal_amount) : 'N/A'}
-                  </p>
-                </div>
-                <div className="text-center">
-                  <Label className="text-xs font-medium text-gray-600">Tax</Label>
-                  <p className="text-lg font-semibold text-orange-600">
-                    {proposal.tax_included === 'yes' ? 'Included' : 'Not Included'}
-                  </p>
-                </div>
-                <div className="text-center">
-                  <Label className="text-xs font-medium text-gray-600">Total</Label>
-                  <p className="text-xl font-bold text-blue-600">
+                  <p className="text-xs font-medium text-gray-500">Total</p>
+                  <p className="text-lg font-bold text-gray-700">
                     {proposal.total_amount ? formatCurrency(proposal.total_amount) : 'N/A'}
                   </p>
                 </div>
                 <div className="text-center">
-                  <Label className="text-xs font-medium text-gray-600">Deposit</Label>
-                  <p className="text-lg font-semibold text-purple-600">
+                  <p className="text-xs font-medium text-gray-500">Deposit</p>
+                  <p className="text-sm font-semibold text-gray-700">
                     {proposal.deposit_amount ? formatCurrency(proposal.deposit_amount) : 'N/A'}
                   </p>
                 </div>
               </div>
 
-              {/* Timeline and Details */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-gray-500" />
-                  <span>
+              {/* Key Details - Compact */}
+              <div className="grid grid-cols-2 gap-3 text-xs text-gray-500">
+                <div className="flex items-center gap-1.5">
+                  <Calendar className="h-3 w-3 text-gray-400" />
+                  <span className="truncate">
                     {proposal.proposed_start_date && proposal.proposed_end_date 
                       ? `${formatDate(proposal.proposed_start_date.toString())} - ${formatDate(proposal.proposed_end_date.toString())}`
-                      : 'Dates not specified'
+                      : 'Dates TBD'
                     }
                   </span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-gray-500" />
+                <div className="flex items-center gap-1.5">
+                  <Clock className="h-3 w-3 text-gray-400" />
                   <span>
                     {proposal.proposed_start_date && proposal.proposed_end_date 
                       ? `${Math.ceil((new Date(proposal.proposed_end_date.toString()).getTime() - new Date(proposal.proposed_start_date.toString()).getTime()) / (1000 * 60 * 60 * 24))} days`
-                      : 'Duration not specified'
+                      : 'Duration TBD'
                     }
                   </span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <DollarSign className="h-4 w-4 text-gray-500" />
-                  <span>Due: {proposal.deposit_due_on ? formatDate(proposal.deposit_due_on.toString()) : 'Not specified'}</span>
-                </div>
               </div>
 
-              {/* Description */}
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <Label className="text-sm font-medium text-gray-700 mb-2 block">Description of Work</Label>
-                <p className="text-gray-600 text-sm">
+              {/* Description - Truncated */}
+              <div className="text-xs text-gray-500">
+                <p className="line-clamp-2">
                   {proposal.description_of_work || 'No description provided'}
                 </p>
               </div>
 
-              {/* Actions */}
-              <div className="flex items-center justify-end gap-2 pt-4 border-t">
-                                 {proposal.status === PROPOSAL_STATUSES.SUBMITTED || proposal.status === PROPOSAL_STATUSES.VIEWED ? (
+              {/* Actions - Compact */}
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-100">
+                {proposal.status === PROPOSAL_STATUSES.SUBMITTED || proposal.status === PROPOSAL_STATUSES.VIEWED ? (
                   <>
                     <Button
-                                             onClick={() => handleStatusUpdate(proposal.id, PROPOSAL_STATUSES.ACCEPTED)}
+                      size="sm"
+                      onClick={() => handleStatusUpdate(proposal.id, PROPOSAL_STATUSES.ACCEPTED)}
                       disabled={actionLoading === proposal.id}
-                      className="bg-green-600 hover:bg-green-700"
+                      className="bg-green-600 hover:bg-green-700 h-8 px-3 text-xs"
                     >
-                      <CheckCircle className="h-4 w-4 mr-2" />
+                      <CheckCircle className="h-3 w-3 mr-1" />
                       Accept
                     </Button>
                     <Button
-                                             onClick={() => handleStatusUpdate(proposal.id, PROPOSAL_STATUSES.REJECTED)}
+                      size="sm"
+                      onClick={() => handleStatusUpdate(proposal.id, PROPOSAL_STATUSES.REJECTED)}
                       disabled={actionLoading === proposal.id}
                       variant="destructive"
+                      className="h-8 px-3 text-xs"
                     >
-                      <XCircle className="h-4 w-4 mr-2" />
+                      <XCircle className="h-3 w-3 mr-1" />
                       Reject
                     </Button>
                   </>
-                                 ) : proposal.status === PROPOSAL_STATUSES.ACCEPTED ? (
-                  <Badge variant="default" className="bg-green-100 text-green-800">
-                    <CheckCircle className="h-4 w-4 mr-2" />
+                ) : proposal.status === PROPOSAL_STATUSES.ACCEPTED ? (
+                  <Badge variant="default" className="bg-green-100 text-green-800 text-xs">
+                    <CheckCircle className="h-3 w-3 mr-1" />
                     Accepted
                   </Badge>
-                                 ) : proposal.status === PROPOSAL_STATUSES.REJECTED ? (
-                  <Badge variant="destructive">
-                    <XCircle className="h-4 w-4 mr-2" />
+                ) : proposal.status === PROPOSAL_STATUSES.REJECTED ? (
+                  <Badge variant="destructive" className="text-xs">
+                    <XCircle className="h-3 w-3 mr-1" />
                     Rejected
                   </Badge>
                 ) : (
-                  <Badge variant="secondary" className="capitalize">
+                  <Badge variant="secondary" className="capitalize text-xs">
                     {proposal.status}
                   </Badge>
                 )}

@@ -10,30 +10,28 @@ import {
   type SortingState,
 } from '@tanstack/react-table'
 import { useState } from 'react'
-import { ArrowUpDown, Calendar, MapPin, DollarSign, Clock, MoreHorizontal, Eye, Edit, Trash2 } from 'lucide-react'
+import { ArrowUpDown, Calendar, MapPin, DollarSign, Clock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+
 import { Project } from '@/types'
 import { PROJECT_STATUSES } from "@/lib/constants"
 
-interface ProjectTableProps {
+interface ContractorProjectTableProps {
   projects: Project[]
   onProjectClick?: (project: Project) => void
-  onEditProject?: (project: Project) => void
-  onDeleteProject?: (project: Project) => void
 }
 
 const columnHelper = createColumnHelper<Project>()
 
-export default function ProjectTable({ projects, onProjectClick, onEditProject, onDeleteProject }: ProjectTableProps) {
+export default function ContractorProjectTable({ 
+  projects, 
+  onProjectClick
+}: ContractorProjectTableProps) {
   const [sorting, setSorting] = useState<SortingState>([])
+
+
 
   const columns = useMemo(
     () => [
@@ -53,15 +51,12 @@ export default function ProjectTable({ projects, onProjectClick, onEditProject, 
             <div className="font-medium truncate" title={row.original.project_title}>
               {row.original.project_title}
             </div>
-            <div 
-              className="text-sm text-muted-foreground line-clamp-1 max-w-[200px]" 
-              title={row.original.statement_of_work}
-            >
+            <div className="text-sm text-muted-foreground line-clamp-1 max-w-[180px]" title={row.original.statement_of_work}>
               {row.original.statement_of_work}
             </div>
           </div>
         ),
-        size: 250,
+        size: 200,
       }),
       columnHelper.accessor('location', {
         header: 'Location',
@@ -72,7 +67,7 @@ export default function ProjectTable({ projects, onProjectClick, onEditProject, 
           if (location && location.address && location.city) {
             return (
               <div className="flex items-center gap-2">
-                <MapPin className="h-4 w-4 text-muted-foreground" />
+                <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                 <span className="text-sm truncate" title={`${location.address}, ${location.city}`}>
                   {location.address}, {location.city}
                 </span>
@@ -91,7 +86,7 @@ export default function ProjectTable({ projects, onProjectClick, onEditProject, 
             if (displayParts.length > 0) {
               return (
                 <div className="flex items-center gap-2">
-                  <MapPin className="h-4 w-4 text-muted-foreground" />
+                  <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                   <span className="text-sm truncate" title={displayParts.join(', ')}>
                     {displayParts.join(', ')}
                   </span>
@@ -103,14 +98,39 @@ export default function ProjectTable({ projects, onProjectClick, onEditProject, 
           // No valid location data
           return (
             <div className="flex items-center gap-2">
-              <MapPin className="h-4 w-4 text-muted-foreground" />
+              <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
               <span className="text-sm text-muted-foreground">
                 Not specified
               </span>
             </div>
           );
         },
-        size: 180,
+        size: 160,
+      }),
+      columnHelper.accessor('category', {
+        header: 'Category',
+        cell: ({ row }) => {
+          const categories = row.original.category;
+          if (!categories || categories.length === 0) {
+            return <span className="text-sm text-muted-foreground">No category</span>;
+          }
+          
+          return (
+            <div className="flex flex-wrap gap-1">
+              {categories.slice(0, 2).map((cat, index) => (
+                <Badge key={index} variant="outline" className="bg-gray-50 text-gray-700 border-gray-300 px-2 py-1 text-xs font-medium">
+                  {cat}
+                </Badge>
+              ))}
+              {categories.length > 2 && (
+                <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-300 px-2 py-1 text-xs font-medium">
+                  +{categories.length - 2}
+                </Badge>
+              )}
+            </div>
+          );
+        },
+        size: 120,
       }),
       columnHelper.accessor('budget', {
         header: ({ column }) => (
@@ -126,36 +146,20 @@ export default function ProjectTable({ projects, onProjectClick, onEditProject, 
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
             <DollarSign className="h-4 w-4 text-muted-foreground" />
-            <span className="font-medium">
-              {row.original.budget ? `$${row.original.budget.toLocaleString()}` : 'Not specified'}
-            </span>
-          </div>
-        ),
-        size: 120,
-      }),
-      columnHelper.accessor('expiry_date', {
-        header: ({ column }) => (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-            className="h-auto p-0 font-semibold hover:bg-transparent"
-          >
-            Deadline
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        ),
-        cell: ({ row }) => (
-          <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm">
-              {row.original.expiry_date 
-                ? new Date(row.original.expiry_date).toLocaleDateString()
-                : 'Not specified'
+            <span className="text-sm font-medium">
+              {row.original.budget ? 
+                new Intl.NumberFormat('en-US', {
+                  style: 'currency',
+                  currency: 'USD',
+                  minimumFractionDigits: 0,
+                  maximumFractionDigits: 0,
+                }).format(row.original.budget) : 
+                'Not specified'
               }
             </span>
           </div>
         ),
-        size: 120,
+        size: 100,
       }),
       columnHelper.accessor('status', {
         header: 'Status',
@@ -197,12 +201,44 @@ export default function ProjectTable({ projects, onProjectClick, onEditProject, 
           const config = statusConfig[status as keyof typeof statusConfig] || statusConfig[PROJECT_STATUSES.DRAFT]
           
           return (
-            <Badge variant={config.variant} className={`${config.color} px-3 py-1.5 text-xs font-medium text-center min-w-[120px] flex items-center justify-center`}>
+            <Badge variant={config.variant} className={`${config.color} px-2 py-1 text-xs font-medium text-center min-w-[100px] flex items-center justify-center`}>
               {config.label}
             </Badge>
           )
         },
-        size: 120,
+        size: 100,
+      }),
+      columnHelper.accessor('expiry_date', {
+        header: ({ column }) => (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            className="h-auto p-0 font-semibold hover:bg-transparent"
+          >
+            Expires
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        ),
+        cell: ({ row }) => {
+          const expiryDate = row.original.expiry_date;
+          if (!expiryDate) {
+            return <span className="text-sm text-muted-foreground">No expiry</span>;
+          }
+          
+          const date = new Date(expiryDate);
+          const now = new Date();
+          const isExpired = date < now;
+          
+          return (
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+              <span className={`text-sm ${isExpired ? 'text-red-600' : ''}`}>
+                {date.toLocaleDateString()}
+              </span>
+            </div>
+          );
+        },
+        size: 100,
       }),
       columnHelper.accessor('created_at', {
         header: ({ column }) => (
@@ -211,7 +247,7 @@ export default function ProjectTable({ projects, onProjectClick, onEditProject, 
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
             className="h-auto p-0 font-semibold hover:bg-transparent"
           >
-            Created
+            Posted
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         ),
@@ -223,58 +259,11 @@ export default function ProjectTable({ projects, onProjectClick, onEditProject, 
             </span>
           </div>
         ),
-        size: 120,
+        size: 100,
       }),
-      columnHelper.display({
-        id: 'actions',
-        header: 'Actions',
-        cell: ({ row }) => (
-          <div className="flex justify-center">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="h-8 w-8 p-0"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <MoreHorizontal className="h-4 w-4" />
-                  <span className="sr-only">Open menu</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={(e) => {
-                  e.stopPropagation()
-                  onProjectClick?.(row.original)
-                }}>
-                  <Eye className="h-4 w-4 mr-2" />
-                  View
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={(e) => {
-                  e.stopPropagation()
-                  onEditProject?.(row.original)
-                }}>
-                  <Edit className="h-4 w-4 mr-2" />
-                  Edit
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  className="text-red-600 focus:text-red-600" 
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    onDeleteProject?.(row.original)
-                  }}
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        ),
-        size: 80,
-      }),
+
     ],
-    [onProjectClick, onEditProject, onDeleteProject]
+    [onProjectClick]
   )
 
   const table = useReactTable({
@@ -288,12 +277,10 @@ export default function ProjectTable({ projects, onProjectClick, onEditProject, 
     getSortedRowModel: getSortedRowModel(),
   })
 
-
-
   return (
     <div className="rounded-md border overflow-hidden">
-      <div className="overflow-x-auto">
-        <Table className="min-w-[800px]">
+      <div className="max-w-full">
+        <Table className="w-full table-fixed">
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id}>
@@ -337,7 +324,7 @@ export default function ProjectTable({ projects, onProjectClick, onEditProject, 
           ) : (
             <TableRow>
               <TableCell colSpan={columns.length} className="h-24 text-center">
-                No results.
+                No projects available.
               </TableCell>
             </TableRow>
           )}

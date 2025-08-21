@@ -55,9 +55,9 @@ export const validationPatterns = {
     address: z.string().min(1, 'Address is required'),
     latitude: z.number().min(-90).max(90).optional(),
     longitude: z.number().min(-180).max(180).optional(),
-    city: z.string().min(1, 'City is required'),
-    province: z.string().min(1, 'Province is required'),
-    postalCode: z.string().min(1, 'Postal code is required'),
+    city: z.string().optional().or(z.literal('')),
+    province: z.string().optional().or(z.literal('')),
+    postalCode: z.string().optional().or(z.literal('')),
   }),
   fileReference: z.object({
     id: z.string().uuid(),

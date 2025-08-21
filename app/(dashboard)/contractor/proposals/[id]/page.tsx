@@ -16,7 +16,9 @@ import {
   Calendar, 
   Clock, 
   FileText, 
-  MapPin
+  MapPin,
+  Eye,
+  Edit
 } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
 
@@ -202,293 +204,331 @@ export default function ProposalViewPage({ params }: ProposalViewPageProps) {
 
   if (loading || proposalLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg">Loading proposal...</div>
+      <div className="flex items-center justify-center min-h-screen bg-slate-50">
+        <div className="text-lg text-slate-600 font-medium">Loading proposal...</div>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg text-red-600">Failed to load proposal</div>
+      <div className="flex items-center justify-center min-h-screen bg-slate-50">
+        <div className="text-lg text-red-600 font-medium">Failed to load proposal</div>
       </div>
     )
   }
 
   if (!user || userRole !== 'contractor') {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg">Access denied. Only contractors can view their proposals.</div>
+      <div className="flex items-center justify-center min-h-screen bg-slate-50">
+        <div className="text-lg text-slate-600 font-medium">Access denied. Only contractors can view their proposals.</div>
       </div>
     )
   }
 
   if (!proposal) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg">Proposal not found</div>
+      <div className="flex items-center justify-center min-h-screen bg-slate-50">
+        <div className="text-lg text-slate-600 font-medium">Proposal not found</div>
       </div>
     )
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="flex items-center gap-4 mb-8">
-        <Button 
-          variant="outline" 
-          size="sm"
-          onClick={() => router.back()}
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back
-        </Button>
-        <div className="flex-1">
-          <h1 className="text-3xl font-bold text-gray-900">{proposal.title as string}</h1>
-          <p className="text-gray-600 mt-1">Proposal Details</p>
-        </div>
-        <Badge 
-          variant={getStatusVariant(proposal.status as string)}
-          className="capitalize text-sm px-3 py-1"
-        >
-          {proposal.status as string}
-        </Badge>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Main Content */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Project Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Building className="w-5 h-5" />
-                Project Information
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-                              <div>
-                  <h3 className="font-semibold text-lg">{proposal.project_details?.project_title || 'Untitled Project'}</h3>
-                  <p className="text-gray-600 mt-1">{proposal.project_details?.statement_of_work || 'No description provided'}</p>
-                </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                  <div className="flex items-center gap-2">
-                    <Building className="w-4 h-4 text-gray-500" />
-                    <span className="text-sm">
-                      <span className="font-medium">Category:</span> {proposal.project_details?.category || 'Not specified'}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-gray-500" />
-                    <span className="text-sm">
-                      <span className="font-medium">Location:</span> {
-                        proposal.project_details?.location 
-                          ? (() => {
-                              try {
-                                const location = typeof proposal.project_details.location === 'string' 
-                                  ? JSON.parse(proposal.project_details.location) 
-                                  : proposal.project_details.location;
-                                return `${location.address || 'Unknown'}, ${location.city || 'Unknown'}, ${location.province || 'Unknown'}`;
-                              } catch {
-                                return proposal.project_details.location || 'Not specified';
-                              }
-                            })()
-                          : 'Not specified'
-                      }
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <DollarSign className="w-4 h-4 text-gray-500" />
-                    <span className="text-sm">
-                      <span className="font-medium">Project Budget:</span> {formatCurrency(proposal.project_details?.budget || 0)}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <User className="w-4 h-4 text-gray-500" />
-                    <span className="text-sm">
-                      <span className="font-medium">Homeowner:</span> {proposal.homeowner_details?.full_name || 'Unknown'}
-                    </span>
-                  </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Proposal Details */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="w-5 h-5" />
-                Proposal Details
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <h4 className="font-medium text-gray-900 mb-2">Description of Work</h4>
-                <p className="text-gray-700 whitespace-pre-wrap">{proposal.description_of_work as string}</p>
-              </div>
-              
-              {(proposal.notes as string) && (
-                <div>
-                  <h4 className="font-medium text-gray-900 mb-2">Additional Notes</h4>
-                  <p className="text-gray-700 whitespace-pre-wrap">{proposal.notes as string}</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Timeline */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="w-5 h-5" />
-                Project Timeline
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <h4 className="font-medium text-gray-900 mb-1">Proposed Start Date</h4>
-                  <p className="text-gray-700">
-                    {proposal.proposed_start_date ? formatDate(proposal.proposed_start_date as string) : 'Not specified'}
-                  </p>
-                </div>
-                <div>
-                  <h4 className="font-medium text-gray-900 mb-1">Proposed End Date</h4>
-                  <p className="text-gray-700">
-                    {proposal.proposed_end_date ? formatDate(proposal.proposed_end_date as string) : 'Not specified'}
-                  </p>
-                </div>
-                <div>
-                  <h4 className="font-medium text-gray-900 mb-1">Deposit Due Date</h4>
-                  <p className="text-gray-700">
-                    {proposal.deposit_due_on ? formatDate(proposal.deposit_due_on as string) : 'Not specified'}
-                  </p>
-                </div>
-                <div>
-                  <h4 className="font-medium text-gray-900 mb-1">Proposal Expires</h4>
-                  <p className="text-gray-700">
-                    {proposal.expiry_date ? formatDate(proposal.expiry_date as string) : 'Not specified'}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Sidebar */}
-        <div className="space-y-6">
-          {/* Financial Summary */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <DollarSign className="w-5 h-5" />
-                Financial Summary
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Subtotal</span>
-                  <span className="font-medium">{formatCurrency(proposal.subtotal_amount || 0)}</span>
-                </div>
-                
-                {proposal.tax_included === 'yes' && (
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Tax Included</span>
-                    <span className="text-green-600 text-sm">✓ Yes</span>
-                  </div>
-                )}
-                
-                <Separator />
-                
-                <div className="flex justify-between items-center">
-                  <span className="font-medium text-gray-900">Total Amount</span>
-                  <span className="font-bold text-lg">{formatCurrency(proposal.total_amount || 0)}</span>
-                </div>
-                
-                <Separator />
-                
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Deposit Required</span>
-                  <span className="font-medium text-blue-600">{formatCurrency(proposal.deposit_amount || 0)}</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Proposal Status */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Clock className="w-5 h-5" />
-                Proposal Status
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-3">
-                <div>
-                  <span className="text-gray-600 text-sm">Current Status</span>
-                  <div className="mt-1">
-                    <Badge 
-                      variant={getStatusVariant(proposal.status)}
-                      className="capitalize"
-                    >
-                      {proposal.status}
-                    </Badge>
-                  </div>
-                </div>
-                
-                <div>
-                  <span className="text-gray-600 text-sm">Submitted</span>
-                  <p className="font-medium">{formatDate(proposal.submitted_date as string)}</p>
-                </div>
-                
-                <div>
-                  <span className="text-gray-600 text-sm">Last Updated</span>
-                  <p className="font-medium">{formatDate(proposal.last_updated as string)}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Actions */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Actions</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Button 
-                variant="outline" 
-                className="w-full"
-                onClick={() => router.push(`/contractor/projects/${proposal.project}`)}
-              >
-                <Building className="w-4 h-4 mr-2" />
-                View Project
-              </Button>
-              
-              {proposal.status === 'draft' && (
+    <div className="min-h-screen bg-slate-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="space-y-8">
+          {/* Header */}
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-6">
                 <Button 
                   variant="outline" 
-                  className="w-full"
-                  onClick={() => router.push(`/contractor/projects/submit-proposal/${proposal.project}?edit=${proposal.id}`)}
+                  size="sm"
+                  onClick={() => router.back()}
+                  className="border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300"
                 >
-                  <FileText className="w-4 h-4 mr-2" />
-                  Edit Proposal
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back
                 </Button>
-              )}
-              
-              <Button 
-                variant="outline" 
-                className="w-full"
-                onClick={() => router.push('/contractor/proposals')}
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Proposals
-              </Button>
-            </CardContent>
-          </Card>
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
+                    <FileText className="h-6 w-6 text-orange-600" />
+                  </div>
+                  <div>
+                    <h1 className="text-3xl font-bold text-slate-900 leading-tight">{proposal.title as string}</h1>
+                    <p className="text-slate-500 mt-2 font-medium">Proposal Details</p>
+                  </div>
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <Badge 
+                  variant={getStatusVariant(proposal.status as string)}
+                  className="capitalize text-sm px-4 py-2 text-base font-medium"
+                >
+                  {proposal.status as string}
+                </Badge>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Main Content */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Project Information */}
+              <Card className="border-slate-200 shadow-sm">
+                <CardHeader className="pb-4">
+                  <CardTitle className="flex items-center gap-3 text-slate-800">
+                    <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center">
+                      <Building className="h-4 w-4 text-slate-600" />
+                    </div>
+                    Project Information
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="p-4 bg-slate-50 rounded-xl">
+                    <h3 className="font-semibold text-lg text-slate-900">{proposal.project_details?.project_title || 'Untitled Project'}</h3>
+                    <p className="text-slate-600 mt-2 leading-relaxed">{proposal.project_details?.statement_of_work || 'No description provided'}</p>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-xl">
+                      <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center">
+                        <Building className="h-4 w-4 text-slate-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-slate-500 font-medium">Category</p>
+                        <p className="font-semibold text-slate-900">{proposal.project_details?.category || 'Not specified'}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-xl">
+                      <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center">
+                        <MapPin className="h-4 w-4 text-slate-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-slate-500 font-medium">Location</p>
+                        <p className="font-semibold text-slate-900">
+                          {proposal.project_details?.location 
+                            ? (() => {
+                                try {
+                                  const location = typeof proposal.project_details.location === 'string' 
+                                    ? JSON.parse(proposal.project_details.location) 
+                                    : proposal.project_details.location;
+                                  return `${location.address || 'Unknown'}, ${location.city || 'Unknown'}, ${location.province || 'Unknown'}`;
+                                } catch {
+                                  return proposal.project_details.location || 'Not specified';
+                                }
+                              })()
+                            : 'Not specified'
+                          }
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-xl">
+                      <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+                        <DollarSign className="h-4 w-4 text-orange-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-slate-500 font-medium">Project Budget</p>
+                        <p className="font-semibold text-slate-900">{formatCurrency(proposal.project_details?.budget || 0)}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-xl">
+                      <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center">
+                        <User className="h-4 w-4 text-slate-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-slate-500 font-medium">Homeowner</p>
+                        <p className="font-semibold text-slate-900">{proposal.homeowner_details?.full_name || 'Unknown'}</p>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Proposal Details */}
+              <Card className="border-slate-200 shadow-sm">
+                <CardHeader className="pb-4">
+                  <CardTitle className="flex items-center gap-3 text-slate-800">
+                    <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center">
+                      <FileText className="h-4 w-4 text-slate-600" />
+                    </div>
+                    Proposal Details
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="p-4 bg-slate-50 rounded-xl">
+                    <h4 className="font-medium text-slate-900 mb-3">Description of Work</h4>
+                    <p className="text-slate-700 whitespace-pre-wrap leading-relaxed">{proposal.description_of_work as string}</p>
+                  </div>
+                  
+                  {(proposal.notes as string) && (
+                    <div className="p-4 bg-slate-50 rounded-xl">
+                      <h4 className="font-medium text-slate-900 mb-3">Additional Notes</h4>
+                      <p className="text-slate-700 whitespace-pre-wrap leading-relaxed">{proposal.notes as string}</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Timeline */}
+              <Card className="border-slate-200 shadow-sm">
+                <CardHeader className="pb-4">
+                  <CardTitle className="flex items-center gap-3 text-slate-800">
+                    <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center">
+                      <Calendar className="h-4 w-4 text-slate-600" />
+                    </div>
+                    Project Timeline
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="p-4 bg-slate-50 rounded-xl">
+                      <h4 className="text-sm text-slate-500 font-medium mb-2">Proposed Start Date</h4>
+                      <p className="font-semibold text-slate-900">
+                        {proposal.proposed_start_date ? formatDate(proposal.proposed_start_date as string) : 'Not specified'}
+                      </p>
+                    </div>
+                    <div className="p-4 bg-slate-50 rounded-xl">
+                      <h4 className="text-sm text-slate-500 font-medium mb-2">Proposed End Date</h4>
+                      <p className="font-semibold text-slate-900">
+                        {proposal.proposed_end_date ? formatDate(proposal.proposed_end_date as string) : 'Not specified'}
+                      </p>
+                    </div>
+                    <div className="p-4 bg-slate-50 rounded-xl">
+                      <h4 className="text-sm text-slate-500 font-medium mb-2">Deposit Due Date</h4>
+                      <p className="font-semibold text-slate-900">
+                        {proposal.deposit_due_on ? formatDate(proposal.deposit_due_on as string) : 'Not specified'}
+                      </p>
+                    </div>
+                    <div className="p-4 bg-slate-50 rounded-xl">
+                      <h4 className="text-sm text-slate-500 font-medium mb-2">Proposal Expires</h4>
+                      <p className="font-semibold text-slate-900">
+                        {proposal.expiry_date ? formatDate(proposal.expiry_date as string) : 'Not specified'}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Sidebar */}
+            <div className="space-y-6">
+              {/* Financial Summary */}
+              <Card className="border-slate-200 shadow-sm">
+                <CardHeader className="pb-4">
+                  <CardTitle className="flex items-center gap-3 text-slate-800">
+                    <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+                      <DollarSign className="h-4 w-4 text-orange-600" />
+                    </div>
+                    Financial Summary
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="p-4 bg-slate-50 rounded-xl">
+                      <div className="flex justify-between items-center mb-3">
+                        <span className="text-slate-600 font-medium">Subtotal</span>
+                        <span className="font-semibold text-slate-900">{formatCurrency(proposal.subtotal_amount || 0)}</span>
+                      </div>
+                      
+                      {proposal.tax_included === 'yes' && (
+                        <div className="flex justify-between items-center mb-3">
+                          <span className="text-slate-600 font-medium">Tax Included</span>
+                          <span className="text-green-600 text-sm font-medium">✓ Yes</span>
+                        </div>
+                      )}
+                      
+                      <Separator className="my-3" />
+                      
+                      <div className="flex justify-between items-center mb-3">
+                        <span className="font-semibold text-slate-900">Total Amount</span>
+                        <span className="font-bold text-lg text-slate-900">{formatCurrency(proposal.total_amount || 0)}</span>
+                      </div>
+                      
+                      <Separator className="my-3" />
+                      
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-600 font-medium">Deposit Required</span>
+                        <span className="font-semibold text-blue-600">{formatCurrency(proposal.deposit_amount || 0)}</span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Proposal Status */}
+              <Card className="border-slate-200 shadow-sm">
+                <CardHeader className="pb-4">
+                  <CardTitle className="flex items-center gap-3 text-slate-800">
+                    <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center">
+                      <Clock className="h-4 w-4 text-slate-600" />
+                    </div>
+                    Proposal Status
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="p-4 bg-slate-50 rounded-xl">
+                      <span className="text-sm text-slate-500 font-medium mb-3 block">Current Status</span>
+                      <div className="mb-4">
+                        <Badge 
+                          variant={getStatusVariant(proposal.status)}
+                          className="capitalize px-3 py-2 text-sm font-medium"
+                        >
+                          {proposal.status}
+                        </Badge>
+                      </div>
+                      
+                      <div className="space-y-3">
+                        <div>
+                          <span className="text-sm text-slate-500 font-medium">Submitted</span>
+                          <p className="font-semibold text-slate-900">{formatDate(proposal.submitted_date as string)}</p>
+                        </div>
+                        
+                        <div>
+                          <span className="text-sm text-slate-500 font-medium">Last Updated</span>
+                          <p className="font-semibold text-slate-900">{formatDate(proposal.last_updated as string)}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Actions */}
+              <Card className="border-slate-200 shadow-sm">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-slate-800">Actions</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+
+                    
+                    {proposal.status === 'draft' && (
+                      <Button 
+                        variant="outline" 
+                        className="w-full border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300"
+                        onClick={() => router.push(`/contractor/projects/submit-proposal/${proposal.project}?edit=${proposal.id}`)}
+                      >
+                        <Edit className="w-4 h-4 mr-2" />
+                        Edit Proposal
+                      </Button>
+                    )}
+                    
+                    <Button 
+                      variant="outline" 
+                      className="w-full border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300"
+                      onClick={() => router.push('/contractor/proposals')}
+                    >
+                      <ArrowLeft className="w-4 h-4 mr-2" />
+                      Back to Proposals
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
         </div>
       </div>
     </div>

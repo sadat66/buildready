@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { Project } from "@/types/database/projects";
 import { Proposal } from "@/types/database/proposals";
-import type { User } from "@/types/database/auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,12 +13,9 @@ import {
   Clock,
   CheckCircle,
   AlertCircle,
-  ThumbsUp,
   ThumbsDown,
   FileText,
-  Star,
   TrendingUp,
-  Calendar,
   MessageSquare,
   Eye,
   Download,
@@ -32,7 +28,6 @@ import { USER_ROLES, PROJECT_STATUSES } from "@/lib/constants";
 interface ProposalsTabContentProps {
   proposals: Proposal[];
   project: Project;
-  user: User;
   userRole: (typeof USER_ROLES)[keyof typeof USER_ROLES];
   onAcceptProposal: (proposalId: string) => Promise<void>;
   onRejectProposal: (
@@ -49,7 +44,6 @@ interface ProposalsTabContentProps {
 export function ProposalsTabContent({
   proposals,  
   project,
-  user,
   userRole, 
   onAcceptProposal,
   onRejectProposal,

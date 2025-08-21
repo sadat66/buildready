@@ -9,9 +9,9 @@ import { Label } from "@/components/ui/label";
 
 export interface LocationData {
   address: string;
-  city: string;
-  province: string;
-  postalCode: string;
+  city: string | null;
+  province: string | null;
+  postalCode: string | null;
   latitude: number | null;
   longitude: number | null;
   country?: string;
@@ -214,17 +214,17 @@ export function LocationInput({
       result.address.neighbourhood ||
       result.address.district ||
       result.address.borough ||
-      "";
+      null;
 
     // Enhanced province/state extraction for worldwide support
     const province =
       result.address.state ||
       result.address.province ||
       result.address.region ||
-      "";
+      null;
 
     // Enhanced postal code extraction
-    const postalCode = result.address.postcode || "";
+    const postalCode = result.address.postcode || null;
 
     // Get country information
     const country = result.address.country || "";
@@ -251,9 +251,9 @@ export function LocationInput({
     if (searchQuery.trim()) {
       const location: LocationData = {
         address: searchQuery,
-        city: value.city || "",
-        province: value.province || "",
-        postalCode: value.postalCode || "",
+        city: value.city || null,
+        province: value.province || null,
+        postalCode: value.postalCode || null,
         latitude: null,
         longitude: null,
         country: value.country || "",
@@ -270,9 +270,9 @@ export function LocationInput({
     setShowResults(false);
     onChange({
       address: "",
-      city: "",
-      province: "",
-      postalCode: "",
+      city: null,
+      province: null,
+      postalCode: null,
       latitude: null,
       longitude: null,
       country: "",
@@ -466,7 +466,7 @@ export function LocationInput({
 
       {/* Privacy Note */}
       <p className="text-xs text-gray-500">
-        Note: Only city and province will be visible to contractors for privacy
+        Note: Only city and province (if provided) will be visible to contractors for privacy
       </p>
     </div>
   );

@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Project } from "@/types/database/projects";
+
 import { User } from "@/types/database/auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -14,21 +14,16 @@ import {
   Paperclip,
   Image as ImageIcon,
   FileText,
-  User as UserIcon,
   MessageSquare,
-  Clock,
-  Check,
   AlertCircle,
   Download,
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { USER_ROLES } from "@/lib/constants";
+
 
 interface ProjectViewMessagesProps {
-  project: Project;
   user: User;
-  userRole: (typeof USER_ROLES)[keyof typeof USER_ROLES];
 }
 
 interface Message {
@@ -51,9 +46,7 @@ interface Message {
 }
 
 export function MessagesTabContent({
-  project,
   user,
-  userRole,
 }: ProjectViewMessagesProps) {
   const [newMessage, setNewMessage] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
