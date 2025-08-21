@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { Project } from "@/types/database/projects";
 import { User } from "@/types/database/auth";
 import {
@@ -9,9 +8,8 @@ import {
   DollarSign,
   Clock,
   User as UserIcon,
-  ChevronLeft,
-  ChevronRight,
 } from "lucide-react";
+import ProjectImageGallery from "./ProjectImageGallery";
 
 interface ProjectViewHeaderProps {
   project: Project;
@@ -22,173 +20,15 @@ export default function ProjectViewHeader({
   project,
   user,
 }: ProjectViewHeaderProps) {
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  
-  // Placeholder images for different project types
-  const placeholderImages = {
-    'renovation': 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800&h=600&fit=crop',
-    'construction': 'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=800&h=600&fit=crop',
-    'landscaping': 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop',
-    'electrical': 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=800&h=600&fit=crop',
-    'plumbing': 'https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=800&h=600&fit=crop',
-    'painting': 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&h=600&fit=crop',
-    'roofing': 'https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?w=800&h=600&fit=crop',
-    'default': 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&h=600&fit=crop'
-  }
-
-  // Get available images or use placeholders
-  const getProjectImages = () => {
-    if (project.project_photos && project.project_photos.length > 0) {
-      return project.project_photos
-    }
-    
-    // Generate placeholder images based on project type
-    const projectType = project.project_type?.toLowerCase() || 'default'
-    const placeholderUrl = placeholderImages[projectType as keyof typeof placeholderImages] || placeholderImages.default
-    
-    return [
-      {
-        id: 'placeholder-1',
-        url: placeholderUrl,
-        filename: `${project.project_type || 'Project'} - Main View`,
-        size: 0,
-        mimeType: 'image/jpeg',
-        uploadedAt: new Date()
-      },
-      {
-        id: 'placeholder-2',
-        url: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&h=600&fit=crop&q=80',
-        filename: `${project.project_type || 'Project'} - Detail View`,
-        size: 0,
-        mimeType: 'image/jpeg',
-        uploadedAt: new Date()
-      },
-      {
-        id: 'placeholder-3',
-        url: 'https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=800&h=600&fit=crop&q=80',
-        filename: `${project.project_type || 'Project'} - Overview`,
-        size: 0,
-        mimeType: 'image/jpeg',
-        uploadedAt: new Date()
-      }
-    ]
-  }
-
-  const projectImages = getProjectImages()
-  const hasMultipleImages = projectImages.length > 1
-
-  const nextImage = () => {
-    setCurrentImageIndex((prev) => (prev + 1) % projectImages.length)
-  }
-
-  const previousImage = () => {
-    setCurrentImageIndex((prev) => (prev - 1 + projectImages.length) % projectImages.length)
-  }
-
-  const goToImage = (index: number) => {
-    setCurrentImageIndex(index)
-  }
-
   return (
     <div className="bg-white rounded-lg border border-gray-100 p-4 sm:p-6 mb-4 sm:mb-6">
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
-        
         {/* Left Section - Project Visuals */}
         <div className="lg:col-span-1">
-          <div className="space-y-3 sm:space-y-4">
-            {/* Main Project Image */}
-            <div className="relative group">
-              <img
-                src={projectImages[currentImageIndex].url}
-                alt={projectImages[currentImageIndex].filename}
-                className="w-full h-48 sm:h-64 object-cover rounded-lg transition-all duration-300"
-              />
-              
-              {/* Navigation Arrows */}
-              {hasMultipleImages && (
-                <>
-                  <button
-                    onClick={previousImage}
-                    className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-700 p-1.5 sm:p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                    aria-label="Previous image"
-                  >
-                    <ChevronLeft className="w-3 h-3 sm:w-4 sm:h-4" />
-                  </button>
-                  <button
-                    onClick={nextImage}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-700 p-1.5 sm:p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                    aria-label="Next image"
-                  >
-                    <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4" />
-                  </button>
-                </>
-              )}
-
-              {/* Image Counter */}
-              {hasMultipleImages && (
-                <div className="absolute top-2 right-2 bg-black/50 text-white px-2 py-1 rounded text-xs">
-                  {currentImageIndex + 1} / {projectImages.length}
-                </div>
-              )}
-
-              {/* Placeholder Indicator */}
-              {(!project.project_photos || project.project_photos.length === 0) && (
-                <div className="absolute top-2 left-2 bg-orange-500 text-white px-2 py-1 rounded text-xs">
-                  Sample Images
-                </div>
-              )}
-            </div>
-
-            {/* Thumbnail Gallery */}
-            {hasMultipleImages && (
-              <div className="flex items-center gap-2">
-                <button 
-                  onClick={previousImage}
-                  className="p-1 rounded hover:bg-gray-100 transition-colors"
-                  aria-label="Previous image"
-                >
-                  <ChevronLeft className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
-                </button>
-                
-                <div className="flex gap-1 sm:gap-2 flex-1 justify-center">
-                  {projectImages.map((photo, index) => (
-                    <button
-                      key={photo.id}
-                      onClick={() => goToImage(index)}
-                      className={`w-12 h-12 sm:w-16 sm:h-16 rounded border-2 overflow-hidden transition-all duration-200 ${
-                        index === currentImageIndex 
-                          ? 'border-orange-500 ring-2 ring-orange-200' 
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                    >
-                      <img
-                        src={photo.url}
-                        alt={photo.filename}
-                        className="w-full h-full object-cover"
-                      />
-                    </button>
-                  ))}
-                </div>
-
-                <button 
-                  onClick={nextImage}
-                  className="p-1 rounded hover:bg-gray-100 transition-colors"
-                  aria-label="Next image"
-                >
-                  <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
-                </button>
-              </div>
-            )}
-
-            {/* Image Info */}
-            {(!project.project_photos || project.project_photos.length === 0) && (
-              <div className="text-left">
-                <p className="text-xs text-orange-600">
-                  Showing sample images for {project.project_type || 'project'} type
-                </p>
-              </div>
-            )}
-          </div>
+          <ProjectImageGallery
+            projectPhotos={project.project_photos}
+            projectType={project.project_type}
+          />
         </div>
 
         {/* Middle Section - Project Details */}
@@ -204,23 +44,31 @@ export default function ProjectViewHeader({
             {/* Project Type Badge */}
             <div>
               <span className="bg-orange-100 text-orange-700 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium">
-                {project.project_type?.toUpperCase() || 'PROJECT'}
+                {project.project_type?.toUpperCase() || "PROJECT"}
               </span>
             </div>
 
             {/* Project Status */}
             <div className="flex items-center gap-2">
               <span className="text-xs sm:text-sm text-gray-600">Status:</span>
-              <span className={`px-2 py-1 rounded text-xs font-medium ${
-                project.status === 'Open for Proposals' ? 'bg-green-100 text-green-700' :
-                project.status === 'Proposal Selected' ? 'bg-blue-100 text-blue-700' :
-                project.status === 'Completed' ? 'bg-purple-100 text-purple-700' :
-                project.status === 'In Progress' ? 'bg-yellow-100 text-yellow-700' :
-                project.status === 'Draft' ? 'bg-gray-100 text-gray-600' :
-                project.status === 'Cancelled' ? 'bg-red-100 text-red-700' :
-                'bg-gray-100 text-gray-700'
-              }`}>
-                {project.status || 'Unknown'}
+              <span
+                className={`px-2 py-1 rounded text-xs font-medium ${
+                  project.status === "Open for Proposals"
+                    ? "bg-green-100 text-green-700"
+                    : project.status === "Proposal Selected"
+                    ? "bg-blue-100 text-blue-700"
+                    : project.status === "Completed"
+                    ? "bg-purple-100 text-purple-700"
+                    : project.status === "In Progress"
+                    ? "bg-yellow-100 text-yellow-700"
+                    : project.status === "Draft"
+                    ? "bg-gray-100 text-gray-600"
+                    : project.status === "Cancelled"
+                    ? "bg-red-100 text-red-700"
+                    : "bg-gray-100 text-gray-700"
+                }`}
+              >
+                {project.status || "Unknown"}
               </span>
             </div>
 
@@ -231,7 +79,9 @@ export default function ProjectViewHeader({
                 <span className="text-xl sm:text-2xl font-bold text-green-600">
                   ${project.budget.toLocaleString()}
                 </span>
-                <span className="text-xs sm:text-sm text-gray-500 ml-2">Budget</span>
+                <span className="text-xs sm:text-sm text-gray-500 ml-2">
+                  Budget
+                </span>
               </div>
             </div>
 
@@ -242,7 +92,7 @@ export default function ProjectViewHeader({
                 <span className="text-sm sm:text-base text-gray-700">
                   {[project.location.city, project.location.province]
                     .filter(Boolean)
-                    .join(', ')}
+                    .join(", ")}
                 </span>
               </div>
             ) : null}
@@ -251,25 +101,33 @@ export default function ProjectViewHeader({
             <div className="flex items-center gap-2">
               <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500" />
               <span className="text-sm sm:text-base text-gray-700">
-                {new Date(project.start_date).toLocaleDateString()} - {new Date(project.end_date).toLocaleDateString()}
+                {new Date(project.start_date).toLocaleDateString()} -{" "}
+                {new Date(project.end_date).toLocaleDateString()}
               </span>
             </div>
 
             {/* Project Details */}
             <div className="pt-3 sm:pt-4 border-t border-gray-200">
-              <h3 className="font-medium text-gray-900 mb-2 text-sm sm:text-base">Project Details</h3>
+              <h3 className="font-medium text-gray-900 mb-2 text-sm sm:text-base">
+                Project Details
+              </h3>
               <p className="text-gray-700 text-xs sm:text-sm leading-relaxed">
-                {project.statement_of_work || 'No description provided'}
+                {project.statement_of_work || "No description provided"}
               </p>
             </div>
 
             {/* Categories */}
             {project.category && project.category.length > 0 && (
               <div className="pt-3 sm:pt-4 border-t border-gray-200">
-                <h3 className="font-medium text-gray-900 mb-2 text-sm sm:text-base">Categories</h3>
+                <h3 className="font-medium text-gray-900 mb-2 text-sm sm:text-base">
+                  Categories
+                </h3>
                 <div className="flex flex-wrap gap-1 sm:gap-2">
                   {project.category.map((cat, index) => (
-                    <span key={index} className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">
+                    <span
+                      key={index}
+                      className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs"
+                    >
                       {cat}
                     </span>
                   ))}
@@ -282,8 +140,10 @@ export default function ProjectViewHeader({
         {/* Right Section - Project Summary - Hidden on medium and mobile */}
         <div className="hidden xl:block lg:col-span-1">
           <div className="bg-gray-50 rounded-lg p-3 sm:p-4 space-y-3 sm:space-y-4">
-            <h3 className="font-medium text-gray-900 text-sm sm:text-base">Project Summary</h3>
-            
+            <h3 className="font-medium text-gray-900 text-sm sm:text-base">
+              Project Summary
+            </h3>
+
             {/* Created Date */}
             <div className="flex items-center justify-between">
               <span className="text-xs sm:text-sm text-gray-600">Created</span>
@@ -302,27 +162,37 @@ export default function ProjectViewHeader({
 
             {/* Permit Required */}
             <div className="flex items-center justify-between">
-              <span className="text-xs sm:text-sm text-gray-600">Permit Required</span>
-              <span className={`text-xs sm:text-sm font-medium ${
-                project.permit_required ? 'text-red-600' : 'text-green-600'
-              }`}>
-                {project.permit_required ? 'Yes' : 'No'}
+              <span className="text-xs sm:text-sm text-gray-600">
+                Permit Required
+              </span>
+              <span
+                className={`text-xs sm:text-sm font-medium ${
+                  project.permit_required ? "text-red-600" : "text-green-600"
+                }`}
+              >
+                {project.permit_required ? "Yes" : "No"}
               </span>
             </div>
 
             {/* Verified Project */}
             <div className="flex items-center justify-between">
               <span className="text-xs sm:text-sm text-gray-600">Verified</span>
-              <span className={`text-xs sm:text-sm font-medium ${
-                project.is_verified_project ? 'text-green-600' : 'text-gray-600'
-              }`}>
-                {project.is_verified_project ? 'Yes' : 'No'}
+              <span
+                className={`text-xs sm:text-sm font-medium ${
+                  project.is_verified_project
+                    ? "text-green-600"
+                    : "text-gray-600"
+                }`}
+              >
+                {project.is_verified_project ? "Yes" : "No"}
               </span>
             </div>
 
             {/* Proposal Count */}
             <div className="flex items-center justify-between">
-              <span className="text-xs sm:text-sm text-gray-600">Proposals</span>
+              <span className="text-xs sm:text-sm text-gray-600">
+                Proposals
+              </span>
               <span className="text-xs sm:text-sm font-medium text-gray-900">
                 {project.proposal_count || 0}
               </span>
@@ -336,7 +206,7 @@ export default function ProjectViewHeader({
                 </div>
                 <div>
                   <p className="text-xs sm:text-sm font-medium text-gray-900">
-                    {user?.full_name || 'Unknown User'}
+                    {user?.full_name || "Unknown User"}
                   </p>
                   <p className="text-xs text-gray-500">Project Owner</p>
                 </div>
@@ -348,7 +218,8 @@ export default function ProjectViewHeader({
               <div className="flex items-center gap-2">
                 <Clock className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
                 <span className="text-xs text-gray-500">
-                  Last updated {new Date(project.updated_at).toLocaleDateString()}
+                  Last updated{" "}
+                  {new Date(project.updated_at).toLocaleDateString()}
                 </span>
               </div>
             </div>
@@ -356,5 +227,5 @@ export default function ProjectViewHeader({
         </div>
       </div>
     </div>
-  )
+  );
 }

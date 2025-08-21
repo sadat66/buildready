@@ -7,6 +7,7 @@ import { User } from "@/types/database/auth";
 import { ProjectViewTabs } from "./ProjectViewTabs";
 import { MessagesTabContent } from "./MessagesTabContent";
 import ProjectViewHeader from "./ProjectViewHeader";
+import ProjectImageGallery from "./ProjectImageGallery";
 
 import { Button } from "@/components/ui/button";
 import { Share, Globe } from "lucide-react";
@@ -110,7 +111,7 @@ export default function HomeownerProjectView({
           />
         );
       case "messages":
-        return <MessagesTabContent {...commonProps} />;
+        return <MessagesTabContent />;
       default:
         return <DetailsTabContent {...commonProps} />;
     }
