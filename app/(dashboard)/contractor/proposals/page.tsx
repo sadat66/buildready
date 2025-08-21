@@ -239,7 +239,7 @@ export default function ContractorProposalsPage() {
   const startIndex = (currentPage - 1) * itemsPerPage
   const endIndex = startIndex + itemsPerPage
   const paginatedProposals = filteredProposals.slice(startIndex, endIndex)
-
+  console.log('paginatedProposals', paginatedProposals)
   if (loading || proposalsLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
