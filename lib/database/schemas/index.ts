@@ -19,6 +19,8 @@ import { proposalSchema } from "./proposals";
 import { messageSchema } from "./communication";
 import { projectViewSchema } from "./project_views";
 import { reviewSchema } from "./reviews";
+import { subscriptionSchema } from "./subscriptions";
+import { paymentSchema } from "./payments";
 
 export const schemaRegistry = {
   users: userSchema,
@@ -28,6 +30,8 @@ export const schemaRegistry = {
   reviews: reviewSchema,
   messages: messageSchema,
   project_views: projectViewSchema,
+  subscriptions: subscriptionSchema,
+  payments: paymentSchema,
 } as const;
 
 export const schemaMetadata = {
@@ -72,6 +76,16 @@ export const schemaMetadata = {
     tableName: "project_views",
     description: "Tracks contractor access to project details for visibility control and monetization",
     indexes: ["contractor_id", "project_id", "view_status", "access_method", "is_active"],
+  },
+  subscriptions: {
+    tableName: "subscriptions",
+    description: "Represents a contractor's active or past paid access to platform features such as unlimited project views, verified badge, proposal access, or premium placement",
+    indexes: ["contractor", "is_active", "tier_level", "start_date", "end_date"],
+  },
+  payments: {
+    tableName: "payments",
+    description: "Payment transactions for subscriptions, project views, and other platform services with provider-agnostic architecture",
+    indexes: ["external_payment_id", "external_customer_id", "status", "payment_provider", "amount", "created_at"],
   },
 
 } as const;
@@ -135,3 +149,11 @@ export type {
 export type {
   Review,
 } from "./reviews";
+
+export type {
+  Subscription,
+} from "./subscriptions";
+
+export type {
+  Payment,
+} from "./payments";

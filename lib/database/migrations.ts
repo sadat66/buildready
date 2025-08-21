@@ -314,7 +314,11 @@ import { migration_000_create_migration_status_table } from './migrations/000_cr
 import { migration_016_create_agreements_table } from './migrations/016_create_agreements_table';
 import { migration_017_create_project_views_table } from './migrations/017_create_project_views_table';
 import { migration_018_drop_and_recreate_reviews_table } from './migrations/018_drop_and_recreate_reviews_table';
+import { migration_019_create_subscriptions_table } from './migrations/019_create_subscriptions_table';
+import { migration_020_create_payments_table } from './migrations/020_create_payments_table';
 migrationRegistry.register(migration_000_create_migration_status_table);
 migrationRegistry.register(migration_016_create_agreements_table);
 migrationRegistry.register(migration_017_create_project_views_table);
 migrationRegistry.register(migration_018_drop_and_recreate_reviews_table);
+migrationRegistry.register(migration_019_create_subscriptions_table);
+migrationRegistry.register(migration_020_create_payments_table);
