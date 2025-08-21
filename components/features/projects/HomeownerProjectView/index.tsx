@@ -5,7 +5,6 @@ import { Project } from "@/types/database/projects";
 import { Proposal } from "@/types/database/proposals";
 import { User } from "@/types/database/auth";
 import { ProjectViewTabs } from "./ProjectViewTabs";
-import { MessagesTabContent } from "./MessagesTabContent";
 import ProjectViewHeader from "./ProjectViewHeader";
 import ProjectImageGallery from "./ProjectImageGallery";
 
@@ -18,7 +17,7 @@ import {
   ProposalsTabContent,
 } from "@/components/features/projects";
 
-export type TabType = "details" | "proposals" | "messages";
+export type TabType = "details" | "proposals";
 
 interface ProjectViewProps {
   project: Project;
@@ -110,8 +109,6 @@ export default function HomeownerProjectView({
             updatingProposal={updatingProposal}
           />
         );
-      case "messages":
-        return <MessagesTabContent />;
       default:
         return <DetailsTabContent {...commonProps} />;
     }
@@ -121,9 +118,9 @@ export default function HomeownerProjectView({
     const baseTabs: TabType[] = ["details"];
 
     if (userRole === USER_ROLES.HOMEOWNER) {
-      return [...baseTabs, "proposals", "messages"];
+      return [...baseTabs, "proposals"];
     } else if (userRole === USER_ROLES.CONTRACTOR) {
-      return [...baseTabs, "proposals", "messages"];
+      return [...baseTabs, "proposals"];
     }
     return baseTabs;
   };

@@ -16,7 +16,6 @@ import {
   ThumbsDown,
   FileText,
   TrendingUp,
-  MessageSquare,
   Eye,
   Download,
   Edit,
@@ -452,15 +451,7 @@ export function ProposalsTabContent({
                     </>
                   )}
 
-                {userRole === USER_ROLES.HOMEOWNER && (
-                  <Button
-                    variant="outline"
-                    className="border-blue-200 text-blue-700 hover:bg-blue-50"
-                  >
-                    <MessageSquare className="h-4 w-4 mr-2" />
-                    Message Contractor
-                  </Button>
-                )}
+
 
                 {userRole === USER_ROLES.CONTRACTOR && (
                   <Button

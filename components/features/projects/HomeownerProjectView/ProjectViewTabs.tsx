@@ -2,7 +2,7 @@
 
 import { Project } from '@/types/database/projects'
 import { Badge } from '@/components/ui/badge'
-import { Eye, FileText, MessageSquare } from 'lucide-react'
+import { Eye, FileText } from 'lucide-react'
 import { TabType } from './index'
 import { cn } from '@/lib/utils'
 import { USER_ROLES, PROJECT_STATUSES } from '@/lib/constants'
@@ -21,7 +21,6 @@ export function ProjectViewTabs({ activeTab, onTabChange, userRole, availableTab
     switch (tab) {
       case 'details': return <Eye className="h-4 w-4" />
       case 'proposals': return <FileText className="h-4 w-4" />
-      case 'messages': return <MessageSquare className="h-4 w-4" />
       default: return <Eye className="h-4 w-4" />
     }
   }
@@ -34,7 +33,6 @@ export function ProjectViewTabs({ activeTab, onTabChange, userRole, availableTab
           return 'Proposals'
         }
         return userRole === USER_ROLES.CONTRACTOR ? 'My Proposals' : 'Proposals'
-      case 'messages': return 'Messages'
       default: return 'details'
     }
   }
