@@ -28,7 +28,6 @@ export default function ProjectViewHeader({
           <ProjectImageGallery
             projectPhotos={project.project_photos}
             projectType={project.project_type}
-            projectTitle={project.project_title}
           />
         </div>
 

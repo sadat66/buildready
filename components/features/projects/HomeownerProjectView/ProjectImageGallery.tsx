@@ -17,13 +17,11 @@ interface ProjectPhoto {
 interface ProjectImageGalleryProps {
   projectPhotos?: ProjectPhoto[];
   projectType?: string;
-  projectTitle?: string;
 }
 
 export default function ProjectImageGallery({
   projectPhotos,
   projectType,
-  projectTitle,
 }: ProjectImageGalleryProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
@@ -108,7 +106,6 @@ export default function ProjectImageGallery({
   };
 
   const projectImages = getProjectImages();
-  const hasMultipleImages = projectImages.length > 1;
   const hasImages = projectImages.length > 0; // Check if we have any images at all
   const isUsingPlaceholders = !projectPhotos || projectPhotos.length === 0;
 
@@ -171,9 +168,11 @@ export default function ProjectImageGallery({
         />
         
         {/* Fallback regular img tag for debugging */}
-        <img
+        <Image
           src={projectImages[currentImageIndex].url}
           alt={projectImages[currentImageIndex].filename}
+          width={800}
+          height={600}
           className="w-full h-48 sm:h-64 object-cover rounded-lg transition-all duration-300 absolute top-0 left-0 opacity-0 hover:opacity-100"
           style={{ zIndex: -1 }}
         />

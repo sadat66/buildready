@@ -111,7 +111,7 @@ export default function HomeownerProjectView({
           />
         );
       case "messages":
-        return <MessagesTabContent {...commonProps} />;
+        return <MessagesTabContent />;
       default:
         return <DetailsTabContent {...commonProps} />;
     }

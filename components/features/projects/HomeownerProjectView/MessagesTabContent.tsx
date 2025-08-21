@@ -3,13 +3,7 @@
 import { MessageSquare } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
-interface ProjectViewMessagesProps {
-  user: any; // Keep the interface for compatibility
-}
-
-export function MessagesTabContent({
-  user,
-}: ProjectViewMessagesProps) {
+export function MessagesTabContent() {
   return (
     <div className="space-y-4 sm:space-y-6 p-4 sm:p-6">
       <Card>
