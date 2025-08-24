@@ -1,11 +1,11 @@
 import * as React from "react"
 import { useFormContext } from "react-hook-form"
-import { FormField, FormInput, FormTextarea, FormSelect, FormBadge, FormFieldLocation, FormMultiSelect } from "@/components/shared/form-input"
+import { FormField, FormInput, FormTextarea, FormSelect, FormFieldLocation, FormMultiSelect } from "@/components/shared/form-input"
 import { CreateProjectFormInputData } from "@/lib/validation/projects"
 import { TRADE_CATEGORY_VALUES, PROJECT_TYPE_VALUES } from "@/lib/constants"
  
 export function BasicInformationSection() {
-  const { watch, setValue } = useFormContext<CreateProjectFormInputData>()
+  const { } = useFormContext<CreateProjectFormInputData>()
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-6">
       <h3 className="text-lg font-medium mb-4">Basic Information</h3>

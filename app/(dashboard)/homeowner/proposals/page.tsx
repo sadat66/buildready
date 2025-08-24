@@ -41,6 +41,7 @@ import {
 import HomeownerProposalTable from "@/components/features/projects/HomeownerProposalTable";
 import toast from "react-hot-toast";
 import { Label } from "@/components/ui/label";
+import LoadingSpinner from "@/components/shared/loading-spinner";
 
 interface Project {
   id: string;
@@ -358,7 +359,13 @@ export default function HomeownerProposalsPage() {
   if (proposalsLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg">Loading proposals...</div>
+        <LoadingSpinner 
+          text="Loading Proposals"
+          subtitle="Fetching your project proposals..."
+          size="lg"
+          variant="default"
+          className="text-center"
+        />
       </div>
     );
   }
