@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { HomeownerProjectView } from '@/components/features/projects'
 import { createClient } from '@/lib/supabase'
 import toast from 'react-hot-toast'
-import { USER_ROLES, PROJECT_STATUSES, ProjectStatus, PROJECT_STATUS_VALUES, PROPOSAL_STATUSES } from '@/lib/constants'
+import { USER_ROLES, PROPOSAL_STATUSES, PROJECT_STATUSES } from '@/lib/constants'
 import { Project } from '@/types/database/projects'
 import { Proposal } from '@/types/database/proposals'
 import { User } from '@/types/database/auth'
@@ -21,7 +21,7 @@ export default function HomeownerProjectViewPage() {
   const [loading, setLoading] = useState(true)
   const [proposalsLoading, setProposalsLoading] = useState(true)
   const [error, setError] = useState('')
-  const [deleting, setDeleting] = useState(false)
+  // Removed unused deleting state
   const [updatingProposal, setUpdatingProposal] = useState<string | null>(null)
 
   useEffect(() => {
@@ -151,7 +151,7 @@ export default function HomeownerProjectViewPage() {
       return
     }
     
-    setDeleting(true)
+    // Removed setDeleting call since deleting state was removed
     
     try {
       const supabase = createClient()
@@ -171,7 +171,7 @@ export default function HomeownerProjectViewPage() {
       console.error('Error deleting homeowner project:', error)
       toast.error('Failed to delete your project')
     } finally {
-      setDeleting(false)
+      // Removed setDeleting call since deleting state was removed
     }
   }
 

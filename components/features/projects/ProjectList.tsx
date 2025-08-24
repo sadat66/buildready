@@ -21,12 +21,16 @@ interface ProjectListProps {
   projects: Project[];
   onPostProject: () => void;
   onProjectClick?: (project: Project) => void;
+  onEditProject?: (project: Project) => void;
+  onDeleteProject?: (project: Project) => void;
 }
 
 export default function ProjectList({
   projects,
   onPostProject,
   onProjectClick,
+  onEditProject,
+  onDeleteProject,
 }: ProjectListProps) {
   const [viewMode, setViewMode] = useState<"table" | "card">("table");
   const [searchQuery, setSearchQuery] = useState("");
@@ -148,6 +152,8 @@ export default function ProjectList({
         <ProjectTable
           projects={paginatedProjects}
           onProjectClick={onProjectClick}
+          onEditProject={onEditProject}
+          onDeleteProject={onDeleteProject}
         />
       ) : (
         <ProjectCard

@@ -3,7 +3,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { useFormContext } from "react-hook-form"
 import { CreateProjectFormInputData } from "@/lib/validation/projects"
-import { VISIBILITY_SETTINGS, PROJECT_STATUSES } from "@/lib/constants"
+import { VISIBILITY_SETTINGS } from "@/lib/constants"
 
 interface FormActionsProps {
   loading: boolean

@@ -5,20 +5,16 @@ import { Project } from "@/types/database/projects";
 import { Proposal } from "@/types/database/proposals";
 import { User } from "@/types/database/auth";
 import { ProjectViewTabs } from "./ProjectViewTabs";
-import { MessagesTabContent } from "./MessagesTabContent";
 import ProjectViewHeader from "./ProjectViewHeader";
-import ProjectImageGallery from "./ProjectImageGallery";
-
-import { Button } from "@/components/ui/button";
-import { Share, Globe } from "lucide-react";
-import { USER_ROLES, PROJECT_STATUSES } from "@/lib/constants";
+// Removed unused imports: ProjectImageGallery, Button, Share, Globe, PROJECT_STATUSES
+import { USER_ROLES } from "@/lib/constants";
 import Breadcrumbs from "@/components/shared/Breadcrumbs";
 import {
   DetailsTabContent,
   ProposalsTabContent,
 } from "@/components/features/projects";
 
-export type TabType = "details" | "proposals" | "messages";
+export type TabType = "details" | "proposals";
 
 interface ProjectViewProps {
   project: Project;
@@ -45,6 +41,7 @@ export default function HomeownerProjectView({
   proposals,
   user,
   userRole,
+  // onEditProject and onDeleteProject are unused but kept for interface compatibility
   onEditProject,
   onDeleteProject,
   onAcceptProposal,
@@ -110,8 +107,6 @@ export default function HomeownerProjectView({
             updatingProposal={updatingProposal}
           />
         );
-      case "messages":
-        return <MessagesTabContent />;
       default:
         return <DetailsTabContent {...commonProps} />;
     }
@@ -121,9 +116,9 @@ export default function HomeownerProjectView({
     const baseTabs: TabType[] = ["details"];
 
     if (userRole === USER_ROLES.HOMEOWNER) {
-      return [...baseTabs, "proposals", "messages"];
+      return [...baseTabs, "proposals"];
     } else if (userRole === USER_ROLES.CONTRACTOR) {
-      return [...baseTabs, "proposals", "messages"];
+      return [...baseTabs, "proposals"];
     }
     return baseTabs;
   };

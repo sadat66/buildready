@@ -14,6 +14,9 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 import { VISIBILITY_SETTINGS_VALUES } from '@/lib/constants'
 import { PROJECT_TYPES, PROJECT_TYPE_VALUES, type ProjectType } from '@/lib/constants/projects'
+import { TRADE_CATEGORY_VALUES } from '@/lib/constants/trades'
+// Removed unused imports FormPhotoInput and FormDocumentInput
+import { supabaseStorageService } from '@/lib/services/SupabaseStorageService'
 import dynamic from 'next/dynamic'
 
 const LocationMap = dynamic(() => import('@/components/features/projects').then(mod => ({ default: mod.LocationMap })), {
@@ -21,14 +24,7 @@ const LocationMap = dynamic(() => import('@/components/features/projects').then(
   loading: () => <div className="h-96 bg-gray-100 rounded-lg flex items-center justify-center">Loading map...</div>
 })
 
-const tradeCategories = [
-  'Electrical',
-  'Framing',
-  'HVAC',
-  'Plumbing',
-  'Roofing',
-  'Masonry'
-] as const
+const tradeCategories = TRADE_CATEGORY_VALUES
 
 const projectTypes = PROJECT_TYPE_VALUES
 
@@ -43,6 +39,10 @@ export default function EditProjectPage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   
+  // Separate state for new file uploads
+  const [newProjectPhotos, setNewProjectPhotos] = useState<File[]>([])
+  const [newFiles, setNewFiles] = useState<File[]>([])
+
   // Form state - Updated to match new schema
   const [formData, setFormData] = useState<{
     project_title: string
@@ -188,6 +188,70 @@ export default function EditProjectPage() {
     try {
       const supabase = createClient()
       
+      // Upload new photos if any
+      const newPhotoReferences: Array<{
+        id: string;
+        filename: string;
+        url: string;
+        size: number;
+        mimeType: string;
+        uploadedAt: Date;
+      }> = []
+      if (newProjectPhotos.length > 0) {
+        for (const file of newProjectPhotos) {
+          try {
+            const uploadResult = await supabaseStorageService.uploadFile(file, {
+              fileType: 'photos',
+              bucket: 'buildready-files'
+            })
+            
+            newPhotoReferences.push({
+              id: crypto.randomUUID(),
+              filename: file.name,
+              url: uploadResult.url,
+              size: uploadResult.size,
+              mimeType: uploadResult.mimeType,
+              uploadedAt: new Date(uploadResult.uploadedAt)
+            })
+          } catch (uploadError) {
+            console.error('Failed to upload photo:', file.name, uploadError)
+            // Continue with other files even if one fails
+          }
+        }
+      }
+      
+      // Upload new documents if any
+      const newFileReferences: Array<{
+        id: string;
+        filename: string;
+        url: string;
+        size: number;
+        mimeType: string;
+        uploadedAt: Date;
+      }> = []
+      if (newFiles.length > 0) {
+        for (const file of newFiles) {
+          try {
+            const uploadResult = await supabaseStorageService.uploadFile(file, {
+              fileType: 'documents',
+              bucket: 'buildready-files'
+            })
+            
+            newFileReferences.push({
+              id: crypto.randomUUID(),
+              filename: file.name,
+              url: uploadResult.url,
+              size: uploadResult.size,
+              mimeType: uploadResult.mimeType,
+              uploadedAt: new Date(uploadResult.uploadedAt)
+            })
+          } catch (uploadError) {
+            console.error('Failed to upload document:', file.name, uploadError)
+            // Continue with other files even if one fails
+          }
+        }
+      }
+      
       // Prepare data for update - match new schema
       const updateData = {
         project_title: formData.project_title,
@@ -213,8 +277,9 @@ export default function EditProjectPage() {
         permit_required: formData.permit_required,
         is_verified_project: formData.is_verified_project,
         certificate_of_title: formData.certificate_of_title,
-        project_photos: formData.project_photos,
-        files: formData.files,
+        // Combine existing files with new uploads
+        project_photos: [...formData.project_photos, ...newPhotoReferences],
+        files: [...formData.files, ...newFileReferences],
         updated_at: new Date()
       }
       
@@ -222,11 +287,21 @@ export default function EditProjectPage() {
         .from('projects')
         .update(updateData)
         .eq('id', id)
-        .eq('creator', user.id)
       
       if (updateError) {
         throw updateError
       }
+      
+      // Clear new file selections after successful upload
+      setNewProjectPhotos([])
+      setNewFiles([])
+      
+      // Update form data to reflect the new files
+      setFormData(prev => ({
+        ...prev,
+        project_photos: [...prev.project_photos, ...newPhotoReferences],
+        files: [...prev.files, ...newFileReferences]
+      }))
       
       router.push(`/homeowner/projects/view/${id}`)
     } catch (error) {
@@ -571,6 +646,125 @@ export default function EditProjectPage() {
                 placeholder="https://example.com/certificate.pdf"
               />
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Project Documentation */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <span>Project Documentation</span>
+            </CardTitle>
+            <CardDescription>
+              Upload photos and documents related to your project
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Display existing photos */}
+            {formData.project_photos.length > 0 && (
+              <div>
+                <Label>Current Project Photos ({formData.project_photos.length})</Label>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-2">
+                  {formData.project_photos.map((photo, index) => (
+                    <div key={index} className="relative">
+                      <img
+                        src={photo.url}
+                        alt={photo.filename}
+                        className="w-full h-24 object-cover rounded-lg border"
+                      />
+                      <p className="text-xs text-gray-500 mt-1 truncate">{photo.filename}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Display existing files */}
+            {formData.files.length > 0 && (
+              <div>
+                <Label>Current Project Files ({formData.files.length})</Label>
+                <div className="space-y-2 mt-2">
+                  {formData.files.map((file, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div>
+                        <p className="text-sm font-medium">{file.filename}</p>
+                        <p className="text-xs text-gray-500">
+                          {file.size ? `${(file.size / 1024 / 1024).toFixed(2)} MB` : 'Unknown size'}
+                        </p>
+                      </div>
+                      {file.url && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => window.open(file.url, '_blank')}
+                        >
+                          View
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* New Photo Upload */}
+            <div>
+              <Label htmlFor="new_photos">Add New Photos</Label>
+              <Input
+                id="new_photos"
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={(e) => {
+                  if (e.target.files) {
+                    setNewProjectPhotos(Array.from(e.target.files))
+                  }
+                }}
+                className="mt-2"
+              />
+              {newProjectPhotos.length > 0 && (
+                <div className="mt-2">
+                  <p className="text-sm text-gray-600">Selected: {newProjectPhotos.length} photo(s)</p>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {newProjectPhotos.map((file, index) => (
+                      <span key={index} className="text-xs bg-gray-100 px-2 py-1 rounded">
+                        {file.name}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* New Document Upload */}
+            <div>
+              <Label htmlFor="new_documents">Add New Documents</Label>
+              <Input
+                id="new_documents"
+                type="file"
+                multiple
+                accept=".pdf,.doc,.docx,.txt,.xls,.xlsx,.ppt,.pptx"
+                onChange={(e) => {
+                  if (e.target.files) {
+                    setNewFiles(Array.from(e.target.files))
+                  }
+                }}
+                className="mt-2"
+              />
+              {newFiles.length > 0 && (
+                <div className="mt-2">
+                  <p className="text-sm text-gray-600">Selected: {newFiles.length} document(s)</p>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {newFiles.map((file, index) => (
+                      <span key={index} className="text-xs bg-gray-100 px-2 py-1 rounded">
+                        {file.name}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+               )}
+             </div>
           </CardContent>
         </Card>
 
