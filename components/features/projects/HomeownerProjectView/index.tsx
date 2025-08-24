@@ -6,11 +6,8 @@ import { Proposal } from "@/types/database/proposals";
 import { User } from "@/types/database/auth";
 import { ProjectViewTabs } from "./ProjectViewTabs";
 import ProjectViewHeader from "./ProjectViewHeader";
-import ProjectImageGallery from "./ProjectImageGallery";
-
-import { Button } from "@/components/ui/button";
-import { Share, Globe } from "lucide-react";
-import { USER_ROLES, PROJECT_STATUSES } from "@/lib/constants";
+// Removed unused imports: ProjectImageGallery, Button, Share, Globe, PROJECT_STATUSES
+import { USER_ROLES } from "@/lib/constants";
 import Breadcrumbs from "@/components/shared/Breadcrumbs";
 import {
   DetailsTabContent,
@@ -44,6 +41,7 @@ export default function HomeownerProjectView({
   proposals,
   user,
   userRole,
+  // onEditProject and onDeleteProject are unused but kept for interface compatibility
   onEditProject,
   onDeleteProject,
   onAcceptProposal,

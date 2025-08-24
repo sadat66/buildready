@@ -11,7 +11,7 @@ import { USER_ROLES } from '@/lib/constants'
 import { PaymentModal } from '@/components/shared/modals'
 import { Breadcrumbs } from '@/components/shared'
 import { LoadingSpinner } from '@/components/shared'
-import ProjectList from '@/components/features/projects/ProjectList'
+// Removed unused import ProjectList
 import ContractorProjectTable from '@/components/features/projects/ContractorProjectTable'
 import { Plus, Search, Grid3X3, Table2, MapPin, DollarSign, Calendar, Building, Eye, FileText } from 'lucide-react'
 import { Button } from '@/components/ui/button'
