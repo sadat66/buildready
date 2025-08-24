@@ -15,8 +15,6 @@ import {
   FileText,
   MapPin,
   AlertCircle,
-  CheckCircle2,
-  XCircle,
   Star,
   Shield,
   Building2,
@@ -27,10 +25,23 @@ import {
   AlertTriangle,
   Info,
 } from "lucide-react";
-import { PROPOSAL_STATUSES, USER_ROLES } from "@/lib/constants";
+import { USER_ROLES } from "@/lib/constants";
 import { formatCurrency } from "@/lib/utils";
 import { createClient } from "@/lib/supabase";
 import { getProposalStatusConfig } from "@/lib/helpers";
+
+interface Location {
+  lat: number;
+  lng: number;
+}
+
+interface Address {
+  street?: string;
+  city?: string;
+  state?: string;
+  zip_code?: string;
+  country?: string;
+}
 
 interface HomeownerProposalData {
   id: string;
@@ -74,7 +85,7 @@ interface HomeownerProposalData {
     project_title: string;
     statement_of_work: string;
     category: string[] | string;
-    location: any;
+    location?: Location;
     status: string;
     budget: number | null;
     start_date: string | null;
@@ -90,7 +101,7 @@ interface HomeownerProposalData {
     business_name?: string;
     license_number?: string;
     insurance_info?: string;
-    address?: any;
+    address?: Address;
     rating?: number;
     completed_projects?: number;
     years_experience?: number;
