@@ -8,6 +8,7 @@ import ContractorStats from './ContractorStats'
 import RecentProposals from './RecentProposals'
 import RecentOpportunities from './RecentOpportunities'
 import { useAuth } from '@/contexts/AuthContext'
+import LoadingSpinner from '@/components/shared/loading-spinner'
 
 interface Proposal {
   id: string
@@ -156,16 +157,13 @@ export default function ContractorDashboard() {
     return (
       <div className="min-h-screen bg-white relative">
         <div className="relative flex items-center justify-center min-h-screen">
-          <div className="text-center space-y-8">
-            {/* Minimalist Loading Spinner */}
-            <div className="relative">
-              <div className="w-16 h-16 border-4 border-gray-200 border-t-orange-500 rounded-full animate-spin"></div>
-            </div>
-            <div className="space-y-4">
-              <h2 className="text-2xl font-bold text-gray-900">Loading Your Dashboard</h2>
-              <p className="text-gray-600">Preparing your contractor overview...</p>
-            </div>
-          </div>
+          <LoadingSpinner 
+            text="Loading Your Dashboard"
+            subtitle="Preparing your contractor overview..."
+            size="lg"
+            variant="default"
+            className="text-center"
+          />
         </div>
       </div>
     )
