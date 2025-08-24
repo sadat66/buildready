@@ -41,7 +41,7 @@ import {
 import HomeownerProposalTable from "@/components/features/projects/HomeownerProposalTable";
 import toast from "react-hot-toast";
 import { Label } from "@/components/ui/label";
-import LoadingSpinner from "@/components/shared/loading-spinner";
+import { LoadingSpinner, Breadcrumbs, SharedPagination, ResultsSummary } from "@/components/shared";
 
 interface Project {
   id: string;
@@ -125,6 +125,8 @@ export default function HomeownerProposalsPage() {
   const [proposalsLoading, setProposalsLoading] = useState(true);
   const [error, setError] = useState("");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -356,33 +358,65 @@ export default function HomeownerProposalsPage() {
     });
   };
 
+  // Pagination logic
+  const totalPages = Math.ceil(filteredProposals.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedProposals = filteredProposals.slice(startIndex, endIndex);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const handleItemsPerPageChange = (value: string) => {
+    setItemsPerPage(Number(value));
+    setCurrentPage(1);
+  };
+
   if (proposalsLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <LoadingSpinner 
-          text="Loading Proposals"
-          subtitle="Fetching your project proposals..."
-          size="lg"
-          variant="default"
-          className="text-center"
-        />
+      <div className="space-y-6">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <LoadingSpinner />
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg text-red-600">{error}</div>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">
+              Project Proposals
+            </h1>
+            <p className="text-muted-foreground">
+              Review and manage proposals from contractors for your projects
+            </p>
+          </div>
+        </div>
+        <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
+          <div className="p-6">
+            <div className="text-center text-red-600">{error}</div>
+          </div>
+        </div>
       </div>
     );
   }
 
   if (!user || userRole !== USER_ROLES.HOMEOWNER) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg">
-          Access denied. Only homeowners can view project proposals.
+      <div className="space-y-6">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              Access Denied
+            </h3>
+            <p className="text-gray-600">
+              Only homeowners can view project proposals.
+            </p>
+          </div>
         </div>
       </div>
     );
@@ -390,88 +424,86 @@ export default function HomeownerProposalsPage() {
 
   return (
     <div className="space-y-6">
+      <div>
+        <Breadcrumbs
+          items={[
+            { label: 'Dashboard', href: '/homeowner/dashboard' },
+            { label: 'Project Proposals', href: '/homeowner/proposals' }
+          ]}
+        />
+      </div>
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-            <FileText className="h-8 w-8" />
+          <h1 className="text-3xl font-bold tracking-tight">
             Project Proposals
           </h1>
-          <p className="text-gray-600 mt-2">
+          <p className="text-muted-foreground">
             Review and manage proposals from contractors for your projects
           </p>
         </div>
       </div>
 
-      {/* Filters */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <Label htmlFor="search" className="text-sm font-medium">
-                Search
-              </Label>
-              <div className="relative mt-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
-                  id="search"
-                  placeholder="Search proposals..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-
-            <div>
-              <Label htmlFor="status-filter" className="text-sm font-medium">
-                Status
-              </Label>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="Filter by status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  {PROJECT_STATUS_VALUES.map((status) => (
-                    <SelectItem key={status} value={status}>
-                      {status}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="project-filter" className="text-sm font-medium">
-                Project
-              </Label>
-              <Select value={projectFilter} onValueChange={setProjectFilter}>
-                <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="Filter by project" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Projects</SelectItem>
-                  {projects.map((project) => (
-                    <SelectItem key={project.id} value={project.id}>
-                      {project.project_title}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+      {/* Controls Bar */}
+      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+        {/* Search and Filters */}
+        <div className="flex flex-col sm:flex-row gap-3 flex-1 max-w-md">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <Input
+              placeholder="Search proposals..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
           </div>
-        </CardContent>
-      </Card>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-full sm:w-32">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="submitted">Submitted</SelectItem>
+              <SelectItem value="viewed">Viewed</SelectItem>
+              <SelectItem value="accepted">Accepted</SelectItem>
+              <SelectItem value="rejected">Rejected</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
 
-      {/* Proposals Table */}
-      <HomeownerProposalTable
-        proposals={filteredProposals}
-        onStatusUpdate={handleStatusUpdate}
-        actionLoading={actionLoading}
-      />
 
-      {/* Empty State */}
+      </div>
+
+     
+
+             {/* Results Summary */}
+       <ResultsSummary
+         startIndex={startIndex}
+         endIndex={endIndex}
+         totalItems={filteredProposals.length}
+         itemsPerPage={itemsPerPage}
+         onItemsPerPageChange={handleItemsPerPageChange}
+       />
+
+              {/* Proposals Table */}
+        <HomeownerProposalTable
+          proposals={paginatedProposals}
+          onStatusUpdate={handleStatusUpdate}
+          actionLoading={actionLoading}
+        />
+
+       {/* Pagination */}
+       {totalPages > 1 && (
+         <SharedPagination
+           currentPage={currentPage}
+           totalPages={totalPages}
+           totalItems={filteredProposals.length}
+           onPageChange={handlePageChange}
+         />
+       )}
+
+       {/* Empty State */}
       {filteredProposals.length === 0 && !proposalsLoading && (
         <Card>
           <CardContent className="pt-6">
