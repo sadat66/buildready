@@ -330,7 +330,7 @@ export default function HomeownerProposalViewPage({
             items={[
               { label: "Dashboard", href: "/homeowner/dashboard" },
               { label: "Proposals", href: "/homeowner/proposals" },
-              { label: `Proposal #${proposal.id.slice(-8)}`, href: "#" },
+              { label: proposal.project_details?.project_title || "Project Proposal", href: "#" },
             ]}
           />
         </div>
@@ -366,23 +366,46 @@ export default function HomeownerProposalViewPage({
             </div>
 
             {/* Quick Decision Actions */}
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Button
-                onClick={handleAcceptProposal}
-                className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 text-lg font-semibold"
-              >
-                <ThumbsUp className="h-5 w-5 mr-2" />
-                Accept
-              </Button>
-              <Button
-                onClick={handleRejectProposal}
-                variant="outline"
-                className="border-red-300 text-red-700 hover:bg-red-50 px-8 py-3 text-lg font-semibold"
-              >
-                <ThumbsDown className="h-5 w-5 mr-2" />
-                Reject
-              </Button>
-            </div>
+            {!proposal.accepted_date && !proposal.rejected_date && (
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Button
+                  onClick={handleAcceptProposal}
+                  className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 text-lg font-semibold"
+                >
+                  <ThumbsUp className="h-5 w-5 mr-2" />
+                  Accept
+                </Button>
+                <Button
+                  onClick={handleRejectProposal}
+                  variant="outline"
+                  className="border-red-300 text-red-700 hover:bg-red-50 px-8 py-3 text-lg font-semibold"
+                >
+                  <ThumbsDown className="h-5 w-5 mr-2" />
+                  Reject
+                </Button>
+              </div>
+            )}
+            
+            {/* Show status message if already decided */}
+            {(proposal.accepted_date || proposal.rejected_date) && (
+              <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-100">
+                {proposal.accepted_date ? (
+                  <>
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                    <span className="text-green-700 font-medium">
+                      Proposal Accepted on {formatDate(proposal.accepted_date)}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <AlertTriangle className="h-5 w-5 text-red-600" />
+                    <span className="text-red-700 font-medium">
+                      Proposal Rejected on {formatDate(proposal.rejected_date!)}
+                    </span>
+                  </>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
