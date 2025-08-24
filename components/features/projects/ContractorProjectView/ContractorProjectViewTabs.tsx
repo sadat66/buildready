@@ -1,7 +1,7 @@
 'use client'
 
 import { Project } from '@/types/database/projects'
-import { Eye, FileText, AlertTriangle } from 'lucide-react'
+import { Eye, AlertTriangle } from 'lucide-react'
 import { ContractorTabType } from '../ContractorProjectView'
 import { cn } from '@/lib/utils'
 
@@ -15,8 +15,7 @@ interface ContractorProjectViewTabsProps {
 export function ContractorProjectViewTabs({ 
   activeTab, 
   onTabChange, 
-  availableTabs, 
-  project 
+  availableTabs
 }: ContractorProjectViewTabsProps) {
   const getTabIcon = (tab: ContractorTabType) => {
     switch (tab) {

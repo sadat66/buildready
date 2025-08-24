@@ -21,8 +21,6 @@ interface ProjectViewProps {
   proposals: Proposal[];
   user: User;
   userRole: (typeof USER_ROLES)[keyof typeof USER_ROLES];
-  onEditProject: () => void;
-  onDeleteProject: () => void;
   onAcceptProposal: (proposalId: string) => Promise<void>;
   onRejectProposal: (
     proposalId: string,
@@ -41,9 +39,6 @@ export default function HomeownerProjectView({
   proposals,
   user,
   userRole,
-  // onEditProject and onDeleteProject are unused but kept for interface compatibility
-  onEditProject,
-  onDeleteProject,
   onAcceptProposal,
   onRejectProposal,
   onViewProposal,

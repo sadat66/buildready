@@ -333,7 +333,6 @@ export default function ContractorProjectsPage() {
       <SharedPagination
         currentPage={currentPage}
         totalPages={totalPages}
-        totalItems={filteredProjects.length}
         onPageChange={handlePageChange}
       />
 

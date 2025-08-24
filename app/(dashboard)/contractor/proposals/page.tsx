@@ -394,7 +394,6 @@ export default function ContractorProposalsPage() {
           <SharedPagination
             currentPage={currentPage}
             totalPages={totalPages}
-            totalItems={filteredProposals.length}
             onPageChange={handlePageChange}
           />
         </>

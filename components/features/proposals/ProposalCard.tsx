@@ -1,6 +1,6 @@
 'use client'
 
-import { Calendar, DollarSign, User, Building, Clock, FileText, Eye, Edit } from 'lucide-react'
+import { DollarSign, User, Building, Clock, Eye, Edit } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -38,8 +38,8 @@ interface ProposalCardProps {
       full_name: string
     }
   }
-  onViewDetails: (proposal: any) => void
-  onEditProposal: (proposal: any) => void
+  onViewDetails: (proposal: ProposalCardProps['proposal']) => void
+  onEditProposal: (proposal: ProposalCardProps['proposal']) => void
   formatDate: (date: string) => string
 }
 

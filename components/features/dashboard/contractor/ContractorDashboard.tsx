@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase'
 import { Project } from '@/types'
 
@@ -45,7 +45,7 @@ export default function ContractorDashboard() {
     ).join(' ')
   }
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const supabase = createClient()
       const currentUser = user || (await supabase.auth.getUser()).data.user
@@ -147,11 +147,11 @@ export default function ContractorDashboard() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [user])
 
   useEffect(() => {
     fetchData()
-  }, [user])
+  }, [fetchData])
 
   if (loading) {
     return (

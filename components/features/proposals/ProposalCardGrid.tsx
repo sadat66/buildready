@@ -36,8 +36,8 @@ interface ProposalCardGridProps {
       full_name: string
     }
   }>
-  onViewDetails: (proposal: any) => void
-  onEditProposal: (proposal: any) => void
+  onViewDetails: (proposal: ProposalCardGridProps['proposals'][0]) => void
+  onEditProposal: (proposal: ProposalCardGridProps['proposals'][0]) => void
   formatDate: (date: string) => string
   onBrowseProjects?: () => void
 }

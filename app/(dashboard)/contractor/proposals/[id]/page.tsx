@@ -84,7 +84,7 @@ interface ContractorProposalData {
     project_title: string
     statement_of_work: string
     category: string[] | string
-    location: any
+    location: { lat: number; lng: number } | null
     status: string
     budget: number | null
     start_date: string | null
@@ -97,7 +97,7 @@ interface ContractorProposalData {
     full_name: string
     email: string
     phone_number?: string
-    address?: any
+    address?: string | null
   }
 }
 
@@ -184,7 +184,7 @@ export default function ContractorProposalViewPage({ params }: { params: Promise
   }, [user, proposalId])
 
   const getStatusConfig = (status: string) => {
-    const statusConfigs: Record<string, { label: string; icon: any; color: string; bgColor: string }> = {
+    const statusConfigs: Record<string, { label: string; icon: React.ComponentType<{ className?: string }>; color: string; bgColor: string }> = {
       [PROPOSAL_STATUSES.SUBMITTED]: { 
         label: 'Submitted', 
         icon: FileText, 
@@ -291,7 +291,7 @@ export default function ContractorProposalViewPage({ params }: { params: Promise
         <div className="text-center">
           <Shield className="h-12 w-12 text-red-500 mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-gray-900 mb-2">Access Denied</h2>
-          <p className="text-gray-600">You don't have permission to view this proposal.</p>
+          <p className="text-gray-600">You don&apos;t have permission to view this proposal.</p>
         </div>
       </div>
     )

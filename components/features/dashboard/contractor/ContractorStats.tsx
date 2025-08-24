@@ -1,6 +1,6 @@
 'use client'
 
-import { Briefcase, Clock, CheckCircle, Target, TrendingUp, DollarSign } from 'lucide-react'
+import { Clock, CheckCircle, Target, DollarSign } from 'lucide-react'
 
 interface ContractorStatsProps {
   stats: {
