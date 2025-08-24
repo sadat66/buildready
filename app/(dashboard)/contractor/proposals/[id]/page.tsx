@@ -320,9 +320,7 @@ export default function ContractorProposalViewPage({ params }: { params: Promise
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-4">
-                <div className={`p-2 rounded-lg ${proposalStatusConfig.bgColor}`}>
-                  <StatusIcon className={`h-5 w-5 ${proposalStatusConfig.color}`} />
-                </div>
+                
                 <Badge className={`${proposalStatusConfig.bgColor} ${proposalStatusConfig.color} border-0`}>
                   {proposalStatusConfig.label}
                 </Badge>
@@ -354,7 +352,7 @@ export default function ContractorProposalViewPage({ params }: { params: Promise
               <Button 
                 onClick={handleViewProject}
                 variant="outline"
-                className="border-gray-300 text-gray-700 hover:bg-gray-50 px-6 py-3"
+                className="border-orange-600 hover:bg-orange-50 text-orange-600 px-6 py-3"
               >
                 <Eye className="h-5 w-5 mr-2" />
                 View Project
