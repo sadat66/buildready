@@ -16,6 +16,7 @@ import { Switch } from '@/components/ui/switch'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Calendar, DollarSign, FileText, Upload, ArrowLeft } from 'lucide-react'
 import toast from 'react-hot-toast'
+import Breadcrumbs from '@/components/shared/Breadcrumbs'
 
 export default function SubmitProposalPage() {
   const { user, userRole, loading } = useAuth()
@@ -341,18 +342,22 @@ export default function SubmitProposalPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6">
+    <div className="max-w-7xl mx-auto p-6 space-y-6">
+      {/* Breadcrumbs */}
+      <div className="mb-4">
+        <Breadcrumbs
+          items={[
+            { label: 'Dashboard', href: '/contractor/dashboard' },
+            { label: 'Projects', href: '/contractor/projects' },
+            { label: project.project_title || 'Project Details', href: `/contractor/projects/view/${project.id}` },
+            { label: 'Submit Proposal', href: '#' }
+          ]}
+        />
+      </div>
+
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => router.back()}
-          className="flex items-center gap-2"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back
-        </Button>
+         
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Submit Proposal</h1>
           <p className="text-gray-600 mt-2">

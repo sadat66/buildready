@@ -5,16 +5,14 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { USER_ROLES } from '@/lib/constants'
 import { createClient } from '@/lib/supabase'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+import { Card, CardContent } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
-import { FileText, Clock, DollarSign, User, Building, Filter, Search, Table as TableIcon, Grid } from 'lucide-react'
-import { formatCurrency } from '@/lib/utils'
-import Breadcrumbs from '@/components/shared/Breadcrumbs'
-import LoadingSpinner from '@/components/shared/loading-spinner'
+import { FileText, Search, Grid3X3, Table2 } from 'lucide-react'
+import { Breadcrumbs, LoadingSpinner, SharedPagination, ResultsSummary } from '@/components/shared'
 import { ContractorProposalTable } from '@/components/features/projects/ContractorProposalTable'
+import { ProposalCardGrid } from '@/components/features/proposals'
 
 export default function ContractorProposalsPage() {
   const { user, userRole, loading } = useAuth()
@@ -172,23 +170,7 @@ export default function ContractorProposalsPage() {
     fetchProposals()
   }, [loading, user, userRole, supabase, router])
 
-  const getStatusVariant = (status: string): "default" | "secondary" | "destructive" | "outline" => {
-    switch (status) {
-      case 'accepted':
-        return 'default'
-      case 'submitted':
-      case 'viewed':
-        return 'secondary'
-      case 'rejected':
-      case 'withdrawn':
-      case 'expired':
-        return 'destructive'
-      case 'draft':
-        return 'outline'
-      default:
-        return 'outline'
-    }
-  }
+
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -198,9 +180,7 @@ export default function ContractorProposalsPage() {
     })
   }
 
-  const handleViewProposal = (proposalId: string) => {
-    router.push(`/contractor/proposals/${proposalId}`)
-  }
+
 
   const handleViewDetails = (proposal: typeof proposals[0]) => {
     router.push(`/contractor/proposals/${proposal.id}`)
@@ -239,10 +219,10 @@ export default function ContractorProposalsPage() {
   const startIndex = (currentPage - 1) * itemsPerPage
   const endIndex = startIndex + itemsPerPage
   const paginatedProposals = filteredProposals.slice(startIndex, endIndex)
-  console.log('paginatedProposals', paginatedProposals)
+
   if (loading || proposalsLoading) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="space-y-6">
         <div className="flex items-center justify-center min-h-[400px]">
           <LoadingSpinner />
         </div>
@@ -252,11 +232,20 @@ export default function ContractorProposalsPage() {
 
   if (error) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-center">
-            <div className="text-lg text-red-600 mb-2">Failed to load proposals</div>
-            <p className="text-gray-600">{error}</p>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">
+              My Proposals
+            </h1>
+            <p className="text-muted-foreground">
+              Track and manage your project proposals
+            </p>
+          </div>
+        </div>
+        <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
+          <div className="p-6">
+            <div className="text-center text-red-600">{error}</div>
           </div>
         </div>
       </div>
@@ -265,11 +254,15 @@ export default function ContractorProposalsPage() {
 
   if (!user || userRole !== USER_ROLES.CONTRACTOR) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="space-y-6">
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
-            <div className="text-lg text-gray-900 mb-2">Access Denied</div>
-            <p className="text-gray-600">Only contractors can view their proposals.</p>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              Access Denied
+            </h3>
+            <p className="text-gray-600">
+              Only contractors can view their proposals.
+            </p>
           </div>
         </div>
       </div>
@@ -277,28 +270,34 @@ export default function ContractorProposalsPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Breadcrumbs */}
+    <div className="space-y-6">
+      <div>
       <Breadcrumbs
         items={[
           { label: 'Dashboard', href: '/contractor/dashboard' },
           { label: 'My Proposals', href: '/contractor/proposals' },
         ]}
       />
+      </div>
 
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">My Proposals</h1>
-        <p className="text-gray-600">Track and manage your project proposals</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">
+            My Proposals
+          </h1>
+          <p className="text-muted-foreground">
+            Track and manage your project proposals
+          </p>
+        </div>
       </div>
 
       {/* Controls Bar */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center flex-1">
-            {/* Search */}
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+        {/* Search and Filters */}
+        <div className="flex flex-col sm:flex-row gap-3 flex-1 max-w-md">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
                 placeholder="Search proposals..."
                 value={searchQuery}
@@ -306,13 +305,9 @@ export default function ContractorProposalsPage() {
                 className="pl-10"
               />
             </div>
-
-            {/* Status Filter */}
-            <div className="flex items-center gap-2">
-              <Filter className="w-4 h-4 text-gray-500" />
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-40">
-                  <SelectValue placeholder="Filter by status" />
+            <SelectTrigger className="w-full sm:w-40">
+              <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
@@ -325,53 +320,39 @@ export default function ContractorProposalsPage() {
                   <SelectItem value="expired">Expired</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
           </div>
 
           {/* View Toggle */}
-          <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 border rounded-lg p-1 bg-muted">
             <Button
-              variant={viewMode === 'table' ? 'default' : 'outline'}
+            variant={viewMode === "table" ? "default" : "ghost"}
               size="sm"
-              onClick={() => setViewMode('table')}
+            onClick={() => setViewMode("table")}
+            className="h-8 px-3"
             >
-              <TableIcon className="w-4 h-4 mr-2" />
-              Table
+            <Table2 className="h-4 w-4" />
             </Button>
             <Button
-              variant={viewMode === 'card' ? 'default' : 'outline'}
+            variant={viewMode === "card" ? "default" : "ghost"}
               size="sm"
-              onClick={() => setViewMode('card')}
+            onClick={() => setViewMode("card")}
+            className="h-8 px-3"
             >
-              <Grid className="w-4 h-4 mr-2" />
-              Cards
+            <Grid3X3 className="h-4 w-4" />
             </Button>
-          </div>
         </div>
       </div>
 
       {/* Results Summary */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-        <div className="text-sm text-gray-600">
-          Showing {startIndex + 1}-{Math.min(endIndex, filteredProposals.length)} of {filteredProposals.length} proposals
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-600">Show:</span>
-          <Select value={itemsPerPage.toString()} onValueChange={handleItemsPerPageChange}>
-            <SelectTrigger className="w-20">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="5">5</SelectItem>
-              <SelectItem value="10">10</SelectItem>
-              <SelectItem value="20">20</SelectItem>
-              <SelectItem value="50">50</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+      <ResultsSummary
+        startIndex={startIndex}
+        endIndex={endIndex}
+        totalItems={filteredProposals.length}
+        itemsPerPage={itemsPerPage}
+        onItemsPerPageChange={handleItemsPerPageChange}
+      />
 
-      {/* Proposals List */}
+      {/* Content */}
       {filteredProposals.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
@@ -391,7 +372,7 @@ export default function ContractorProposalsPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-6">
+        <>
           {viewMode === 'table' ? (
             <ContractorProposalTable
               proposals={paginatedProposals}
@@ -400,138 +381,23 @@ export default function ContractorProposalsPage() {
               onEditProposal={handleEditProposal}
             />
           ) : (
-            <div className="grid gap-6">
-              {paginatedProposals.map((proposal) => (
-                <Card 
-                  key={proposal.id} 
-                  className="hover:shadow-lg transition-shadow cursor-pointer"
-                  onClick={() => handleViewProposal(proposal.id)}
-                >
-                  <CardHeader>
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <CardTitle className="text-xl mb-2">
-                          {proposal.project?.project_title || 'Project Title'}
-                        </CardTitle>
-                        <CardDescription className="text-base">
-                          {proposal.project?.statement_of_work || 'No description available'}
-                        </CardDescription>
-                      </div>
-                      <Badge 
-                        variant={getStatusVariant(proposal.status)}
-                        className="capitalize ml-4"
-                      >
-                        {proposal.status}
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                  
-                  <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                      <div className="flex items-center gap-2">
-                        <DollarSign className="w-4 h-4 text-gray-500" />
-                        <div>
-                          <p className="text-sm text-gray-600">Proposal Amount</p>
-                          <p className="font-semibold">{formatCurrency(proposal.total_amount || 0)}</p>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-2">
-                        <Building className="w-4 h-4 text-gray-500" />
-                        <div>
-                          <p className="text-sm text-gray-600">Project Budget</p>
-                          <p className="font-semibold">{formatCurrency(proposal.project?.budget || 0)}</p>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-2">
-                        <User className="w-4 h-4 text-gray-500" />
-                        <div>
-                          <p className="text-sm text-gray-600">Homeowner</p>
-                          <p className="font-semibold">{proposal.homeowner_details?.full_name || 'Unknown'}</p>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-2">
-                        <Clock className="w-4 h-4 text-gray-500" />
-                        <div>
-                          <p className="text-sm text-gray-600">Submitted</p>
-                          <p className="font-semibold">{formatDate(proposal.created_at)}</p>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* Timeline */}
-                    {(proposal.proposed_start_date || proposal.proposed_end_date) && (
-                      <div className="border-t pt-4">
-                        <p className="text-sm text-gray-600 mb-2">Proposed Timeline</p>
-                        <div className="flex items-center gap-4 text-sm">
-                          {proposal.proposed_start_date && (
-                            <span>
-                              <span className="font-medium">Start:</span> {formatDate(proposal.proposed_start_date)}
-                            </span>
-                          )}
-                          {proposal.proposed_end_date && (
-                            <span>
-                              <span className="font-medium">End:</span> {formatDate(proposal.proposed_end_date)}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                    
-                    {/* Description Preview */}
-                    {proposal.description_of_work && (
-                      <div className="border-t pt-4 mt-4">
-                        <p className="text-sm text-gray-600 mb-1">Work Description</p>
-                        <p className="text-sm text-gray-800 line-clamp-2">
-                          {proposal.description_of_work}
-                        </p>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+            <ProposalCardGrid
+              proposals={paginatedProposals}
+              onViewDetails={handleViewDetails}
+              onEditProposal={handleEditProposal}
+              formatDate={formatDate}
+              onBrowseProjects={() => router.push('/contractor/projects')}
+            />
           )}
 
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-2 mt-8">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-              >
-                Previous
-              </Button>
-              
-              <div className="flex items-center gap-1">
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                  <Button
-                    key={page}
-                    variant={currentPage === page ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => handlePageChange(page)}
-                    className="w-8 h-8 p-0"
-                  >
-                    {page}
-                  </Button>
-                ))}
-              </div>
-              
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-              >
-                Next
-              </Button>
-            </div>
-          )}
-        </div>
+          {/* Shared Pagination */}
+          <SharedPagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={filteredProposals.length}
+            onPageChange={handlePageChange}
+          />
+        </>
       )}
     </div>
   )
