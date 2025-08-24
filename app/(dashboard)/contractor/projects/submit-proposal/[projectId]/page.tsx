@@ -431,7 +431,7 @@ export default function SubmitProposalPage() {
                 id="description_of_work"
                 value={formData.description_of_work}
                 onChange={(e) => handleInputChange('description_of_work', e.target.value)}
-                placeholder="Provide a detailed description of the work you'll perform..."
+                placeholder="Provide a detailed description of the work you&apos;ll perform..."
                 rows={4}
                 required
               />

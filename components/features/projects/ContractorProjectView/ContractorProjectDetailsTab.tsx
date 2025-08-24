@@ -2,7 +2,7 @@
 
 import { Project } from '@/types/database/projects'
 import { User } from '@/types/database/auth'
-import { FileText, Calendar, MapPin, Building2, Clock, DollarSign } from 'lucide-react'
+import { FileText, MapPin, Building2, Clock, DollarSign } from 'lucide-react'
 import { USER_ROLES } from '@/lib/constants'
 import { formatDate, formatCurrency } from '@/lib/utils'
 
@@ -12,7 +12,7 @@ interface ContractorProjectDetailsTabProps {
   userRole: typeof USER_ROLES[keyof typeof USER_ROLES]
 }
 
-export function ContractorProjectDetailsTab({ project, user }: ContractorProjectDetailsTabProps) {
+export function ContractorProjectDetailsTab({ project }: ContractorProjectDetailsTabProps) {
   return (
     <div className="space-y-6 sm:space-y-8">
       {/* Project Description */}

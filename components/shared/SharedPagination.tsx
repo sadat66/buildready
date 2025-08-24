@@ -1,18 +1,10 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 
 interface SharedPaginationProps {
   currentPage: number
   totalPages: number
-  totalItems: number
   onPageChange: (page: number) => void
   className?: string
 }
@@ -20,7 +12,6 @@ interface SharedPaginationProps {
 export default function SharedPagination({
   currentPage,
   totalPages,
-  totalItems,
   onPageChange,
   className = ''
 }: SharedPaginationProps) {

@@ -5,14 +5,12 @@ import { User } from '@/types/database/auth'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { 
-  Calendar, 
   MapPin, 
   DollarSign, 
   Clock, 
   User as UserIcon,
   Send,
-  MessageSquare,
-  Building
+  MessageSquare
 } from 'lucide-react'
 import { getProjectStatusConfig } from '@/lib/helpers'
 import { formatCurrency, formatDate } from '@/lib/utils'
@@ -27,7 +25,6 @@ interface ContractorProjectViewHeaderProps {
 
 export function ContractorProjectViewHeader({
   project,
-  user,
   onSubmitProposal,
   onContactHomeowner
 }: ContractorProjectViewHeaderProps) {

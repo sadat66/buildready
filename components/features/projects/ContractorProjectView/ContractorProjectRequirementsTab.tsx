@@ -21,7 +21,7 @@ interface ContractorProjectRequirementsTabProps {
   userRole: typeof USER_ROLES[keyof typeof USER_ROLES]
 }
 
-export function ContractorProjectRequirementsTab({ project, user }: ContractorProjectRequirementsTabProps) {
+export function ContractorProjectRequirementsTab({ project }: ContractorProjectRequirementsTabProps) {
   return (
     <div className="space-y-6 sm:space-y-8">
       {/* Legal & Verification Requirements */}

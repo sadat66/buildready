@@ -7,41 +7,23 @@ import { Breadcrumbs } from '@/components/shared'
 import { LoadingSpinner } from '@/components/shared'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
-import { Progress } from '@/components/ui/progress'
+
 import { 
-  ArrowLeft, 
   Building, 
   User, 
   DollarSign, 
   Calendar, 
-  Clock, 
   FileText, 
   MapPin, 
-  Check, 
-  X, 
-  Phone, 
-  Mail, 
-  Award, 
-  Timer, 
   AlertCircle, 
   CheckCircle2, 
   XCircle, 
-  Eye, 
-  Send, 
-  Download, 
-  Share2, 
+
   Star, 
   Shield, 
-  TrendingUp, 
-  CalendarDays, 
-  Clock3, 
-  FileSpreadsheet, 
+
   Building2, 
-  UserCheck, 
-  PhoneCall, 
-  MessageSquare, 
-  ExternalLink,
+
   ThumbsUp,
   ThumbsDown,
   Clock4,
@@ -51,7 +33,7 @@ import {
 } from 'lucide-react'
 import { PROJECT_STATUSES, PROPOSAL_STATUSES, USER_ROLES } from '@/lib/constants'
 import { formatCurrency } from '@/lib/utils'
-import { getProjectStatusConfig } from '@/lib/helpers'
+
 
 interface ProposalData {
   id: string
@@ -67,7 +49,7 @@ interface ProposalData {
     project_title: string
     statement_of_work: string
     category: string[] | string
-    location: any
+    location: { lat: number; lng: number } | null
     budget: number
     start_date: string
     end_date: string
@@ -82,7 +64,7 @@ interface ProposalData {
     business_name: string
     license_number: string
     insurance_info: string
-    address: any
+    address: string | null
     rating?: number
     completed_projects?: number
     years_experience?: number
@@ -122,7 +104,7 @@ export default function HomeownerProposalViewPage({ params }: { params: Promise<
             project_title: 'Kitchen Renovation Project',
             statement_of_work: 'Complete kitchen renovation with modern design, new cabinets, granite countertops, and energy-efficient appliances. Includes demolition, installation, and final cleanup.',
             category: ['Renovation', 'Kitchen'],
-            location: { address: '123 Main St', city: 'Toronto', province: 'ON' },
+            location: { lat: 43.6532, lng: -79.3832 },
             budget: 25000,
             start_date: '2024-02-01',
             end_date: '2024-03-15',
@@ -137,7 +119,7 @@ export default function HomeownerProposalViewPage({ params }: { params: Promise<
             business_name: 'Smith Contracting Ltd.',
             license_number: 'LIC-12345',
             insurance_info: 'Fully insured with $2M liability coverage',
-            address: { street: '456 Business Ave', city: 'Toronto', province: 'ON', postal_code: 'M5V 2H1' },
+            address: '456 Business Ave, Toronto, ON M5V 2H1',
             rating: 4.8,
             completed_projects: 127,
             years_experience: 8
@@ -195,7 +177,7 @@ export default function HomeownerProposalViewPage({ params }: { params: Promise<
   }
 
   const getStatusConfig = (status: string) => {
-    const statusConfigs: Record<string, { label: string; icon: any; color: string; bgColor: string }> = {
+    const statusConfigs: Record<string, { label: string; icon: React.ComponentType<{ className?: string }>; color: string; bgColor: string }> = {
       [PROPOSAL_STATUSES.SUBMITTED]: { 
         label: 'Submitted', 
         icon: FileText, 
@@ -264,14 +246,13 @@ export default function HomeownerProposalViewPage({ params }: { params: Promise<
         <div className="text-center">
           <Shield className="h-12 w-12 text-red-500 mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-gray-900 mb-2">Access Denied</h2>
-          <p className="text-gray-600">You don't have permission to view this proposal.</p>
+          <p className="text-gray-600">You don&apos;t have permission to view this proposal.</p>
         </div>
       </div>
     )
   }
 
   const proposalStatusConfig = getStatusConfig(proposal.status)
-  const projectStatusConfig = getProjectStatusConfig(proposal.project_details.status)
   const StatusIcon = proposalStatusConfig.icon
 
   if (decisionMade) {
@@ -281,7 +262,7 @@ export default function HomeownerProposalViewPage({ params }: { params: Promise<
           <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
           <h2 className="text-2xl font-semibold text-gray-900 mb-2">Decision Recorded</h2>
           <p className="text-gray-600 mb-4">
-            Your decision has been recorded. You'll be redirected shortly.
+            Your decision has been recorded. You&apos;ll be redirected shortly.
           </p>
           <div className="animate-pulse">
             <div className="h-2 bg-gray-200 rounded-full mb-2"></div>
@@ -420,7 +401,10 @@ export default function HomeownerProposalViewPage({ params }: { params: Promise<
                   <div className="flex items-center gap-3">
                     <MapPin className="h-4 w-4 text-gray-500" />
                     <span className="text-gray-700">
-                      {proposal.project_details.location?.address}, {proposal.project_details.location?.city}
+                      {proposal.project_details.location ? 
+                        `Lat: ${proposal.project_details.location.lat}, Lng: ${proposal.project_details.location.lng}` : 
+                        'Location not specified'
+                      }
                     </span>
                   </div>
                   <div className="flex items-center gap-3">

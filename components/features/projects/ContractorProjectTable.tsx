@@ -222,7 +222,7 @@ export default function ContractorProjectTable({
       }),
 
     ],
-    [onProjectClick]
+    []
   )
 
   const table = useReactTable({

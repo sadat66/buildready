@@ -498,7 +498,6 @@ export default function HomeownerProposalsPage() {
          <SharedPagination
            currentPage={currentPage}
            totalPages={totalPages}
-           totalItems={filteredProposals.length}
            onPageChange={handlePageChange}
          />
        )}

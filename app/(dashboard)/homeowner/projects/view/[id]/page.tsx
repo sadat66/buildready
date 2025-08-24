@@ -432,8 +432,6 @@ export default function HomeownerProjectViewPage() {
       proposals={proposals}
       user={user as unknown as User}
       userRole={USER_ROLES.HOMEOWNER}
-      onEditProject={handleEditHomeownerProject}
-      onDeleteProject={handleDeleteHomeownerProject}
       onAcceptProposal={handleAcceptContractorProposal}
       onRejectProposal={handleRejectContractorProposal}
       onViewProposal={handleViewContractorProposal}

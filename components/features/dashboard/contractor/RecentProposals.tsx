@@ -9,7 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { CalendarDays, DollarSign, MapPin, Plus, Eye, Edit, Building2, XCircle, MoreHorizontal, Clock, TrendingUp, Star, FileText } from "lucide-react"
+import { CalendarDays, DollarSign, MapPin, Plus, Edit, Building2, XCircle, MoreHorizontal, Clock, Star, FileText, TrendingUp } from "lucide-react"
 import Link from "next/link"
 
 

@@ -9,7 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { CalendarDays, DollarSign, MapPin, Plus, Eye, Edit, Building2, Sparkles, XCircle, MoreHorizontal, Clock, TrendingUp, Star } from "lucide-react"
+import { CalendarDays, DollarSign, MapPin, Plus, Edit, Building2, XCircle, MoreHorizontal, Clock, Star, Eye, TrendingUp } from "lucide-react"
 import Link from "next/link"
 import { Project } from '@/types'
 import ProjectTable from '@/components/features/projects/ProjectTable'
@@ -89,9 +89,10 @@ export default function RecentProjects({ projects, onProjectDeleted }: RecentPro
   const displayProjects = recentProjects.slice(0, 5)
   const { user } = useAuth()
   const router = useRouter()
-  const [deletingProjectId, setDeletingProjectId] = useState<string | null>(null)
+
   const [hasPaid, setHasPaid] = useState(false)
   const [showPaymentModal, setShowPaymentModal] = useState(false)
+  const [deletingProjectId, setDeletingProjectId] = useState<string | null>(null)
 
   // Handle payment success
   const handlePaymentSuccess = () => {

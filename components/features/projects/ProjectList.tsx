@@ -166,7 +166,6 @@ export default function ProjectList({
       <SharedPagination
         currentPage={currentPage}
         totalPages={totalPages}
-        totalItems={filteredProjects.length}
         onPageChange={handlePageChange}
       />
 
