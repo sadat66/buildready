@@ -3,14 +3,14 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Save, ArrowLeft, User, Phone, MapPin } from "lucide-react";
+import { Save, ArrowLeft, Phone, MapPin } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase";
 import toast from "react-hot-toast";
 import { useAuth } from "@/contexts/AuthContext";
 
-import RandomAvatar from "@/components/ui/random-avatar";
+// import RandomAvatar from "@/components/ui/random-avatar";
 
 export function HomeownerProfile() {
   const { user } = useAuth();

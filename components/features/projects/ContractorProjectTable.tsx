@@ -16,7 +16,7 @@ import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 
 import { Project } from '@/types'
-import { PROJECT_STATUSES } from "@/lib/constants"
+import { getProjectStatusConfig } from '@/lib/helpers'
 
 interface ContractorProjectTableProps {
   projects: Project[]
@@ -116,17 +116,9 @@ export default function ContractorProjectTable({
           }
           
           return (
-            <div className="flex flex-wrap gap-1">
-              {categories.slice(0, 2).map((cat, index) => (
-                <Badge key={index} variant="outline" className="bg-gray-50 text-gray-700 border-gray-300 px-2 py-1 text-xs font-medium">
-                  {cat}
-                </Badge>
-              ))}
-              {categories.length > 2 && (
-                <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-300 px-2 py-1 text-xs font-medium">
-                  +{categories.length - 2}
-                </Badge>
-              )}
+            <div className="text-sm text-muted-foreground">
+              {categories.slice(0, 2).join(', ')}
+              {categories.length > 2 && ` +${categories.length - 2} more`}
             </div>
           );
         },
@@ -165,40 +157,7 @@ export default function ContractorProjectTable({
         header: 'Status',
         cell: ({ row }) => {
           const status = row.original.status
-          const statusConfig = {
-            [PROJECT_STATUSES.DRAFT]: { 
-              label: PROJECT_STATUSES.DRAFT, 
-              variant: 'outline' as const, 
-              color: 'bg-gray-50 text-gray-700 border-gray-300' 
-            },
-            [PROJECT_STATUSES.OPEN_FOR_PROPOSALS]: { 
-              label: PROJECT_STATUSES.OPEN_FOR_PROPOSALS, 
-              variant: 'default' as const, 
-              color: 'bg-blue-100 text-blue-800 border-blue-300' 
-            },
-            [PROJECT_STATUSES.PROPOSAL_SELECTED]: { 
-              label: PROJECT_STATUSES.PROPOSAL_SELECTED, 
-              variant: 'secondary' as const, 
-              color: 'bg-green-100 text-green-800 border-green-300' 
-            },
-            [PROJECT_STATUSES.IN_PROGRESS]: { 
-              label: PROJECT_STATUSES.IN_PROGRESS, 
-              variant: 'secondary' as const, 
-              color: 'bg-orange-100 text-orange-800 border-orange-300' 
-            },
-            [PROJECT_STATUSES.COMPLETED]: { 
-              label: PROJECT_STATUSES.COMPLETED, 
-              variant: 'outline' as const, 
-              color: 'bg-gray-900 text-white border-gray-900' 
-            },
-            [PROJECT_STATUSES.CANCELLED]: { 
-              label: PROJECT_STATUSES.CANCELLED, 
-              variant: 'destructive' as const, 
-              color: 'bg-red-100 text-red-800 border-red-300' 
-            },
-          }
-          
-          const config = statusConfig[status as keyof typeof statusConfig] || statusConfig[PROJECT_STATUSES.DRAFT]
+          const config = getProjectStatusConfig(status)
           
           return (
             <Badge variant={config.variant} className={`${config.color} px-2 py-1 text-xs font-medium text-center min-w-[100px] flex items-center justify-center`}>
@@ -263,7 +222,7 @@ export default function ContractorProjectTable({
       }),
 
     ],
-    [onProjectClick]
+    []
   )
 
   const table = useReactTable({

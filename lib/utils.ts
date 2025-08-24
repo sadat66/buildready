@@ -13,3 +13,13 @@ export function formatCurrency(amount: number) {
     maximumFractionDigits: 0,
   }).format(amount)
 }
+
+export function formatDate(date: Date | string) {
+  if (!date) return 'Not specified'
+  const dateObj = typeof date === 'string' ? new Date(date) : date
+  return dateObj.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  })
+}

@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { SharedPagination, ResultsSummary } from "@/components/shared";
 
 import { Project } from "@/types";
 import ProjectTable from "./ProjectTable";
@@ -20,12 +21,16 @@ interface ProjectListProps {
   projects: Project[];
   onPostProject: () => void;
   onProjectClick?: (project: Project) => void;
+  onEditProject?: (project: Project) => void;
+  onDeleteProject?: (project: Project) => void;
 }
 
 export default function ProjectList({
   projects,
   onPostProject,
   onProjectClick,
+  onEditProject,
+  onDeleteProject,
 }: ProjectListProps) {
   const [viewMode, setViewMode] = useState<"table" | "card">("table");
   const [searchQuery, setSearchQuery] = useState("");
@@ -131,36 +136,24 @@ export default function ProjectList({
         </div>
       </div>
 
+
+
       {/* Results Summary */}
-      <div className="flex items-center justify-between text-sm text-muted-foreground">
-        <span>
-          Showing {startIndex + 1}-{Math.min(endIndex, filteredProjects.length)}{" "}
-          of {filteredProjects.length} projects
-        </span>
-        <div className="flex items-center gap-2">
-          <span>Items per page:</span>
-          <Select
-            value={itemsPerPage.toString()}
-            onValueChange={handleItemsPerPageChange}
-          >
-            <SelectTrigger className="w-20 h-8">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="5">5</SelectItem>
-              <SelectItem value="10">10</SelectItem>
-              <SelectItem value="20">20</SelectItem>
-              <SelectItem value="50">50</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+      <ResultsSummary
+        startIndex={startIndex}
+        endIndex={endIndex}
+        totalItems={filteredProjects.length}
+        itemsPerPage={itemsPerPage}
+        onItemsPerPageChange={handleItemsPerPageChange}
+      />
 
       {/* Content */}
       {viewMode === "table" ? (
         <ProjectTable
           projects={paginatedProjects}
           onProjectClick={onProjectClick}
+          onEditProject={onEditProject}
+          onDeleteProject={onDeleteProject}
         />
       ) : (
         <ProjectCard
@@ -169,61 +162,12 @@ export default function ProjectList({
         />
       )}
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between">
-          <div className="text-sm text-muted-foreground">
-            Page {currentPage} of {totalPages}
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-            >
-              Previous
-            </Button>
-
-            {/* Page Numbers */}
-            <div className="flex items-center gap-1">
-              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                let pageNum: number;
-                if (totalPages <= 5) {
-                  pageNum = i + 1;
-                } else if (currentPage <= 3) {
-                  pageNum = i + 1;
-                } else if (currentPage >= totalPages - 2) {
-                  pageNum = totalPages - 4 + i;
-                } else {
-                  pageNum = currentPage - 2 + i;
-                }
-
-                return (
-                  <Button
-                    key={pageNum}
-                    variant={currentPage === pageNum ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => handlePageChange(pageNum)}
-                    className="h-8 w-8 p-0"
-                  >
-                    {pageNum}
-                  </Button>
-                );
-              })}
-            </div>
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
-            >
-              Next
-            </Button>
-          </div>
-        </div>
-      )}
+      {/* Shared Pagination */}
+      <SharedPagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={handlePageChange}
+      />
 
       {/* Empty State */}
       {paginatedProjects.length === 0 && (

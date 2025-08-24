@@ -2,7 +2,7 @@
 
 import { Project } from '@/types/database/projects'
 import { User } from '@/types/database/auth'
-import { FileText, Calendar, Clock, User as UserIcon, MapPin, Building2, CheckCircle, AlertCircle } from 'lucide-react'
+import { FileText, Calendar, User as UserIcon, MapPin, Building2, CheckCircle, AlertCircle } from 'lucide-react'
 import { USER_ROLES } from '@/lib/constants'
 
 interface DetailsTabContentProps {

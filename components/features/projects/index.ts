@@ -10,7 +10,8 @@ export type { ProjectFilters as ProjectFiltersType } from './ProjectFilters'
 
 // ProjectView components
 export { default as HomeownerProjectView } from './HomeownerProjectView'
- export { ProjectViewTabs } from './HomeownerProjectView/ProjectViewTabs'
+export { default as ContractorProjectView } from './ContractorProjectView'
+export { ProjectViewTabs } from './HomeownerProjectView/ProjectViewTabs'
 export { DetailsTabContent } from './HomeownerProjectView/DetailsTabContent'
 export { ProposalsTabContent } from './HomeownerProjectView/ProposalsTabContent'
 

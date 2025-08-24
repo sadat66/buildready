@@ -6,6 +6,7 @@ import { USER_ROLES } from '@/lib/constants'
 import ProjectList from './ProjectList'
 import { Project } from '@/types'
 import { PaymentModal } from '@/components/shared/modals'
+import { createClient } from '@/lib/supabase'
 import toast from 'react-hot-toast'
 
 interface ProjectsPageProps {
@@ -53,12 +54,47 @@ export default function ProjectsPage({ projects, userRole, className = '' }: Pro
     }
   }, [router, userRole])
 
+  const handleEditProject = useCallback((project: Project) => {
+    if (userRole === USER_ROLES.HOMEOWNER) {
+      router.push(`/homeowner/projects/edit/${project.id}`)
+    } else {
+      router.push(`/projects/edit/${project.id}`)
+    }
+  }, [router, userRole])
+
+  const handleDeleteProject = useCallback(async (project: Project) => {
+    if (!confirm('Are you sure you want to delete this project? This action cannot be undone and will remove all associated proposals.')) {
+      return
+    }
+
+    try {
+      const supabase = createClient()
+      const { error } = await supabase
+        .from('projects')
+        .delete()
+        .eq('id', project.id)
+
+      if (error) {
+        throw error
+      }
+
+      toast.success('Project deleted successfully')
+      // Refresh the page to update the project list
+      window.location.reload()
+    } catch (error) {
+      console.error('Error deleting project:', error)
+      toast.error('Failed to delete project')
+    }
+  }, [])
+
   return (
     <div className={`space-y-6 ${className}`}>
       <ProjectList
         projects={projects}
         onPostProject={handlePostProject}
         onProjectClick={handleProjectClick}
+        onEditProject={handleEditProject}
+        onDeleteProject={handleDeleteProject}
       />
       
       <PaymentModal

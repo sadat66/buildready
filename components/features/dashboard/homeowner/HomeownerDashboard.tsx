@@ -1,13 +1,15 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase'
 import { Project } from '@/types'
-import { PROJECT_STATUSES } from "@/lib/constants"
+import { PROJECT_STATUSES } from '@/lib/constants'
+
 
 import ProjectStats from './ProjectStats'
 import RecentProjects from './RecentProjects'
 import { useAuth } from '@/contexts/AuthContext'
+import LoadingSpinner from '@/components/shared/loading-spinner'
 
 export default function HomeownerDashboard() {
   const { user } = useAuth()
@@ -22,7 +24,7 @@ export default function HomeownerDashboard() {
     ).join(' ')
   }
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const supabase = createClient()
       const currentUser = user || (await supabase.auth.getUser()).data.user
@@ -102,11 +104,11 @@ export default function HomeownerDashboard() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [user])
 
   useEffect(() => {
     fetchData()
-  }, [user])
+  }, [fetchData])
 
   // Function to refresh data after project deletion
   const handleProjectDeleted = () => {
@@ -117,16 +119,13 @@ export default function HomeownerDashboard() {
     return (
       <div className="min-h-screen bg-white relative">
         <div className="relative flex items-center justify-center min-h-screen">
-          <div className="text-center space-y-8">
-            {/* Minimalist Loading Spinner */}
-            <div className="relative">
-              <div className="w-16 h-16 border-4 border-gray-200 border-t-orange-500 rounded-full animate-spin"></div>
-            </div>
-            <div className="space-y-4">
-              <h2 className="text-2xl font-bold text-gray-900">Loading Your Dashboard</h2>
-              <p className="text-gray-600">Preparing your construction project overview...</p>
-            </div>
-          </div>
+          <LoadingSpinner 
+            text="Loading Your Dashboard"
+            subtitle="Preparing your construction project overview..."
+            size="lg"
+            variant="default"
+            className="text-center"
+          />
         </div>
       </div>
     )

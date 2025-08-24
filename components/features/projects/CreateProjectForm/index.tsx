@@ -15,7 +15,7 @@ import { VisibilitySettingsSection } from "./VisibilitySettingsSection";
 import { FileUploadSection } from "./FileUploadSection";
 import { FormActions } from "./FormActions";
 import { ErrorDisplay } from "./ErrorDisplay";
-import { toast } from "react-hot-toast";
+// Removed unused toast import
 
 interface CreateProjectFormProps {
   user: ExtendedUser;

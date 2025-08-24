@@ -1,13 +1,13 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect, use } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
-import { createClient } from '@/lib/supabase'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Breadcrumbs } from '@/components/shared'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
+import { Progress } from '@/components/ui/progress'
 import { 
   ArrowLeft, 
   Building, 
@@ -16,20 +16,33 @@ import {
   Calendar, 
   Clock, 
   FileText, 
-  MapPin,
-  Eye,
-  Edit
+  MapPin, 
+  Award, 
+  Timer, 
+  AlertCircle, 
+  CheckCircle2, 
+  XCircle, 
+  Eye, 
+  Shield, 
+  CalendarDays, 
+  Clock3, 
+  Building2, 
+  UserCheck, 
+  Clock4,
+  CheckCircle,
+  AlertTriangle,
+  Info,
+  Edit,
+  FileText as FileTextIcon,
+  Download as DownloadIcon,
+  Building as BuildingIcon
 } from 'lucide-react'
+import { PROJECT_STATUSES, PROPOSAL_STATUSES, USER_ROLES } from '@/lib/constants'
 import { formatCurrency } from '@/lib/utils'
+import { getProjectStatusConfig } from '@/lib/helpers'
+import { createClient } from '@/lib/supabase'
 
-interface ProposalViewPageProps {
-  params: Promise<{
-    id: string
-  }>
-}
-
-// Define a proper type for the proposal data
-interface ProposalData {
+interface ContractorProposalData {
   id: string
   title: string
   description_of_work: string
@@ -43,7 +56,6 @@ interface ProposalData {
   expiry_date: string | null
   status: string
   is_selected: 'yes' | 'no'
-  is_deleted: 'yes' | 'no'
   submitted_date: string | null
   accepted_date: string | null
   rejected_date: string | null
@@ -63,10 +75,6 @@ interface ProposalData {
     uploadedAt?: string
   }>
   notes: string | null
-  agreement: string | null
-  proposals: string[]
-  created_by: string
-  last_modified_by: string
   visibility_settings: string
   project: string
   contractor: string
@@ -75,47 +83,43 @@ interface ProposalData {
     id: string
     project_title: string
     statement_of_work: string
-    category: string
-    location: string
+    category: string[] | string
+    location: { lat: number; lng: number } | null
     status: string
     budget: number | null
+    start_date: string | null
+    end_date: string | null
+    permit_required: boolean
     creator: string
   }
   homeowner_details?: {
     id: string
     full_name: string
     email: string
+    phone_number?: string
+    address?: string | null
   }
 }
 
-export default function ProposalViewPage({ params }: ProposalViewPageProps) {
-  const resolvedParams = React.use(params)
-  const { user, userRole, loading } = useAuth()
+export default function ContractorProposalViewPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
-  const [proposal, setProposal] = useState<ProposalData | null>(null)
-  const [proposalLoading, setProposalLoading] = useState(true)
+  const { user, userRole } = useAuth()
+  const [proposal, setProposal] = useState<ContractorProposalData | null>(null)
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const supabase = createClient()
+
+
+  // Unwrap params using React.use()
+  const resolvedParams = use(params)
+  const proposalId = resolvedParams.id
 
   useEffect(() => {
+    if (!user) return
+
     const fetchProposal = async () => {
-      if (loading) {
-        return
-      }
-
-      if (!user) {
-        router.push('/login')
-        return
-      }
-
-      if (userRole !== 'contractor') {
-        router.push(`/${userRole}/dashboard`)
-        return
-      }
-
       try {
-        setProposalLoading(true)
-        setError(null)
+        setLoading(true)
+        const supabase = createClient()
 
         const { data, error: fetchError } = await supabase
           .from('proposals')
@@ -129,10 +133,13 @@ export default function ProposalViewPage({ params }: ProposalViewPageProps) {
               location,
               status,
               budget,
+              start_date,
+              end_date,
+              permit_required,
               creator
             )
           `)
-          .eq('id', resolvedParams.id)
+          .eq('id', proposalId)
           .eq('contractor', user.id)
           .eq('is_deleted', 'no')
           .single()
@@ -148,7 +155,7 @@ export default function ProposalViewPage({ params }: ProposalViewPageProps) {
         if (data.homeowner) {
           const { data: homeownerData, error: homeownerError } = await supabase
             .from('users')
-            .select('id, full_name, email')
+            .select('id, full_name, email, phone_number, address')
             .eq('id', data.homeowner)
             .single()
           
@@ -157,8 +164,8 @@ export default function ProposalViewPage({ params }: ProposalViewPageProps) {
           }
         }
 
-        // Transform the data to match our ProposalData interface
-        const transformedData: ProposalData = {
+        // Transform the data to match our ContractorProposalData interface
+        const transformedData: ContractorProposalData = {
           ...data,
           project_details: data.project,
           homeowner_details
@@ -166,35 +173,60 @@ export default function ProposalViewPage({ params }: ProposalViewPageProps) {
 
         setProposal(transformedData)
       } catch (err) {
-        console.error('Unexpected error:', err)
-        setError('An unexpected error occurred')
+        setError('Failed to fetch proposal details')
+        console.error('Error fetching proposal:', err)
       } finally {
-        setProposalLoading(false)
+        setLoading(false)
       }
     }
 
     fetchProposal()
-  }, [loading, user, userRole, resolvedParams.id, supabase, router])
+  }, [user, proposalId])
 
-  const getStatusVariant = (status: string): "default" | "secondary" | "destructive" | "outline" => {
-    switch (status) {
-      case 'accepted':
-        return 'default'
-      case 'submitted':
-      case 'viewed':
-        return 'secondary'
-      case 'rejected':
-      case 'withdrawn':
-      case 'expired':
-        return 'destructive'
-      case 'draft':
-        return 'outline'
-      default:
-        return 'outline'
+  const getStatusConfig = (status: string) => {
+    const statusConfigs: Record<string, { label: string; icon: React.ComponentType<{ className?: string }>; color: string; bgColor: string }> = {
+      [PROPOSAL_STATUSES.SUBMITTED]: { 
+        label: 'Submitted', 
+        icon: FileText, 
+        color: 'text-blue-700', 
+        bgColor: 'bg-blue-50' 
+      },
+      [PROPOSAL_STATUSES.ACCEPTED]: { 
+        label: 'Accepted', 
+        icon: CheckCircle2, 
+        color: 'text-green-700', 
+        bgColor: 'bg-green-50' 
+      },
+      [PROPOSAL_STATUSES.REJECTED]: { 
+        label: 'Rejected', 
+        icon: XCircle, 
+        color: 'text-red-700', 
+        bgColor: 'bg-red-50' 
+      },
+      [PROPOSAL_STATUSES.WITHDRAWN]: { 
+        label: 'Withdrawn', 
+        icon: AlertCircle, 
+        color: 'text-gray-700', 
+        bgColor: 'bg-gray-50' 
+      },
+      'viewed': { 
+        label: 'Viewed', 
+        icon: Eye, 
+        color: 'text-purple-700', 
+        bgColor: 'bg-purple-50' 
+      },
+      'draft': { 
+        label: 'Draft', 
+        icon: FileText, 
+        color: 'text-gray-700', 
+        bgColor: 'bg-gray-50' 
+      }
     }
+    return statusConfigs[status] || statusConfigs[PROPOSAL_STATUSES.SUBMITTED]
   }
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return 'Not specified'
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
@@ -202,331 +234,464 @@ export default function ProposalViewPage({ params }: ProposalViewPageProps) {
     })
   }
 
-  if (loading || proposalLoading) {
+  const handleEditProposal = () => {
+    if (proposal) {
+      router.push(`/contractor/projects/submit-proposal/${proposal.project}?edit=${proposal.id}`)
+    }
+  }
+
+
+
+  const handleViewProject = () => {
+    if (proposal?.project_details?.id) {
+      router.push(`/contractor/projects/view/${proposal.project_details.id}`)
+    }
+  }
+
+  if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-slate-50">
-        <div className="text-lg text-slate-600 font-medium">Loading proposal...</div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Loading proposal details...</p>
+        </div>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-slate-50">
-        <div className="text-lg text-red-600 font-medium">Failed to load proposal</div>
-      </div>
-    )
-  }
-
-  if (!user || userRole !== 'contractor') {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-slate-50">
-        <div className="text-lg text-slate-600 font-medium">Access denied. Only contractors can view their proposals.</div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Error Loading Proposal</h2>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <Button onClick={() => router.back()}>Go Back</Button>
+        </div>
       </div>
     )
   }
 
   if (!proposal) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-slate-50">
-        <div className="text-lg text-slate-600 font-medium">Proposal not found</div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Proposal Not Found</h2>
+          <p className="text-gray-600 mb-4">The requested proposal could not be found.</p>
+          <Button onClick={() => router.push('/contractor/proposals')}>View All Proposals</Button>
+        </div>
       </div>
     )
   }
 
+  if (userRole !== USER_ROLES.CONTRACTOR) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Shield className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Access Denied</h2>
+          <p className="text-gray-600">You don&apos;t have permission to view this proposal.</p>
+        </div>
+      </div>
+    )
+  }
+
+  const proposalStatusConfig = getStatusConfig(proposal.status)
+  const projectStatusConfig = proposal.project_details ? getProjectStatusConfig(proposal.project_details.status) : null
+  const StatusIcon = proposalStatusConfig.icon
+
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="space-y-8">
-          {/* Header */}
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-6">
+    <div className="min-h-screen">
+      <div className="max-w-7xl mx-auto px-4 py-6">
+        {/* Breadcrumbs */}
+        <div className="mb-8">
+          <Breadcrumbs
+            items={[
+              { label: 'Dashboard', href: '/contractor/dashboard' },
+              { label: 'Proposals', href: '/contractor/proposals' },
+              { label: `Proposal #${proposal.id.slice(-8)}`, href: '#' }
+            ]}
+          />
+        </div>
+
+        {/* Proposal Header */}
+        <div className="bg-white rounded-xl p-8 mb-8 shadow-sm border border-gray-100">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+            <div className="flex-1">
+              <div className="flex items-center gap-3 mb-4">
+                
+                <Badge className={`${proposalStatusConfig.bgColor} ${proposalStatusConfig.color} border-0`}>
+                  {proposalStatusConfig.label}
+                </Badge>
+                <span className="text-sm text-gray-500">
+                  Submitted {formatDate(proposal.submitted_date)}
+                </span>
+              </div>
+              
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                {proposal.title || 'Proposal Details'}
+              </h1>
+              <p className="text-gray-600 text-lg">
+                For project: {proposal.project_details?.project_title || 'Unknown Project'}
+              </p>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row gap-3">
+              {proposal.status === 'draft' && (
                 <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => router.back()}
-                  className="border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300"
+                  onClick={handleEditProposal}
+                  className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-3"
                 >
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Back
+                  <Edit className="h-5 w-5 mr-2" />
+                  Edit Proposal
                 </Button>
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
-                    <FileText className="h-6 w-6 text-orange-600" />
+              )}
+              
+              <Button 
+                onClick={handleViewProject}
+                variant="outline"
+                className="border-orange-600 hover:bg-orange-50 text-orange-600 px-6 py-3"
+              >
+                <Eye className="h-5 w-5 mr-2" />
+                View Project
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+          {/* Left Column - Proposal & Project Details */}
+          <div className="xl:col-span-2 space-y-6">
+            {/* Financial Summary */}
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 bg-green-50 rounded-lg">
+                  <DollarSign className="h-5 w-5 text-green-600" />
+                </div>
+                <h2 className="text-xl font-semibold text-gray-900">Financial Summary</h2>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="text-center">
+                  <p className="text-sm text-gray-500 mb-1">Your Proposal</p>
+                  <p className="text-3xl font-bold text-gray-900">{formatCurrency(proposal.total_amount || 0)}</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-sm text-gray-500 mb-1">Project Budget</p>
+                  <p className="text-2xl font-semibold text-gray-700">
+                    {proposal.project_details?.budget ? formatCurrency(proposal.project_details.budget) : 'Not specified'}
+                  </p>
+                </div>
+                <div className="text-center">
+                  <p className="text-sm text-gray-500 mb-1">Deposit Required</p>
+                  <p className="text-2xl font-bold text-blue-600">{formatCurrency(proposal.deposit_amount || 0)}</p>
+                </div>
+              </div>
+              
+              <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <span className="text-sm text-gray-600">Subtotal:</span>
+                    <span className="ml-2 font-semibold">{formatCurrency(proposal.subtotal_amount || 0)}</span>
                   </div>
                   <div>
-                    <h1 className="text-3xl font-bold text-slate-900 leading-tight">{proposal.title as string}</h1>
-                    <p className="text-slate-500 mt-2 font-medium">Proposal Details</p>
+                    <span className="text-sm text-gray-600">Tax Included:</span>
+                    <span className="ml-2 font-semibold text-green-600">
+                      {proposal.tax_included === 'yes' ? 'Yes' : 'No'}
+                    </span>
                   </div>
                 </div>
               </div>
-              <div className="flex gap-3">
-                <Badge 
-                  variant={getStatusVariant(proposal.status as string)}
-                  className="capitalize text-sm px-4 py-2 text-base font-medium"
-                >
-                  {proposal.status as string}
-                </Badge>
+            </div>
+
+            {/* Work Description */}
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 bg-blue-50 rounded-lg">
+                  <FileText className="h-5 w-5 text-blue-600" />
+                </div>
+                <h2 className="text-xl font-semibold text-gray-900">Work Description</h2>
+              </div>
+              
+              <p className="text-gray-700 leading-relaxed mb-4">
+                {proposal.description_of_work}
+              </p>
+              
+              {proposal.notes && (
+                <div className="bg-blue-50 rounded-lg p-4">
+                  <h4 className="font-medium text-blue-900 mb-2 flex items-center gap-2">
+                    <Info className="h-4 w-4" />
+                    Additional Notes
+                  </h4>
+                  <p className="text-blue-800">{proposal.notes}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Timeline Details */}
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 bg-purple-50 rounded-lg">
+                  <Calendar className="h-5 w-5 text-purple-600" />
+                </div>
+                <h2 className="text-xl font-semibold text-gray-900">Timeline Details</h2>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="text-center p-4 bg-gray-50 rounded-lg">
+                  <CalendarDays className="h-8 w-8 text-purple-600 mx-auto mb-2" />
+                  <p className="text-sm text-gray-600 mb-1">Proposed Start</p>
+                  <p className="font-semibold text-gray-900">
+                    {formatDate(proposal.proposed_start_date)}
+                  </p>
+                </div>
+                <div className="text-center p-4 bg-gray-50 rounded-lg">
+                  <Clock className="h-8 w-8 text-blue-600 mx-auto mb-2" />
+                  <p className="text-sm text-gray-600 mb-1">Proposed End</p>
+                  <p className="font-semibold text-gray-900">
+                    {formatDate(proposal.proposed_end_date)}
+                  </p>
+                </div>
+                <div className="text-center p-4 bg-gray-50 rounded-lg">
+                  <Timer className="h-8 w-8 text-orange-600 mx-auto mb-2" />
+                  <p className="text-sm text-gray-600 mb-1">Proposal Expires</p>
+                  <p className="font-semibold text-gray-900">
+                    {formatDate(proposal.expiry_date)}
+                  </p>
+                </div>
               </div>
             </div>
+
+            {/* Contract Terms Preview */}
+            {proposal.clause_preview_html && (
+              <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 bg-indigo-50 rounded-lg">
+                    <FileTextIcon className="h-5 w-5 text-indigo-600" />
+                  </div>
+                  <h2 className="text-xl font-semibold text-gray-900">Contract Terms Preview</h2>
+                </div>
+                
+                <div className="bg-indigo-50 rounded-lg p-4">
+                  <p className="text-indigo-800 leading-relaxed">
+                    {proposal.clause_preview_html}
+                  </p>
+                </div>
+              </div>
+            )}
+
+                          {/* Attached Files */}
+              {proposal.attached_files && proposal.attached_files.length > 0 && (
+                <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="p-2 bg-amber-50 rounded-lg">
+                      <DownloadIcon className="h-5 w-5 text-amber-600" />
+                    </div>
+                    <h2 className="text-xl font-semibold text-gray-900">Supporting Documents</h2>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {proposal.attached_files.map((file, index) => (
+                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <FileTextIcon className="h-5 w-5 text-gray-500" />
+                          <div>
+                            <p className="font-medium text-gray-900">{file.filename}</p>
+                            {file.size && (
+                              <p className="text-sm text-gray-500">
+                                {(file.size / 1024 / 1024).toFixed(2)} MB
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        <span className="text-sm text-gray-500">File attached</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Main Content */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* Project Information */}
-              <Card className="border-slate-200 shadow-sm">
-                <CardHeader className="pb-4">
-                  <CardTitle className="flex items-center gap-3 text-slate-800">
-                    <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center">
-                      <Building className="h-4 w-4 text-slate-600" />
+          {/* Right Column - Sidebar */}
+          <div className="space-y-6">
+            {/* Project Summary */}
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 bg-blue-50 rounded-lg">
+                  <BuildingIcon className="h-5 w-5 text-blue-600" />
+                </div>
+                <h2 className="text-xl font-semibold text-gray-900">Project Summary</h2>
+              </div>
+              
+              <div className="space-y-4">
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <h4 className="font-medium text-gray-900 mb-2">Project Details</h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Category:</span>
+                      <span className="font-medium">
+                        {Array.isArray(proposal.project_details?.category) 
+                          ? proposal.project_details.category.join(', ')
+                          : proposal.project_details?.category || 'Not specified'
+                        }
+                      </span>
                     </div>
-                    Project Information
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="p-4 bg-slate-50 rounded-xl">
-                    <h3 className="font-semibold text-lg text-slate-900">{proposal.project_details?.project_title || 'Untitled Project'}</h3>
-                    <p className="text-slate-600 mt-2 leading-relaxed">{proposal.project_details?.statement_of_work || 'No description provided'}</p>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-xl">
-                      <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center">
-                        <Building className="h-4 w-4 text-slate-600" />
-                      </div>
-                      <div>
-                        <p className="text-sm text-slate-500 font-medium">Category</p>
-                        <p className="font-semibold text-slate-900">{proposal.project_details?.category || 'Not specified'}</p>
-                      </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Budget:</span>
+                      <span className="font-medium">
+                        {proposal.project_details?.budget ? formatCurrency(proposal.project_details.budget) : 'Not specified'}
+                      </span>
                     </div>
-                    <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-xl">
-                      <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center">
-                        <MapPin className="h-4 w-4 text-slate-600" />
-                      </div>
-                      <div>
-                        <p className="text-sm text-slate-500 font-medium">Location</p>
-                        <p className="font-semibold text-slate-900">
-                          {proposal.project_details?.location 
-                            ? (() => {
-                                try {
-                                  const location = typeof proposal.project_details.location === 'string' 
-                                    ? JSON.parse(proposal.project_details.location) 
-                                    : proposal.project_details.location;
-                                  return `${location.address || 'Unknown'}, ${location.city || 'Unknown'}, ${location.province || 'Unknown'}`;
-                                } catch {
-                                  return proposal.project_details.location || 'Not specified';
-                                }
-                              })()
-                            : 'Not specified'
-                          }
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-xl">
-                      <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
-                        <DollarSign className="h-4 w-4 text-orange-600" />
-                      </div>
-                      <div>
-                        <p className="text-sm text-slate-500 font-medium">Project Budget</p>
-                        <p className="font-semibold text-slate-900">{formatCurrency(proposal.project_details?.budget || 0)}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-xl">
-                      <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center">
-                        <User className="h-4 w-4 text-slate-600" />
-                      </div>
-                      <div>
-                        <p className="text-sm text-slate-500 font-medium">Homeowner</p>
-                        <p className="font-semibold text-slate-900">{proposal.homeowner_details?.full_name || 'Unknown'}</p>
-                      </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Permit Required:</span>
+                      <span className="font-medium">
+                        {proposal.project_details?.permit_required ? 'Yes' : 'No'}
+                      </span>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-
-              {/* Proposal Details */}
-              <Card className="border-slate-200 shadow-sm">
-                <CardHeader className="pb-4">
-                  <CardTitle className="flex items-center gap-3 text-slate-800">
-                    <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center">
-                      <FileText className="h-4 w-4 text-slate-600" />
-                    </div>
-                    Proposal Details
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="p-4 bg-slate-50 rounded-xl">
-                    <h4 className="font-medium text-slate-900 mb-3">Description of Work</h4>
-                    <p className="text-slate-700 whitespace-pre-wrap leading-relaxed">{proposal.description_of_work as string}</p>
-                  </div>
-                  
-                  {(proposal.notes as string) && (
-                    <div className="p-4 bg-slate-50 rounded-xl">
-                      <h4 className="font-medium text-slate-900 mb-3">Additional Notes</h4>
-                      <p className="text-slate-700 whitespace-pre-wrap leading-relaxed">{proposal.notes as string}</p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Timeline */}
-              <Card className="border-slate-200 shadow-sm">
-                <CardHeader className="pb-4">
-                  <CardTitle className="flex items-center gap-3 text-slate-800">
-                    <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center">
-                      <Calendar className="h-4 w-4 text-slate-600" />
-                    </div>
-                    Project Timeline
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="p-4 bg-slate-50 rounded-xl">
-                      <h4 className="text-sm text-slate-500 font-medium mb-2">Proposed Start Date</h4>
-                      <p className="font-semibold text-slate-900">
-                        {proposal.proposed_start_date ? formatDate(proposal.proposed_start_date as string) : 'Not specified'}
-                      </p>
-                    </div>
-                    <div className="p-4 bg-slate-50 rounded-xl">
-                      <h4 className="text-sm text-slate-500 font-medium mb-2">Proposed End Date</h4>
-                      <p className="font-semibold text-slate-900">
-                        {proposal.proposed_end_date ? formatDate(proposal.proposed_end_date as string) : 'Not specified'}
-                      </p>
-                    </div>
-                    <div className="p-4 bg-slate-50 rounded-xl">
-                      <h4 className="text-sm text-slate-500 font-medium mb-2">Deposit Due Date</h4>
-                      <p className="font-semibold text-slate-900">
-                        {proposal.deposit_due_on ? formatDate(proposal.deposit_due_on as string) : 'Not specified'}
-                      </p>
-                    </div>
-                    <div className="p-4 bg-slate-50 rounded-xl">
-                      <h4 className="text-sm text-slate-500 font-medium mb-2">Proposal Expires</h4>
-                      <p className="font-semibold text-slate-900">
-                        {proposal.expiry_date ? formatDate(proposal.expiry_date as string) : 'Not specified'}
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                </div>
+                
+                <Button 
+                  onClick={handleViewProject}
+                  variant="outline" 
+                  className="w-full"
+                >
+                  <Eye className="h-4 w-4 mr-2" />
+                  View Full Project
+                </Button>
+              </div>
             </div>
 
-            {/* Sidebar */}
-            <div className="space-y-6">
-              {/* Financial Summary */}
-              <Card className="border-slate-200 shadow-sm">
-                <CardHeader className="pb-4">
-                  <CardTitle className="flex items-center gap-3 text-slate-800">
-                    <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
-                      <DollarSign className="h-4 w-4 text-orange-600" />
-                    </div>
-                    Financial Summary
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="p-4 bg-slate-50 rounded-xl">
-                      <div className="flex justify-between items-center mb-3">
-                        <span className="text-slate-600 font-medium">Subtotal</span>
-                        <span className="font-semibold text-slate-900">{formatCurrency(proposal.subtotal_amount || 0)}</span>
-                      </div>
-                      
-                      {proposal.tax_included === 'yes' && (
-                        <div className="flex justify-between items-center mb-3">
-                          <span className="text-slate-600 font-medium">Tax Included</span>
-                          <span className="text-green-600 text-sm font-medium">✓ Yes</span>
-                        </div>
-                      )}
-                      
-                      <Separator className="my-3" />
-                      
-                      <div className="flex justify-between items-center mb-3">
-                        <span className="font-semibold text-slate-900">Total Amount</span>
-                        <span className="font-bold text-lg text-slate-900">{formatCurrency(proposal.total_amount || 0)}</span>
-                      </div>
-                      
-                      <Separator className="my-3" />
-                      
-                      <div className="flex justify-between items-center">
-                        <span className="text-slate-600 font-medium">Deposit Required</span>
-                        <span className="font-semibold text-blue-600">{formatCurrency(proposal.deposit_amount || 0)}</span>
-                      </div>
-                    </div>
+            {/* Proposal Status */}
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 bg-slate-50 rounded-lg">
+                  <Clock className="h-5 w-5 text-slate-600" />
+                </div>
+                <h2 className="text-xl font-semibold text-gray-900">Proposal Status</h2>
+              </div>
+              
+              <div className="space-y-4">
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <div className="mb-4">
+                    <Badge className={`${proposalStatusConfig.bgColor} ${proposalStatusConfig.color} border-0`}>
+                      {proposalStatusConfig.label}
+                    </Badge>
                   </div>
-                </CardContent>
-              </Card>
-
-              {/* Proposal Status */}
-              <Card className="border-slate-200 shadow-sm">
-                <CardHeader className="pb-4">
-                  <CardTitle className="flex items-center gap-3 text-slate-800">
-                    <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center">
-                      <Clock className="h-4 w-4 text-slate-600" />
+                  
+                  <div className="space-y-3 text-sm">
+                    <div>
+                      <span className="text-gray-600">Submitted:</span>
+                      <p className="font-medium">{formatDate(proposal.submitted_date)}</p>
                     </div>
-                    Proposal Status
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="p-4 bg-slate-50 rounded-xl">
-                      <span className="text-sm text-slate-500 font-medium mb-3 block">Current Status</span>
-                      <div className="mb-4">
-                        <Badge 
-                          variant={getStatusVariant(proposal.status)}
-                          className="capitalize px-3 py-2 text-sm font-medium"
-                        >
-                          {proposal.status}
-                        </Badge>
-                      </div>
-                      
-                      <div className="space-y-3">
-                        <div>
-                          <span className="text-sm text-slate-500 font-medium">Submitted</span>
-                          <p className="font-semibold text-slate-900">{formatDate(proposal.submitted_date as string)}</p>
-                        </div>
-                        
-                        <div>
-                          <span className="text-sm text-slate-500 font-medium">Last Updated</span>
-                          <p className="font-semibold text-slate-900">{formatDate(proposal.last_updated as string)}</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Actions */}
-              <Card className="border-slate-200 shadow-sm">
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-slate-800">Actions</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-
                     
-                    {proposal.status === 'draft' && (
+                    <div>
+                      <span className="text-gray-600">Last Updated:</span>
+                      <p className="font-medium">{formatDate(proposal.last_updated)}</p>
+                    </div>
+                    
+                    {proposal.viewed_date && (
+                      <div>
+                        <span className="text-gray-600">Viewed:</span>
+                        <p className="font-medium">{formatDate(proposal.viewed_date)}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Homeowner Information */}
+            {proposal.homeowner_details && (
+              <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 bg-indigo-50 rounded-lg">
+                    <UserCheck className="h-5 w-5 text-indigo-600" />
+                  </div>
+                  <h2 className="text-xl font-semibold text-gray-900">Homeowner</h2>
+                </div>
+                
+                <div className="space-y-4">
+                  <div className="text-center p-4 bg-gray-50 rounded-lg">
+                    <div className="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <UserCheck className="h-6 w-6 text-indigo-600" />
+                    </div>
+                    <h4 className="font-semibold text-gray-900">
+                      {proposal.homeowner_details.full_name}
+                    </h4>
+                    {proposal.homeowner_details.email && (
+                      <p className="text-sm text-gray-600">{proposal.homeowner_details.email}</p>
+                    )}
+                  </div>
+                  
+                  {/* Contact & Actions - Hidden/Commented as requested */}
+                  {/* 
+                  <div className="space-y-3">
+                    <Button 
+                      onClick={handleContactHomeowner}
+                      variant="outline" 
+                      className="w-full"
+                    >
+                      <MessageSquare className="h-4 w-4 mr-2" />
+                      Contact Homeowner
+                    </Button>
+                    
+                    {proposal.homeowner_details.phone_number && (
                       <Button 
                         variant="outline" 
-                        className="w-full border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300"
-                        onClick={() => router.push(`/contractor/projects/submit-proposal/${proposal.project}?edit=${proposal.id}`)}
+                        className="w-full"
                       >
-                        <Edit className="w-4 h-4 mr-2" />
-                        Edit Proposal
+                        <PhoneIcon className="h-4 w-4 mr-2" />
+                        Call Homeowner
                       </Button>
                     )}
-                    
-                    <Button 
-                      variant="outline" 
-                      className="w-full border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300"
-                      onClick={() => router.push('/contractor/proposals')}
-                    >
-                      <ArrowLeft className="w-4 h-4 mr-2" />
-                      Back to Proposals
-                    </Button>
                   </div>
-                </CardContent>
-              </Card>
+                  */}
+                </div>
+              </div>
+            )}
+
+            {/* Actions */}
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 bg-orange-50 rounded-lg">
+                  <Award className="h-5 w-5 text-orange-600" />
+                </div>
+                <h2 className="text-xl font-semibold text-gray-900">Actions</h2>
+              </div>
+              
+              <div className="space-y-3">
+                {proposal.status === 'draft' && (
+                  <Button 
+                    onClick={handleEditProposal}
+                    className="w-full bg-orange-600 hover:bg-orange-700 text-white"
+                  >
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit Proposal
+                  </Button>
+                )}
+                
+                <Button 
+                  onClick={handleViewProject}
+                  variant="outline" 
+                  className="w-full"
+                >
+                  <Eye className="h-4 w-4 mr-2" />
+                  View Project
+                </Button>
+                
+                <Button 
+                  onClick={() => router.push('/contractor/proposals')}
+                  variant="outline" 
+                  className="w-full"
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back to Proposals
+                </Button>
+              </div>
             </div>
           </div>
         </div>
