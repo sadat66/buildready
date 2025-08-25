@@ -175,3 +175,67 @@ export interface ProposalRevisionRequest {
   revision_notes?: string
   requested_by: string
 }
+
+// Extended proposal type with joined data from Supabase queries
+export interface ProposalWithJoins {
+  id: string
+  project: string
+  project_id: string
+  contractor_id: string
+  homeowner: string
+  title: string
+  description_of_work: string
+  subtotal_amount: number
+  tax_included: 'yes' | 'no'
+  total_amount: number
+  deposit_amount: number
+  deposit_due_on: string
+  proposed_start_date: string
+  proposed_end_date: string
+  expiry_date: string
+  status: string
+  is_selected: 'yes' | 'no'
+  is_deleted: 'yes' | 'no'
+  submitted_date?: string
+  accepted_date?: string
+  rejected_date?: string
+  withdrawn_date?: string
+  viewed_date?: string
+  last_updated: string
+  rejected_by?: string
+  rejection_reason?: string
+  rejection_reason_notes?: string
+  clause_preview_html?: string
+  attached_files?: Array<{
+    id: string
+    filename: string
+    url: string
+    size?: number
+    mimeType?: string
+    uploadedAt?: string
+  }>
+  notes?: string
+  agreement?: string
+  proposals: string[]
+  created_by: string
+  last_modified_by: string
+  visibility_settings: 'private' | 'public' | 'shared'
+  created_at: string
+  updated_at: string
+  project_details: {
+    id: string
+    project_title: string
+    statement_of_work: string
+    category: string[]
+    location: Record<string, unknown>
+    status: string
+    budget: number
+  }
+  contractor_profile?: {
+    id: string
+    full_name: string
+    email: string
+    phone_number?: string
+    address?: string
+  }
+}

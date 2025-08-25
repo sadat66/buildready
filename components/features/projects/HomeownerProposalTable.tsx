@@ -21,9 +21,11 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { ArrowUpDown, Eye, CheckCircle, XCircle, Calendar, Clock } from 'lucide-react'
+import { ArrowUpDown, Eye, CheckCircle, XCircle, Calendar, Clock, FileDown } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
 import { PROPOSAL_STATUSES, ProposalStatus } from '@/lib/constants'
+import { generateProposalPDF } from '@/lib/utils/pdfGenerator'
+import toast from 'react-hot-toast'
 
 interface ProposalWithJoins {
   id: string
@@ -338,18 +340,39 @@ export function HomeownerProposalTable({
 
         if (isAccepted || isRejected) {
           return (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={(e) => {
-                e.stopPropagation()
-                router.push(`/homeowner/proposals/${proposal.id}`)
-              }}
-              className="h-8 px-3 text-xs border-orange-200 text-orange-700 hover:bg-orange-50"
-            >
-              <Eye className="h-3 w-3 mr-1" />
-              View Details
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  router.push(`/homeowner/proposals/${proposal.id}`)
+                }}
+                className="h-8 px-3 text-xs border-orange-200 text-orange-700 hover:bg-orange-50"
+              >
+                <Eye className="h-3 w-3 mr-1" />
+                View Details
+              </Button>
+              {isAccepted && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={async (e) => {
+                    e.stopPropagation()
+                    try {
+                      await generateProposalPDF(proposal)
+                      toast.success('PDF generated successfully')
+                    } catch (error) {
+                      toast.error('Failed to generate PDF')
+                    }
+                  }}
+                  className="h-8 px-3 text-xs border-blue-200 text-blue-700 hover:bg-blue-50"
+                >
+                  <FileDown className="h-3 w-3 mr-1" />
+                  PDF
+                </Button>
+              )}
+            </div>
           )
         }
 
