@@ -162,17 +162,14 @@ export function TRPCProvider(props: { children: React.ReactNode }) {
           headers() {
             const headers = new Map<string, string>()
             headers.set('x-trpc-source', 'nextjs-react')
-            
-            // Include cookies for authentication
-            if (typeof window !== 'undefined') {
-              headers.set('cookie', document.cookie)
-            }
-            
             return Object.fromEntries(headers)
           },
-          // Add error handling to prevent unhandled errors
+          // Ensure credentials are included for authentication
           fetch: (url, options) => {
-            return fetch(url, options).catch((error) => {
+            return fetch(url, {
+              ...options,
+              credentials: 'include', // This ensures cookies are sent
+            }).catch((error) => {
               // Prevent fetch errors from bubbling up
               console.error('tRPC fetch error:', error)
               throw new Error('Network error occurred. Please try again.')

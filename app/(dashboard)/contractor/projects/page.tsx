@@ -36,12 +36,42 @@ export default function ContractorProjectsPage() {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [projectsLoading, setProjectsLoading] = useState(true);
   const [error, setError] = useState("");
-  const [hasPaid, setHasPaid] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [intendedAction, setIntendedAction] = useState<
     "view" | "submit-proposal" | null
   >(null);
+  const [hasPaid, setHasPaid] = useState(false);
+  const [paymentLoading, setPaymentLoading] = useState(true);
+
+  // Check user payment status
+  const checkPaymentStatus = async () => {
+    if (!user) return;
+    
+    try {
+      setPaymentLoading(true);
+      const response = await fetch('/api/payments/check-status?userType=contractor', {
+        credentials: 'include',
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setHasPaid(data.hasPaid || false);
+      } else {
+        console.error('Failed to check payment status');
+        setHasPaid(false);
+      }
+    } catch (error) {
+      console.error('Payment status check error:', error);
+      setHasPaid(false);
+    } finally {
+      setPaymentLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    checkPaymentStatus();
+  }, [user]);
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -74,9 +104,11 @@ export default function ContractorProjectsPage() {
 
   // Handle payment success
   const handlePaymentSuccess = () => {
-    setHasPaid(true);
     setShowPaymentModal(false);
     toast.success("Payment successful! You can now access project details.");
+    
+    // Refetch payment status to update UI
+    checkPaymentStatus();
 
     if (selectedProject && intendedAction) {
       if (intendedAction === "view") {

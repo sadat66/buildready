@@ -26,9 +26,8 @@ import {
 import Link from "next/link";
 import { Project } from "@/types";
 import ProjectTable from "@/components/features/projects/ProjectTable";
-import { createClient } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { PaymentModal } from "@/components/shared/modals";
@@ -109,17 +108,50 @@ export default function RecentProjects({
   const { user } = useAuth();
   const router = useRouter();
 
-  const [hasPaid, setHasPaid] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [deletingProjectId, setDeletingProjectId] = useState<string | null>(
     null
   );
+  const [hasPaid, setHasPaid] = useState(false);
+  const [paymentLoading, setPaymentLoading] = useState(true);
+
+  // Check user payment status
+  const checkPaymentStatus = async () => {
+    if (!user) return;
+    
+    try {
+      setPaymentLoading(true);
+      const response = await fetch('/api/payments/check-status?userType=homeowner', {
+        credentials: 'include',
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setHasPaid(data.hasPaid || false);
+      } else {
+        console.error('Failed to check payment status');
+        setHasPaid(false);
+      }
+    } catch (error) {
+      console.error('Payment status check error:', error);
+      setHasPaid(false);
+    } finally {
+      setPaymentLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    checkPaymentStatus();
+  }, [user]);
   console.log(deletingProjectId);
   // Handle payment success
   const handlePaymentSuccess = () => {
-    setHasPaid(true);
     setShowPaymentModal(false);
-    toast.success("Demo payment successful! Redirecting to create project...");
+    toast.success("Payment successful! Redirecting to create project...");
+    
+    // Refetch payment status to update UI
+    checkPaymentStatus();
+    
     router.push("/homeowner/projects/create");
   };
 

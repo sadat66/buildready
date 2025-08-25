@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -16,6 +16,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { useAuth } from '@/contexts/AuthContext'
+
 
 interface RecentOpportunitiesProps {
   projects: Project[]
@@ -55,9 +57,40 @@ function getDaysAgo(date: string | Date) {
 
 export default function RecentOpportunities({ projects }: RecentOpportunitiesProps) {
   const router = useRouter()
-  const [hasPaid, setHasPaid] = useState(false)
+  const { user } = useAuth()
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [selectedProject, setSelectedProject] = useState<Project | null>(null)
+  const [hasPaid, setHasPaid] = useState(false)
+  const [paymentLoading, setPaymentLoading] = useState(true)
+
+  // Check user payment status
+  const checkPaymentStatus = async () => {
+    if (!user) return
+    
+    try {
+      setPaymentLoading(true)
+      const response = await fetch('/api/payments/check-status?userType=contractor', {
+        credentials: 'include',
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        setHasPaid(data.hasPaid || false)
+      } else {
+        console.error('Failed to check payment status')
+        setHasPaid(false)
+      }
+    } catch (error) {
+      console.error('Payment status check error:', error)
+      setHasPaid(false)
+    } finally {
+      setPaymentLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    checkPaymentStatus()
+  }, [user])
   
   // Filter for recent projects (last 30 days) and take top 6
   const displayProjects = projects
@@ -71,9 +104,12 @@ export default function RecentOpportunities({ projects }: RecentOpportunitiesPro
   
   // Handle payment success
   const handlePaymentSuccess = () => {
-    setHasPaid(true)
     setShowPaymentModal(false)
-    toast.success('Demo payment successful! Redirecting to proposal submission...')
+    toast.success('Payment successful! Redirecting to proposal submission...')
+    
+    // Refetch payment status to update UI
+    checkPaymentStatus()
+    
     if (selectedProject) {
       router.push(`/contractor/projects/submit-proposal/${selectedProject.id}`)
     }
