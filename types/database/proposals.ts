@@ -178,6 +178,7 @@ export interface ProposalRevisionRequest {
 
 // Extended proposal type with joined data from Supabase queries
 export interface ProposalWithJoins {
+  tax_total: any
   id: string
   project: string
   project_id: string
